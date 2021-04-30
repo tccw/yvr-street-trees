@@ -1,0 +1,9 @@
+.infopanel {
+    position: absolute;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    background-color: azure;
+    color:black;
+}

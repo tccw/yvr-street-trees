@@ -1,0 +1,104 @@
+body {
+  margin: 0;
+  font-family: Helvetica, Arial, sans-serif;
+}
+#map {
+  width: 100vw;
+  height: 100vh;
+}
+
+.control-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-width: 320px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  padding: 12px 24px;
+  margin: 20px;
+  font-size: 13px;
+  line-height: 2;
+  color: #6b6b76;
+  outline: none;
+  text-transform: capitalize;
+}
+
+label {
+  display: inline-block;
+  width: 100px;
+}
+
+input {
+  margin-left: 20px;
+  width: 160px;
+}
+
+.tooltip {
+  position: absolute;
+  margin: 8px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  max-width: 300px;
+  font-size: 10px;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.infopanel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  color:black;
+  transition: width 2s ease;
+  width: 500px;
+}
+
+@media (max-width: 1200px) {
+  .infopanel {
+    width: 30%;
+    min-width: 300px;
+  }
+  .treeInfoContainer {
+    width: 90%;
+    min-width: inherit;
+  }
+}
+
+.collapsedtoggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 25px;
+}
+
+.dot {
+  height: 15px;
+  width: 15px;
+  vertical-align: middle;
+  padding: 0.2rem;
+  border-radius: 50%;
+  background-color: var(--color);
+}
+
+.treeInfoContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 480px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  padding: 12px 24px;
+  margin: 20px;
+  font-size: 13px;
+  line-height: 2;
+  color: #6b6b76;
+  outline: none;
+}
+
