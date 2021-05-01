@@ -174,9 +174,9 @@ export default function Map() {
             </MapGL>
 
             <ControlPanel year={year} onChange={value => setYear(value)} />
-            <InfoPanel title="Map Panel">    
-                {hoverInfo && hoverInfo.feature.layer.id == "trees" &&
-                        <TreeInfoContainer {...hoverInfo.feature.properties} ></TreeInfoContainer>
+            <InfoPanel title={selected ? titleCase(selected.properties.common_name) : "Map Panel"} color={selected ? selected.properties.color : ''}>    
+                {selected && selected.layer.id == "trees" &&
+                        <TreeInfoContainer {...selected.properties} ></TreeInfoContainer>
                     }            
             </InfoPanel>
             

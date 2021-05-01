@@ -37,6 +37,8 @@ export const centroidLayer = {
   }
 };
 
+
+// to fix later: https://docs.mapbox.com/mapbox-gl-js/style-spec/other/
 export const treesLayer = {
   id: 'trees',
   type: 'circle',
@@ -46,14 +48,34 @@ export const treesLayer = {
           type: 'identity',
           property: 'color'
       },
-      'circle-radius': [
-          'interpolate', ['linear'], ['zoom'],
-          12, ['/', ['+', ['%', 6, ['get', 'diameter']], 10], 4],
-          18, ['/', ['+', ['%', 15, ['get', 'diameter']], 15], 2]
-      ],
+      'circle-radius': {
+        property: 'diameter',
+        stops: [
+          [0, 6],
+          [60, 12]
+        ]
+      },
       'circle-opacity': 0.7            
   }
 };
+
+// export const treesLayer = {
+//   id: 'trees',
+//   type: 'circle',
+//   minzoom: boundaryTrasitionZoomLevel,
+//   paint: {
+//       'circle-color': {
+//           type: 'identity',
+//           property: 'color'
+//       },
+//       'circle-radius': [
+//           'interpolate', ['linear'], ['zoom'],
+//           12, ['/', ['+', ['%', 6, ['get', 'diameter']], 10], 4],
+//           18, ['/', ['+', ['%', 15, ['get', 'diameter']], 15], 2]
+//       ],
+//       'circle-opacity': 0.7            
+//   }
+// };
 
 
 // focus/highlight layers
@@ -77,10 +99,12 @@ export const treesHighlightLayer = {
       'circle-opacity': 0,
       'circle-stroke-width': 3,
       'circle-stroke-color': highlightColor,
-      'circle-radius': [
-        'interpolate', ['linear'], ['zoom'],
-        12, ['/', ['+', ['%', 6, ['get', 'diameter']], 10], 4],
-        18, ['/', ['+', ['%', 15, ['get', 'diameter']], 15], 2]
-    ],  
+      'circle-radius': {
+        property: 'diameter',
+        stops: [
+          [0, 6],
+          [60, 12]
+        ]
+      },  
   }  
 }

@@ -45,30 +45,6 @@ input {
   pointer-events: none;
 }
 
-.infopanel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  color:black;
-  transition: width 2s ease;
-  width: 500px;
-}
-
-@media (max-width: 1200px) {
-  .infopanel {
-    width: 30%;
-    min-width: 300px;
-  }
-  .treeInfoContainer {
-    width: 90%;
-    min-width: inherit;
-  }
-}
 
 .collapsedtoggle {
   position: absolute;
@@ -87,7 +63,7 @@ input {
   background-color: var(--color);
 }
 
-.treeInfoContainer {
+/* .treeInfoContainer {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -100,5 +76,5 @@ input {
   line-height: 2;
   color: #6b6b76;
   outline: none;
-}
+} */
 
