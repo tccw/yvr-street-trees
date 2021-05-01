@@ -9,6 +9,9 @@ const Title = styled.h1`
     color: #63686a;
     margin: 20px;
     border-bottom: 0.5rem solid palegreen;
+    width: -moz-fit-content;
+    width: fit-content;
+    display: table; 
 `;
 
 const Panel = styled.div`
