@@ -8,10 +8,7 @@ const Title = styled.h1`
     text-align: left;
     color: #63686a;
     margin: 20px;
-    text-decoration: underline;
-    text-decoration-color: palegreen;
-    text-decoration-thickness: 0.5rem;
-    text-underline-offset: 0.7rem;
+    border-bottom: 0.5rem solid palegreen;
 `;
 
 const Panel = styled.div`
@@ -22,7 +19,7 @@ const Panel = styled.div`
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #E4EBF5;
+    background-color: #fffef7;
     color:black;
     overflow: hidden;
     transition: ease-in-out 0.3s;
