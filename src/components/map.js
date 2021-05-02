@@ -4,7 +4,8 @@ import styled from 'styled-components';
 import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport} from 'react-map-gl';
 import bbox from '@turf/bbox'
 import ControlPanel from './control-panel';
-import {TreeInfoContainer} from './tree-info-container';
+import {FilterPanel} from './filter-panel';
+import TreeInfoContainer from './tree-info-container';
 import InfoPanel from './info-panel';
 import { MAPBOX_TOKEN, 
          VAN_BOUNDARIES_URL, 
@@ -34,6 +35,21 @@ const ToolTip = styled.div`
     top: ${props => (props.y)}px;
 `;
 
+const FilterToTree = styled.span`
+    font-size: 1.2rem;
+    maring-right: 20px;
+    border-bottom: 0.2rem solid var(--color);
+    float: right;
+    width: -moz-fit-content;
+    width: fit-content;
+    display: table;
+
+    &:hover {
+        color: darkgrey;
+        cursor: pointer;
+    }
+`;
+
 export default function Map() {
 
     const [viewport, setViewport] = useState({
@@ -43,12 +59,12 @@ export default function Map() {
         bearing: 0,
         pitch: 0
     });
-    const [year, setYear] = useState(2015);
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
     const [trees, setTrees]           = useState(null);
     const [hoverInfo, setHoverInfo]   = useState(null);
     const [selected, setSelected]     = useState(null);
+    const [isFiltered, setIsFiltered] = useState(null);
     const [title, setTitle]           = useState(DEFAULT_TITLE)
 
     /* fetch Vancouver tree related data */
@@ -101,7 +117,7 @@ export default function Map() {
         );
     }, []);
 
-    const onClick = event => {
+    const onClickZoom = event => {
         var feature = event.features[0];
         
         if (feature) {            
@@ -110,7 +126,7 @@ export default function Map() {
             // construct a viewport instance from the current state
             const vp = new WebMercatorViewport(viewport);
             // create options based on layer type id
-            var options = {padding: 40, maxZoom:13.5 };
+            var options = {padding: 40, maxZoom:14.5 };
             if (feature.layer.id == 'trees') {
                 options.maxZoom = 17;
             }
@@ -137,21 +153,30 @@ export default function Map() {
             setTitle(titleCase(feature.layer.id == 'trees' ? feature.properties.common_name : feature.properties.name))
           } else {
               setTitle(DEFAULT_TITLE);
+              setIsFiltered(false);
           }
 
           // update selected
           setSelected (feature || null);
     };
 
+    const onClickFilter = () => {
+        setIsFiltered(true)
+    }
+
     var selection = '';
+    var treeType = '';
     if (selected && selected.layer.id == 'boundaries') {
         selection = selected.properties.name;
     } else if (selected && selected.layer.id == 'trees') {
-        selection = selected.properties.tree_id
+        selection = selected.properties.tree_id;
+        treeType = selected.properties.common_name;
     }
 
-    const boundaryFilter = useMemo(() => ['in', 'name', selection], [selection]);
-    const treeFilter = useMemo(() => ['in', 'tree_id', selection], [selection])
+    const boundaryHighlightFilter = useMemo(() => ['in', 'name', selection], [selection]);
+    const treeHighlightFilter = useMemo(() => ['in', 'tree_id', selection], [selection]);
+    // this works but feels like a junky solution
+    const treeTypeFilter = useMemo(() => ['in', 'common_name', treeType], [treeType]);
 
     return (
         <>
@@ -164,18 +189,21 @@ export default function Map() {
                 mapboxApiAccessToken={TOKEN}
                 interactiveLayerIds={['boundaries', 'trees']} // centroids are only labels, not interacitve elements
                 onHover={onHover}
-                onClick={onClick}
+                onClick={onClickZoom}
             >
                 <Source type="geojson" data={boundaries}>
-                    <Layer {...boundariesLayer} />
-                    <Layer {...boundariesHighlightLayer} filter={boundaryFilter}/>
+                    <Layer {...boundariesLayer}/>
+                    <Layer {...boundariesHighlightLayer} filter={boundaryHighlightFilter}/>
                 </Source>
                 <Source type="geojson" data={centroids}>
                     <Layer {...centroidLayer} />
                 </Source>
                 <Source type="geojson" data={trees}>
-                    <Layer {...treesLayer} />
-                    <Layer {...treesHighlightLayer} filter={treeFilter} />
+                    {(treeType && isFiltered)
+                        ? <Layer {...treesLayer} filter={treeTypeFilter}/> 
+                        : <Layer {...treesLayer}/>}
+                    
+                    <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
                 </Source>
                 {hoverInfo && hoverInfo.feature.layer.id == "trees" && (
                 <ToolTip x={hoverInfo.x} y={hoverInfo.y}>
@@ -184,11 +212,17 @@ export default function Map() {
                 )}
             </MapGL>
 
-            <ControlPanel year={year} onChange={value => setYear(value)} />
+            {/* <ControlPanel year={year} onChange={value => setYear(value)} /> */}
+            <FilterPanel></FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
                 {selected && selected.layer.id == "trees" &&
-                        <TreeInfoContainer {...selected.properties} ></TreeInfoContainer>
+                        <TreeInfoContainer {...selected.properties} >
+                            <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
+                                View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
+                            </FilterToTree>
+                        </TreeInfoContainer>
+                        
                     }            
             </InfoPanel>
             

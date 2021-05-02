@@ -23,20 +23,3 @@ body {
   text-transform: capitalize;
   transition: all 0.3s;
 }
-
-.control-panel-collapsed {
-  font-size: 3px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 75px;
-  height: 75px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  margin: 20px;
-  border-radius: 50%;
-  background-color: #fff;
-  transition: all 0.3s;
-  background-image: url(https://www.flaticon.com/svg/vstatic/svg/3442/3442341.svg?token=exp=1619760006~hmac=9ddbe7eaf799802245cf90962e1b6a4b);
-  background-repeat: no-repeat;
-  background-size: contain;
-}

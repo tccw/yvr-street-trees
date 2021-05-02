@@ -51,9 +51,10 @@ const TreeDtailValue = styled.span`
 `;
 
 
-export const TreeInfoContainer = (props) => {
 
-    const {genus_name, species_name, tree_id, diameter, civic_number, on_street, height_range_id} = props;
+const TreeInfoContainer = (props) => {
+
+    const {genus_name, species_name, tree_id, diameter, common_name, civic_number, on_street, height_range_id} = props;
 
     var listValues = {
         'Tree ID' : tree_id,
@@ -77,9 +78,12 @@ export const TreeInfoContainer = (props) => {
     return (
         <StyledTreeInfo>
             <StyledScientificName>{`${titleCase(genus_name)} ${species_name.toLowerCase()}`}</StyledScientificName>
-                <TreeDetailsList>
-                    {treeDetails}
-                </TreeDetailsList>
+            <TreeDetailsList>
+                {treeDetails}
+            </TreeDetailsList>
+            {props.children}
         </StyledTreeInfo>    
     ); 
 }
+
+export default React.memo(TreeInfoContainer); // look into if memoizing this results in worse performance

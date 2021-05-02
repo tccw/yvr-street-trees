@@ -2,7 +2,6 @@ import { feature } from '@turf/helpers';
 import * as React from 'react'
 import { useState } from 'react'
 import styled from 'styled-components'
-// import * as componentStyles from '../cssmodules/infopanel.module.css'
 
 const Title = styled.h1`
     text-align: left;
@@ -47,6 +46,7 @@ const Button = styled.button`
     justify-content: center;
     cursor: pointer;
     transition: .3s ease;
+    outline: none;
 `;
 
 const Dot = styled.div`
@@ -73,8 +73,7 @@ function InfoPanel(props) {
                         <Title>
                             {props.title}
                             {props.color && <Dot color={props.color}></Dot>} 
-                        </Title>
-                                           
+                        </Title>                 
                     {props.children}
             </Panel>
             {/* temporary toggle button */}
