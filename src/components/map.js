@@ -13,7 +13,7 @@ import { MAPBOX_TOKEN,
          WEST_POINT_TREES_URL, 
          VAN_ALL_TREES_URL } from '../../env'
 
-import { titleCase, heightStringFromID } from '../utils';
+import { titleCase, heightStringFromID, treeFilterCompositor } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
@@ -36,7 +36,7 @@ const ToolTip = styled.div`
 `;
 
 const FilterToTree = styled.span`
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     maring-right: 20px;
     border-bottom: 0.2rem solid var(--color);
     float: right;
@@ -66,6 +66,7 @@ export default function Map() {
     const [selected, setSelected]     = useState(null);
     const [isFiltered, setIsFiltered] = useState(null);
     const [title, setTitle]           = useState(DEFAULT_TITLE)
+    const [treeFilterObject, setTreeFilterObject] = useState(null)
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -173,10 +174,10 @@ export default function Map() {
         treeType = selected.properties.common_name;
     }
 
-    const boundaryHighlightFilter = useMemo(() => ['in', 'name', selection], [selection]);
-    const treeHighlightFilter = useMemo(() => ['in', 'tree_id', selection], [selection]);
+    const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
+    const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
     // this works but feels like a junky solution
-    const treeTypeFilter = useMemo(() => ['in', 'common_name', treeType], [treeType]);
+    const treeTypeFilter = useMemo(() => treeFilterCompositor({trees: treeType}), [treeType]);
 
     return (
         <>
@@ -211,8 +212,7 @@ export default function Map() {
                 </ToolTip>
                 )}
             </MapGL>
-
-            {/* <ControlPanel year={year} onChange={value => setYear(value)} /> */}
+            
             <FilterPanel></FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
