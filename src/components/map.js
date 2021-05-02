@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {useState, useEffect, useMemo, useCallback} from 'react';
+import styled from 'styled-components';
 import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport} from 'react-map-gl';
 import bbox from '@turf/bbox'
 import ControlPanel from './control-panel';
@@ -11,11 +12,27 @@ import { MAPBOX_TOKEN,
          WEST_POINT_TREES_URL, 
          VAN_ALL_TREES_URL } from '../../env'
 
-import { titleCase, heightStringFromID } from '../utils'
+import { titleCase, heightStringFromID } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
+const DEFAULT_TITLE = `Vancouver's Street Trees`;
 
+const ToolTip = styled.div`
+    position: absolute;
+    margin: 8px;
+    padding: 4px;
+    border-radius: 5%;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    max-width: 300px;
+    font-size: 14px;
+    z-index: 9;
+    pointer-events: none;
+    text-transform: capitalize;
+    left: ${props => (props.x)}px;
+    top: ${props => (props.y)}px;
+`;
 
 export default function Map() {
 
@@ -32,6 +49,7 @@ export default function Map() {
     const [trees, setTrees]           = useState(null);
     const [hoverInfo, setHoverInfo]   = useState(null);
     const [selected, setSelected]     = useState(null);
+    const [title, setTitle]           = useState(DEFAULT_TITLE)
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -85,10 +103,7 @@ export default function Map() {
 
     const onClick = event => {
         var feature = event.features[0];
-        // inelegant check to make sure the boundary polygon gets selected if the centroid is clicked
-        if (feature && feature.layer.id == 'centroids') {
-            feature = event.features[1];
-        }
+        
         if (feature) {            
             // calculate the bounding box of the feature
             const [minLng, minLat, maxLng, maxLat] = bbox(feature);
@@ -118,18 +133,22 @@ export default function Map() {
               }),
               transitionDuration: 650
             });
+
+            setTitle(titleCase(feature.layer.id == 'trees' ? feature.properties.common_name : feature.properties.name))
+          } else {
+              setTitle(DEFAULT_TITLE);
           }
 
           // update selected
           setSelected (feature || null);
     };
+
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
         selection = selected.properties.name;
     } else if (selected && selected.layer.id == 'trees') {
         selection = selected.properties.tree_id
     }
-    // const selection = (selected && selected.layer.id == 'boundaries' && selected.properties.name) || ''; 
 
     const boundaryFilter = useMemo(() => ['in', 'name', selection], [selection]);
     const treeFilter = useMemo(() => ['in', 'tree_id', selection], [selection])
@@ -143,7 +162,7 @@ export default function Map() {
                 mapStyle="mapbox://styles/tcowan/cknw84ogv1a3c17o0k0k9sd4y?optimize=true"
                 onViewportChange={setViewport}
                 mapboxApiAccessToken={TOKEN}
-                interactiveLayerIds={['boundaries', 'centroids', 'trees']}
+                interactiveLayerIds={['boundaries', 'trees']} // centroids are only labels, not interacitve elements
                 onHover={onHover}
                 onClick={onClick}
             >
@@ -159,22 +178,15 @@ export default function Map() {
                     <Layer {...treesHighlightLayer} filter={treeFilter} />
                 </Source>
                 {hoverInfo && hoverInfo.feature.layer.id == "trees" && (
-                <div className="tooltip" style={{left: hoverInfo.x, top: hoverInfo.y}}>
-                    <div>Name: {titleCase(hoverInfo.feature.properties.common_name)}</div>
-                    {hoverInfo.feature.properties.diameter && 
-                    <div>Diameter: {`${hoverInfo.feature.properties.diameter} in`}</div>}
-                    {hoverInfo.feature.properties.height_range_id && 
-                    <div>Height: {heightStringFromID(hoverInfo.feature.properties.height_range_id)}</div>}
-                    {hoverInfo.feature.properties.civic_number && 
-                    <div> Address: {`${hoverInfo.feature.properties.civic_number} ${hoverInfo.feature.properties.on_street}`}</div>}
-                    {hoverInfo.feature.properties.tree_id && 
-                    <div>Tree ID: {hoverInfo.feature.properties.tree_id}</div>}
-                </div>
+                <ToolTip x={hoverInfo.x} y={hoverInfo.y}>
+                    <div>{titleCase(hoverInfo.feature.properties.common_name)}</div>
+                </ToolTip>
                 )}
             </MapGL>
 
             <ControlPanel year={year} onChange={value => setYear(value)} />
-            <InfoPanel title={selected ? titleCase(selected.properties.common_name) : "Vancouver's Street Trees"} color={selected ? selected.properties.color : ''}>    
+            <InfoPanel title={title} 
+                       color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
                 {selected && selected.layer.id == "trees" &&
                         <TreeInfoContainer {...selected.properties} ></TreeInfoContainer>
                     }            

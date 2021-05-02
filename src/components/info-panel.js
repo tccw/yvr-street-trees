@@ -12,6 +12,7 @@ const Title = styled.h1`
     width: -moz-fit-content;
     width: fit-content;
     display: table; 
+    text-transform: capitalize;
 `;
 
 const Panel = styled.div`

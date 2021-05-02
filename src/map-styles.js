@@ -25,9 +25,9 @@ export const centroidLayer = {
                       { 'font-scale': 1.1 },  
                       '\n',
                       {},
-                      ['get', 'tree_count'],
+                      ["number-format", ['get', 'tree_count'], {'local': 'string'}],
                       {
-                          'font-scale': 0.9,
+                          'font-scale': 0.85,
                       }
                   ],
     'text-font': ['Open Sans Bold']
@@ -58,24 +58,6 @@ export const treesLayer = {
       'circle-opacity': 0.7            
   }
 };
-
-// export const treesLayer = {
-//   id: 'trees',
-//   type: 'circle',
-//   minzoom: boundaryTrasitionZoomLevel,
-//   paint: {
-//       'circle-color': {
-//           type: 'identity',
-//           property: 'color'
-//       },
-//       'circle-radius': [
-//           'interpolate', ['linear'], ['zoom'],
-//           12, ['/', ['+', ['%', 6, ['get', 'diameter']], 10], 4],
-//           18, ['/', ['+', ['%', 15, ['get', 'diameter']], 15], 2]
-//       ],
-//       'circle-opacity': 0.7            
-//   }
-// };
 
 
 // focus/highlight layers

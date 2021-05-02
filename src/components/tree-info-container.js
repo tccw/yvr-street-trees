@@ -7,7 +7,6 @@ const StyledTreeInfo = styled.section`
     top: 1rem;
     width: inheret;
     backgroud: white;
-    box-shadow: .2rem .2rem .4rem #c8d0e7, -.2rem -.2rem .5rem white;
     margin: 20px;
     font-size: 13px;
     line-height: 2;
@@ -47,29 +46,28 @@ const TreeDetailKey = styled.span`
 
 const TreeDtailValue = styled.span`
     flex: 2;
-    text-align: right;
     font-size: 0.9rem;
-    color: palegreen;
-    float: right;
+    color: darkgreen;   
 `;
+
 
 export const TreeInfoContainer = (props) => {
 
     const {genus_name, species_name, tree_id, diameter, civic_number, on_street, height_range_id} = props;
 
     var listValues = {
-        'Tree ID Number' : tree_id,
-        'Approximate Height' : `${heightStringFromID(height_range_id)}`,
+        'Tree ID' : tree_id,
+        'Height' : `${heightStringFromID(height_range_id)}`,
         'Diameter': `${diameter} inches`,
-        'Closest Address': `${civic_number} ${on_street}`
+        'Address': `${civic_number} ${on_street}`
     }
 
     var treeDetails = [];
     for (const [key, value] of Object.entries(listValues)) {
         treeDetails.push(
-            <TreeListElement>
+            <TreeListElement key={key}>
                 <TreeDetail>
-                    <TreeDetailKey>{key}</TreeDetailKey>
+                    <TreeDetailKey>{key}</TreeDetailKey> 
                     <TreeDtailValue>{value}</TreeDtailValue>
                 </TreeDetail>
             </TreeListElement>
@@ -84,5 +82,4 @@ export const TreeInfoContainer = (props) => {
                 </TreeDetailsList>
         </StyledTreeInfo>    
     ); 
-
 }
