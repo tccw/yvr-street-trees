@@ -25,6 +25,24 @@ export function heightStringFromID(height_range_id) {
 
 
 /**
+ * 
+ * @param {Object} treeGeoJSON 
+ * @returns {Map} a map of the common tree names and their mapped color
+ */
+export function getUniqueTreeNames(treeGeoJSON) { // will need to be updated to vector tiles after transition
+  let  uniqueCommonNames = new Map();
+  // console.log(treeGeoJSON);
+  treeGeoJSON.features.forEach((entry) => {
+    uniqueCommonNames[entry.properties.common_name] = entry.properties.color;
+  });
+
+  // console.log(uniqueCommonNames);
+
+  return uniqueCommonNames;
+}
+
+
+/**
  * Generates a properly formatted filter object to pass to a MapGL <Layer/> component
  * 
  * @param {number[]} diameters A list of diameters to filter by (should be the upper range of the 6 inche provided ranges)

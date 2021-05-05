@@ -12,7 +12,7 @@ import { MAPBOX_TOKEN,
          WEST_POINT_TREES_URL, 
          VAN_ALL_TREES_URL } from '../../env'
 
-import { titleCase, heightStringFromID, treeFilterCompositor } from '../utils';
+import { titleCase, getUniqueTreeNames, treeFilterCompositor } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
@@ -61,9 +61,9 @@ export default function Map() {
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
     const [trees, setTrees]           = useState(null);
+    const [treeNames, setTreeNames]   = useState(null);
     const [hoverInfo, setHoverInfo]   = useState(null);
     const [selected, setSelected]     = useState(null);
-    const [isFiltered, setIsFiltered] = useState(null);
     const [title, setTitle]           = useState(DEFAULT_TITLE)
     const [treeFilterObject, setTreeFilterObject] = useState({trees: null, diameters: null, height_ids: null})
 
@@ -93,7 +93,10 @@ export default function Map() {
     useEffect(() => {
         fetch( WEST_POINT_TREES_URL || VAN_ALL_TREES_URL )
         .then(response => response.json())
-        .then(json => setTrees(json))
+        .then((json) => {
+            setTrees(json);
+            setTreeNames(getUniqueTreeNames(json));
+        })
         .catch((error) => {
             console.error('Error:', error);
         });
@@ -138,7 +141,7 @@ export default function Map() {
               ],
               options
             );
-      
+        
             // update the viewport  
             setViewport({
               ...viewport,
@@ -154,20 +157,13 @@ export default function Map() {
             setTitle(titleCase(feature.layer.id == 'trees' ? feature.properties.common_name : feature.properties.name))
           } else {
               setTitle(DEFAULT_TITLE);
-              setIsFiltered(false);
           }
 
           // update selected
-          
           setSelected (feature || null);
-          
-        //   setTreeFilterObject((feature && feature.layer.id == 'trees') 
-        //                         ? {...treeFilterObject, trees: [feature.properties.common_name]} // only replace the trees object
-        //                         : {...treeFilterObject, trees: null});
     };
 
     const onClickFilter = () => {
-        setIsFiltered(true)
         setTreeFilterObject(selected 
                                 ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
                                 : {...treeFilterObject , trees: null});
@@ -195,7 +191,7 @@ export default function Map() {
 
     const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
     const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
-    
+    console.log(treeNames);
     return (
         <>
             <MapGL
@@ -217,14 +213,7 @@ export default function Map() {
                     <Layer {...centroidLayer} />
                 </Source>
                 <Source type="geojson" data={trees}>
-                    <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/> 
-                    {/* {(isFiltered) 
-                        ? <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/> 
-                        // ? <Layer {...treesLayer} filter={treeFilterCompositor({trees: ['JAPANESE FLOWERING CRABAPLE'],
-                        //                                                         diameters: [12],
-                        //                                                         heights: [0,1,2,3,4,5,6,7,8,9,10]})}/> 
-                        : <Layer {...treesLayer}/>} */}
-                    
+                    <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/>                     
                     <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
                 </Source>
                 {hoverInfo && hoverInfo.feature.layer.id == "trees" && (
@@ -234,7 +223,9 @@ export default function Map() {
                 )}
             </MapGL>
             
-            <FilterPanel currentState={treeFilterObject} updateParent={(props) => setTreeFilterObject({...props})}></FilterPanel>
+            <FilterPanel currentState={treeFilterObject} 
+                         updateParent={(props) => setTreeFilterObject({...props})}
+                         treeNamesAndColors={treeNames} > Filter Panel </FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
                 {selected && selected.layer.id == "trees" &&

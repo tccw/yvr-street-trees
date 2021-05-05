@@ -17,6 +17,7 @@ const StyledFilterPanel = styled.div`
     width: fit-content;
     display: flex;
     flex-direction: row;
+    max-height: 400px;
     
 `;
 
@@ -32,6 +33,8 @@ const StyledFilterBoxes = styled.span`
     flex-direction: column;
     height: -moz-fit-content;
     height: fit-content;
+    max-height: 360px;
+    overflow: scroll;
 `;
 
 const StyledCheckBox = styled.input`
@@ -59,6 +62,16 @@ const StyledCheckBox = styled.input`
     }
 `;
 
+const Dot = styled.div`
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    background-color: ${props => (props.color)};
+    display: inline-block;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+`;
+
 const diameterChoices = [ 'Under 6 inches',  '6 to 12 inches', 
                           '12 to 18 inches', '18 to 24 inches',
                           '24 to 30 inches', '30 to 36 inches', 
@@ -72,7 +85,7 @@ const heightChoices = [ 'Under 10 feet', '10 to 20 feet',
                         'Over 100 feet'];
 
 // pass the treeFilter setter to this component to set parent state
-export function FilterPanel({currentState, updateParent}) {
+export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
     const [isExpanded, setIsExpanded] = React.useState(false)
     // make an object with keys from the array, all values are true
     const [diameterBoxState, setDiameterBoxState] = useState(diameterChoices.reduce(
@@ -122,15 +135,15 @@ export function FilterPanel({currentState, updateParent}) {
         }       
     
         updateParent({...currentState, 
-                         diameters: diameterArray.length == 0 ? null : diameterArray,
-                         height_ids: heightArray.length == 0? null : heightArray});
+                         diameters: diameterArray.length ? diameterArray: [-1], // filter to [-1] as no trees will match this
+                         height_ids: heightArray.length ? heightArray : [-1]});
     }
     
     useEffect(() => {
         setFilterState();
     }, [heightBoxState, diameterBoxState]);
 
-    var diameterCheckboxes = diameterChoices.map((label, i) => {
+    let diameterCheckboxes = diameterChoices.map((label, i) => {
         return (
             <label key={i} >
                 <input type='checkbox' id={label} value={(i + 1) * 6}
@@ -139,7 +152,8 @@ export function FilterPanel({currentState, updateParent}) {
             </label>
         )
     });
-    var heightCheckboxes = heightChoices.map((label, i) => {
+
+    let heightCheckboxes = heightChoices.map((label, i) => {
         return (
             <label key={i}>
                 <input type='checkbox' id={label} value={i} 
@@ -148,6 +162,20 @@ export function FilterPanel({currentState, updateParent}) {
             </label>
         )
     });
+
+    let treeCommonNameList = null;
+    if (treeNamesAndColors) {
+        treeCommonNameList = [];
+        for (const [key, value] of Object.entries(treeNamesAndColors)) {
+            treeCommonNameList.push(
+                <span style={{color: {value}}}>
+                    <Dot color={value}></Dot>
+                    {key}
+                </span>
+            )
+        }
+    }
+
 
     return (
         <StyledFilterPanel>
@@ -158,6 +186,10 @@ export function FilterPanel({currentState, updateParent}) {
             <StyledFilterBoxes>
                 <b>By tree height</b>
                 {heightCheckboxes}
+            </StyledFilterBoxes>
+            <StyledFilterBoxes>
+                <b>By tree name</b>
+                { treeCommonNameList && treeCommonNameList}
             </StyledFilterBoxes>
         </StyledFilterPanel>
     )
