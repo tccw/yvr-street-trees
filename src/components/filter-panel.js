@@ -119,13 +119,7 @@ export function FilterPanel({currentState, updateParent}) {
             if (value.checked) {
                 heightArray.push(value.value);
             }
-        }
-        console.log(heightBoxState);
-        console.log(diameterBoxState);
-
-        // console.log(`Heights: ${heightArray}`);
-        // console.log(`Diameter: ${diameterArray}`);
-       
+        }       
     
         updateParent({...currentState, 
                          diameters: diameterArray.length == 0 ? null : diameterArray,
@@ -137,22 +131,23 @@ export function FilterPanel({currentState, updateParent}) {
     }, [heightBoxState, diameterBoxState]);
 
     var diameterCheckboxes = diameterChoices.map((label, i) => {
-                                    return (
-                                        <label key={i} >
-                                            <input type='checkbox' id={label} value={(i + 1) * 6}
-                                            onChange={handleDiamChange}/>
-                                            {label}
-                                        </label>
-                          )
-                      });
+        return (
+            <label key={i} >
+                <input type='checkbox' id={label} value={(i + 1) * 6}
+                        onChange={handleDiamChange}/>
+                {label}
+            </label>
+        )
+    });
     var heightCheckboxes = heightChoices.map((label, i) => {
-                                return (
-                                    <label key={i}>
-                                        <input type='checkbox' id={label} value={i} onChange={handleHeightChange}/>
-                                        {label}
-                                    </label>
-                                )
-                             });
+        return (
+            <label key={i}>
+                <input type='checkbox' id={label} value={i} 
+                        onChange={handleHeightChange}/>
+                {label}
+            </label>
+        )
+    });
 
     return (
         <StyledFilterPanel>

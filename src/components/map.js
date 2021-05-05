@@ -3,7 +3,6 @@ import {useState, useEffect, useMemo, useCallback} from 'react';
 import styled from 'styled-components';
 import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport} from 'react-map-gl';
 import bbox from '@turf/bbox'
-import ControlPanel from './control-panel';
 import {FilterPanel} from './filter-panel';
 import TreeInfoContainer from './tree-info-container';
 import InfoPanel from './info-panel';
@@ -161,17 +160,31 @@ export default function Map() {
           // update selected
           
           setSelected (feature || null);
-          setTreeFilterObject((feature && feature.layer.id == 'trees') 
-                                ? {...treeFilterObject, trees: [feature.properties.common_name]} // only replace the trees object
-                                : {trees: null, diameters: null, height_ids: null});
+          
+        //   setTreeFilterObject((feature && feature.layer.id == 'trees') 
+        //                         ? {...treeFilterObject, trees: [feature.properties.common_name]} // only replace the trees object
+        //                         : {...treeFilterObject, trees: null});
     };
 
     const onClickFilter = () => {
         setIsFiltered(true)
-        // setTreeFilterObject(selected 
-        //                         ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
-        //                         : {...treeFilterObject , trees: null});
+        setTreeFilterObject(selected 
+                                ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
+                                : {...treeFilterObject , trees: null});
     }
+
+    /**
+     * This seems like a TERRIBLE way to handle the following edge case: 
+     * treeFiterObject is updated onClickFilter, but since this update no longer occurs 
+     * in the onClickZoom arrow function, clicking off the tree no longer clears the filter.
+     * 
+     * This useEffect is triggered when selected changes, and clears the tree filter if nothing is selected 
+     */
+    useEffect(() => {
+        if (! selected) {
+            setTreeFilterObject({...treeFilterObject , trees: null});
+        }
+    }, [selected]);
 
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
@@ -182,9 +195,6 @@ export default function Map() {
 
     const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
     const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
-    console.log(treeFilterObject);
-    // this works but feels like a junky solution
-    // const treeTypeFilter = useMemo(() => treeFilterCompositor({trees: treeType, }), [treeType]);
     
     return (
         <>
