@@ -34,19 +34,22 @@ export function heightStringFromID(height_range_id) {
  */
 export function treeFilterCompositor({diameters, height_ids, trees}) {
   let filter = ['all'];
+  console.log(`Heights: ${height_ids}`);
+  console.log(`Diameters: ${diameters}`);
+  console.log(`Trees: ${trees}`);
 
   if (diameters) {
     filter.push(_buildMapboxCaseExpression(diameters)); // add the case expression to the filter
   }
   
   if (height_ids) {
-    filter.push(['match', ['get','height_range_id'], heights_ids, true, false]);
+    filter.push(['match', ['get','height_range_id'], height_ids, true, false]);
   }
 
   if (trees) {
     filter.push(['match', ['get', 'common_name'], trees, true, false]);
   }
-
+  console.log(`${filter}`);
   return filter;
     
 }

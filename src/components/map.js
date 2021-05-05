@@ -66,7 +66,7 @@ export default function Map() {
     const [selected, setSelected]     = useState(null);
     const [isFiltered, setIsFiltered] = useState(null);
     const [title, setTitle]           = useState(DEFAULT_TITLE)
-    const [treeFilterObject, setTreeFilterObject] = useState(null)
+    const [treeFilterObject, setTreeFilterObject] = useState({trees: null, diameters: null, height_ids: null})
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -80,6 +80,7 @@ export default function Map() {
             .then(response => response.json())
             .then(json => setCentroids(json));
     }, []);
+
 
     /** 
      * For local CORS errors, use: gsutil defacl ch -u AllUsers:R gs://<bucket> to fix 
@@ -119,7 +120,7 @@ export default function Map() {
     }, []);
 
     const onClickZoom = event => {
-        var feature = event.features[0];
+        const feature = event.features && event.features[0];
         
         if (feature) {            
             // calculate the bounding box of the feature
@@ -158,27 +159,33 @@ export default function Map() {
           }
 
           // update selected
+          
           setSelected (feature || null);
+          setTreeFilterObject((feature && feature.layer.id == 'trees') 
+                                ? {...treeFilterObject, trees: [feature.properties.common_name]} // only replace the trees object
+                                : {trees: null, diameters: null, height_ids: null});
     };
 
     const onClickFilter = () => {
         setIsFiltered(true)
+        // setTreeFilterObject(selected 
+        //                         ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
+        //                         : {...treeFilterObject , trees: null});
     }
 
     var selection = '';
-    var treeType = '';
     if (selected && selected.layer.id == 'boundaries') {
         selection = selected.properties.name;
     } else if (selected && selected.layer.id == 'trees') {
         selection = selected.properties.tree_id;
-        treeType = selected.properties.common_name;
     }
 
     const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
     const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
+    console.log(treeFilterObject);
     // this works but feels like a junky solution
-    const treeTypeFilter = useMemo(() => treeFilterCompositor({trees: treeType}), [treeType]);
-
+    // const treeTypeFilter = useMemo(() => treeFilterCompositor({trees: treeType, }), [treeType]);
+    
     return (
         <>
             <MapGL
@@ -200,9 +207,13 @@ export default function Map() {
                     <Layer {...centroidLayer} />
                 </Source>
                 <Source type="geojson" data={trees}>
-                    {(treeType && isFiltered)
-                        ? <Layer {...treesLayer} filter={treeTypeFilter}/> 
-                        : <Layer {...treesLayer}/>}
+                    <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/> 
+                    {/* {(isFiltered) 
+                        ? <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/> 
+                        // ? <Layer {...treesLayer} filter={treeFilterCompositor({trees: ['JAPANESE FLOWERING CRABAPLE'],
+                        //                                                         diameters: [12],
+                        //                                                         heights: [0,1,2,3,4,5,6,7,8,9,10]})}/> 
+                        : <Layer {...treesLayer}/>} */}
                     
                     <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
                 </Source>
@@ -213,7 +224,7 @@ export default function Map() {
                 )}
             </MapGL>
             
-            <FilterPanel></FilterPanel>
+            <FilterPanel currentState={treeFilterObject} updateParent={(props) => setTreeFilterObject({...props})}></FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
                 {selected && selected.layer.id == "trees" &&
