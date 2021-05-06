@@ -191,7 +191,7 @@ export default function Map() {
 
     const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
     const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
-    console.log(treeNames);
+    
     return (
         <>
             <MapGL

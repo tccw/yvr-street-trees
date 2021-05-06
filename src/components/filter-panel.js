@@ -17,7 +17,6 @@ const StyledFilterPanel = styled.div`
     width: fit-content;
     display: flex;
     flex-direction: row;
-    max-height: 400px;
     
 `;
 
@@ -33,8 +32,22 @@ const StyledFilterBoxes = styled.span`
     flex-direction: column;
     height: -moz-fit-content;
     height: fit-content;
-    max-height: 360px;
+`;
+
+const StyledFilterTrees = styled.span`
+    background: white;
+    box-shadow: 0px -6px 10px rgba(255, 255, 255, 1), 0px 2px 7px rgba(0, 0, 0, 0.15);
+    padding: 12px 24px;
+    margin: 10px;
+    line-height: 2;
+    outline: none;
+    display:flex;
+    flex-direction: column;
+    height: -moz-fit-content;
+    height: fit-content;
+    max-height: 380px;
     overflow: scroll;
+    text-transform: capitalize; 
 `;
 
 const StyledCheckBox = styled.input`
@@ -96,6 +109,7 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
                                                                 (acc, curr, i) => (acc[curr]={
                                                                     checked:true, 
                                                                     value: i}, acc), {}))
+    const [treeList, setTreeList] = useState([]);
     
     const handleDiamChange = (event) => {
         setDiameterBoxState({...diameterBoxState, [event.target.id]: {
@@ -103,6 +117,7 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
                                                         value: parseInt(event.target.value)
                                                     }
                                                 });
+        
     }
 
     const handleHeightChange = (event) => {
@@ -112,7 +127,7 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
                                                     }
                                                 });
     }
-
+    
     const handleToggle = () => {
         setIsExpanded(! isExpanded);
     }
@@ -123,7 +138,6 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
 
         for (const [key, value] of Object.entries(diameterBoxState)) {
             if (value.checked) {
-                // need to parse the value to int since the event object 
                 diameterArray.push(value.value);  
             }
         }
@@ -138,16 +152,26 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
                          diameters: diameterArray.length ? diameterArray: [-1], // filter to [-1] as no trees will match this
                          height_ids: heightArray.length ? heightArray : [-1]});
     }
+
+    const handleTreeClick = (event) => {
+        updateParent({... currentState, trees: currentState.trees 
+                                               ? currentState.trees.push(event.target.textContent) 
+                                               : [event.target.textContent]})
+    }
     
+
+
     useEffect(() => {
         setFilterState();
     }, [heightBoxState, diameterBoxState]);
+
+
 
     let diameterCheckboxes = diameterChoices.map((label, i) => {
         return (
             <label key={i} >
                 <input type='checkbox' id={label} value={(i + 1) * 6}
-                        onChange={handleDiamChange}/>
+                        onChange={handleDiamChange} checked={diameterBoxState[label].checked}/>
                 {label}
             </label>
         )
@@ -157,7 +181,7 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
         return (
             <label key={i}>
                 <input type='checkbox' id={label} value={i} 
-                        onChange={handleHeightChange}/>
+                        onChange={handleHeightChange} checked={heightBoxState[label].checked}/>
                 {label}
             </label>
         )
@@ -168,7 +192,7 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
         treeCommonNameList = [];
         for (const [key, value] of Object.entries(treeNamesAndColors)) {
             treeCommonNameList.push(
-                <span style={{color: {value}}}>
+                <span key={key} style={{color: {value}}} onClick={handleTreeClick}>
                     <Dot color={value}></Dot>
                     {key}
                 </span>
@@ -187,10 +211,10 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
                 <b>By tree height</b>
                 {heightCheckboxes}
             </StyledFilterBoxes>
-            <StyledFilterBoxes>
+            <StyledFilterTrees>
                 <b>By tree name</b>
                 { treeCommonNameList && treeCommonNameList}
-            </StyledFilterBoxes>
+            </StyledFilterTrees>
         </StyledFilterPanel>
     )
 }

@@ -31,12 +31,9 @@ export function heightStringFromID(height_range_id) {
  */
 export function getUniqueTreeNames(treeGeoJSON) { // will need to be updated to vector tiles after transition
   let  uniqueCommonNames = new Map();
-  // console.log(treeGeoJSON);
   treeGeoJSON.features.forEach((entry) => {
     uniqueCommonNames[entry.properties.common_name] = entry.properties.color;
   });
-
-  // console.log(uniqueCommonNames);
 
   return uniqueCommonNames;
 }
