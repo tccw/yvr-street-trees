@@ -22,7 +22,7 @@ const Panel = styled.div`
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #fffef7;
+    background-color: white;
     color:black;
     overflow: hidden;
     transition: ease-in-out 0.3s;
