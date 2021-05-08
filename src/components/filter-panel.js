@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { titleCase } from '../utils'
 
 
 const StyledFilterPanel = styled.div`
@@ -82,7 +83,17 @@ const Dot = styled.div`
     background-color: ${props => (props.color)};
     display: inline-block;
     margin-right: 0.5rem;
+    margin-left: 0.5rem;
     vertical-align: middle;
+`;
+
+const TreeEntry = styled.li`
+    list-style-type: none;
+    background-color: ${props => (props.selected ? 'lightgrey' : 'inheret')};
+    color: ${props => (props.selected ? 'inheret' : 'lightgrey')};
+    &:hover {
+        cursor: pointer;
+    }
 `;
 
 const diameterChoices = [ 'Under 6 inches',  '6 to 12 inches', 
@@ -98,19 +109,20 @@ const heightChoices = [ 'Under 10 feet', '10 to 20 feet',
                         'Over 100 feet'];
 
 // pass the treeFilter setter to this component to set parent state
-export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
+export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors}) {
     const [isExpanded, setIsExpanded] = React.useState(false)
     // make an object with keys from the array, all values are true
     const [diameterBoxState, setDiameterBoxState] = useState(diameterChoices.reduce(
                                                                 (acc, curr, i) => (acc[curr]={
                                                                     checked:true,
-                                                                    value: (i + 1) * 6}, acc), {}))
+                                                                    value: (i + 1) * 6}, acc), {}));
     const [heightBoxState, setHeightBoxState] = useState(heightChoices.reduce(
                                                                 (acc, curr, i) => (acc[curr]={
                                                                     checked:true, 
-                                                                    value: i}, acc), {}))
-    const [treeList, setTreeList] = useState([]);
-    
+                                                                    value: i}, acc), {}));
+    const [selectedTree, setselectedTree] = useState(null);
+                                                
+
     const handleDiamChange = (event) => {
         setDiameterBoxState({...diameterBoxState, [event.target.id]: {
                                                         checked: event.target.checked, 
@@ -153,10 +165,11 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
                          height_ids: heightArray.length ? heightArray : [-1]});
     }
 
+    // keys in the geojson are uppercase, but title case display is nicer
     const handleTreeClick = (event) => {
-        updateParent({... currentState, trees: currentState.trees 
-                                               ? currentState.trees.push(event.target.textContent) 
-                                               : [event.target.textContent]})
+        updateParent({... currentState, trees: [event.target.textContent.toUpperCase()]})
+        updateSelected();
+        setselectedTree(event.target.textContent.toUpperCase());
     }
     
 
@@ -187,15 +200,22 @@ export function FilterPanel({currentState, updateParent, treeNamesAndColors}) {
         )
     });
 
-    let treeCommonNameList = null;
+    /**
+     * This should probably be memoized so that it isn't rebuild on every render.
+     * I think React compares the results and won't rerender if the element hasn't changed,
+     * but in this case the element will still be constructed every each rerender so we always
+     * have to loop even if we don't redraw. 
+     */
+    let treeCommonNameList = null; // null at beginning so that there are no errors before the data is pulled remotely
     if (treeNamesAndColors) {
         treeCommonNameList = [];
         for (const [key, value] of Object.entries(treeNamesAndColors)) {
             treeCommonNameList.push(
-                <span key={key} style={{color: {value}}} onClick={handleTreeClick}>
+                <TreeEntry key={key} style={{color: {value}}} onClick={handleTreeClick} 
+                           selected={Boolean(key === selectedTree)}>
                     <Dot color={value}></Dot>
-                    {key}
-                </span>
+                    {titleCase(key)}
+                </TreeEntry>
             )
         }
     }

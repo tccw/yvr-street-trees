@@ -66,6 +66,7 @@ export default function Map() {
     const [selected, setSelected]     = useState(null);
     const [title, setTitle]           = useState(DEFAULT_TITLE)
     const [treeFilterObject, setTreeFilterObject] = useState({trees: null, diameters: null, height_ids: null})
+    const [filterPanelSelected, setFilterPanelSelected] = useState(false);
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -83,6 +84,7 @@ export default function Map() {
 
     /** 
      * For local CORS errors, use: gsutil defacl ch -u AllUsers:R gs://<bucket> to fix 
+     * https://stackoverflow.com/questions/62246717/public-url-of-google-cloud-storage-access-denied
      * Also set a CORS configuration
      * and use <bucket-name>.storage.googleapis rather than storage.googleapis.com/<bucket-name>
      * as the first has CORS headers and the second does not. 
@@ -123,7 +125,7 @@ export default function Map() {
 
     const onClickZoom = event => {
         const feature = event.features && event.features[0];
-        
+
         if (feature) {            
             // calculate the bounding box of the feature
             const [minLng, minLat, maxLng, maxLat] = bbox(feature);
@@ -161,6 +163,7 @@ export default function Map() {
 
           // update selected
           setSelected (feature || null);
+          setFilterPanelSelected(Boolean(feature));
     };
 
     const onClickFilter = () => {
@@ -177,10 +180,10 @@ export default function Map() {
      * This useEffect is triggered when selected changes, and clears the tree filter if nothing is selected 
      */
     useEffect(() => {
-        if (! selected) {
+        if (! selected && ! filterPanelSelected) {
             setTreeFilterObject({...treeFilterObject , trees: null});
         }
-    }, [selected]);
+    }, [selected, filterPanelSelected]);
 
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
@@ -222,9 +225,10 @@ export default function Map() {
                 </ToolTip>
                 )}
             </MapGL>
-            
             <FilterPanel currentState={treeFilterObject} 
                          updateParent={(props) => setTreeFilterObject({...props})}
+                         updateSelected={() => setFilterPanelSelected(true)}
+                         Selected={selected} // so that clicking the map still can also deselect the tree from the list
                          treeNamesAndColors={treeNames} > Filter Panel </FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
@@ -233,8 +237,7 @@ export default function Map() {
                             <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
                                 View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
                             </FilterToTree>
-                        </TreeInfoContainer>
-                        
+                        </TreeInfoContainer>                        
                     }            
             </InfoPanel>
             
