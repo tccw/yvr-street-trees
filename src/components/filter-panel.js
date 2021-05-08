@@ -17,6 +17,20 @@ const StyledFilterPanel = styled.div`
     width: -moz-fit-content;
     width: fit-content;
     display: flex;
+    flex-direction: column;
+    
+`;
+
+const StyledFilterTogglePane = styled.div`
+    position: relative;
+    top: 0;
+    right: 0;
+    background: inheret;
+    line-height: 2;
+    outline: none;
+    width: -moz-fit-content;
+    width: fit-content;
+    display: flex;
     flex-direction: row;
     
 `;
@@ -94,6 +108,53 @@ const TreeEntry = styled.li`
     &:hover {
         cursor: pointer;
     }
+`;
+
+const OpenCloseButton = styled.div `
+    display: inline-block;
+    width: 2em;
+    height: 2em;
+    border: 0.1em solid #f4d6d7;
+    margin: 2em 45%;
+    font-size: 3em;
+    border-radius: 50%;
+    position: relative;
+    -moz-transition: 0.5s;
+    -o-transition: 0.5s;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    -moz-transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+
+    &:before {
+        content: "";
+        display: block;
+        position: absolute;
+        background-color: #f4d6d7;
+        width: 80%;
+        height: 6%;
+        left: 10%;
+        top: 47%;
+      }
+    
+      &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        background-color: #f4d6d7;
+        width: 6%;
+        height: 80%;
+        left: 47%;
+        top: 10%;
+      }
+
+      .open {
+        background-color: #f4d6d7;
+        -moz-transform: rotate(225deg);
+        -ms-transform: rotate(225deg);
+        -webkit-transform: rotate(225deg);
+        transform: rotate(225deg);
 `;
 
 const diameterChoices = [ 'Under 6 inches',  '6 to 12 inches', 
@@ -223,18 +284,21 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
 
     return (
         <StyledFilterPanel>
-            <StyledFilterBoxes>
-                <b>By tree diameter</b>
-                {diameterCheckboxes}
-            </StyledFilterBoxes>
-            <StyledFilterBoxes>
-                <b>By tree height</b>
-                {heightCheckboxes}
-            </StyledFilterBoxes>
-            <StyledFilterTrees>
-                <b>By tree name</b>
-                { treeCommonNameList && treeCommonNameList}
-            </StyledFilterTrees>
+            <OpenCloseButton></OpenCloseButton>
+            <StyledFilterTogglePane>
+                <StyledFilterBoxes>
+                    <b>By tree diameter</b>
+                    {diameterCheckboxes}
+                </StyledFilterBoxes>
+                <StyledFilterBoxes>
+                    <b>By tree height</b>
+                    {heightCheckboxes}
+                </StyledFilterBoxes>
+                <StyledFilterTrees>
+                    <b>By tree name</b>
+                    { treeCommonNameList && treeCommonNameList}
+                </StyledFilterTrees>
+            </StyledFilterTogglePane>
         </StyledFilterPanel>
     )
 }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { heightStringFromID, titleCase } from '../utils'
+import { heightStringFromID, titleCase, toPrettyDateString} from '../utils'
 import styled from 'styled-components'
 
 const StyledTreeInfo = styled.section`
@@ -54,13 +54,13 @@ const TreeDtailValue = styled.span`
 
 const TreeInfoContainer = (props) => {
 
-    const {genus_name, species_name, tree_id, diameter, common_name, civic_number, on_street, height_range_id} = props;
-
+    const {genus_name, species_name, tree_id, diameter, civic_number, on_street, height_range_id, date_planted} = props;
     var listValues = {
         'Tree ID' : tree_id,
         'Height' : `${heightStringFromID(height_range_id)}`,
         'Diameter': `${diameter} inches`,
-        'Address': `${civic_number} ${on_street}`
+        'Address': `${civic_number} ${on_street}`,
+        'Date Planted': date_planted ? `${toPrettyDateString(date_planted)}` : 'Unknown' 
     }
 
     var treeDetails = [];

@@ -94,9 +94,14 @@ function _buildMapboxCaseExpression(diameters) {
     return caseExpr;
 }
 
-/**
- * Need to consider cases where the filter already exists and the user is modifying it (rather than making one from scratch)
- * Possible ways to handle this:
- *    1. maintain an object in the parent component with initial state {diameters: null, height_ids: null, trees: null}.
- *        pass the object around and only clear it if the user has nothing selected (e.g. clicks empty space, etc.)
- */
+
+
+export function toPrettyDateString(yyyymmdd) {
+  let options = { weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' };
+  let split = yyyymmdd.split('-').map((elem) => { return parseInt(elem); });
+  let date = new Date(split[0], split[1] - 1, split[2]);
+  return date.toLocaleDateString('en-US', options);
+}
