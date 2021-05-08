@@ -56,7 +56,8 @@ export default function Map() {
         longitude: -123.20,
         zoom: 15.5,
         bearing: 0,
-        pitch: 0
+        pitch: 0,
+        maxZoom: 17
     });
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);

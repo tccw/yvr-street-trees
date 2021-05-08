@@ -2,16 +2,19 @@ import * as React from 'react'
 import { heightStringFromID, titleCase, toPrettyDateString} from '../utils'
 import styled from 'styled-components'
 
+// margin order is top right bottom left
 const StyledTreeInfo = styled.section`
     position: relative;
     top: 1rem;
     width: inheret;
     backgroud: white;
-    margin: 20px;
+    margin: 0 20px;
     font-size: 13px;
     line-height: 2;
     color: #6b6b76;
     outline: none;
+    display: flex;
+    flex-direction: column;
 `;
 
 const StyledScientificName = styled.span`
@@ -78,6 +81,7 @@ const TreeInfoContainer = (props) => {
     return (
         <StyledTreeInfo>
             <StyledScientificName>{`${titleCase(genus_name)} ${species_name.toLowerCase()}`}</StyledScientificName>
+            <StyledScientificName>Something fancy</StyledScientificName>
             <TreeDetailsList>
                 {treeDetails}
             </TreeDetailsList>

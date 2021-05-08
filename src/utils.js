@@ -95,7 +95,15 @@ function _buildMapboxCaseExpression(diameters) {
 }
 
 
-
+/**
+ * Takes a date in the format YYYY-MM-DD and returns
+ * a formatted date string <FullDayOfWeek>, <FullMonthName> <NumericDay>, <NumericYear>
+ * 
+ * Example: 1996-12-11 -> Wednesday, December 11, 1996
+ * 
+ * @param {string} yyyymmdd in the format YYYY-MM-DD
+ * @returns {string} the formatted string of that date
+ */
 export function toPrettyDateString(yyyymmdd) {
   let options = { weekday: 'long', 
                   year: 'numeric', 
@@ -105,3 +113,6 @@ export function toPrettyDateString(yyyymmdd) {
   let date = new Date(split[0], split[1] - 1, split[2]);
   return date.toLocaleDateString('en-US', options);
 }
+
+// build stats map at runtime?
+// {Neighborhood_name: {number of trees, }}

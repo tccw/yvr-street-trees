@@ -6,7 +6,7 @@ import styled from 'styled-components'
 const Title = styled.h1`
     text-align: left;
     color: #63686a;
-    margin: 20px;
+    margin: 20px 20px -15px 20px;
     border-bottom: 0.5rem solid palegreen;
     width: -moz-fit-content;
     width: fit-content;
