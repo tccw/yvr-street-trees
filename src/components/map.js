@@ -12,7 +12,7 @@ import { MAPBOX_TOKEN,
          WEST_POINT_TREES_URL, 
          VAN_ALL_TREES_URL } from '../../env'
 
-import { titleCase, getUniqueTreeNames, treeFilterCompositor } from '../utils';
+import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
@@ -68,6 +68,7 @@ export default function Map() {
     const [title, setTitle]           = useState(DEFAULT_TITLE)
     const [treeFilterObject, setTreeFilterObject] = useState({trees: null, diameters: null, height_ids: null})
     const [filterPanelSelected, setFilterPanelSelected] = useState(false);
+    const [treeStats, setTreeStats] = useState(null);
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -99,12 +100,13 @@ export default function Map() {
         .then((json) => {
             setTrees(json);
             setTreeNames(getUniqueTreeNames(json));
+            setTreeStats(getTreeStats(json));
         })
         .catch((error) => {
             console.error('Error:', error);
         });
     }, []);
-
+    
     /** set up a slick mouse hover info box */
     const onHover = useCallback(event => {
         const {
@@ -230,7 +232,7 @@ export default function Map() {
                          updateParent={(props) => setTreeFilterObject({...props})}
                          updateSelected={() => setFilterPanelSelected(true)}
                          Selected={selected} // so that clicking the map still can also deselect the tree from the list
-                         treeNamesAndColors={treeNames} > Filter Panel </FilterPanel>
+                         treeNamesAndColors={treeStats ? treeStats.tree_stats : null} > Filter Panel </FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
                 {selected && selected.layer.id == "trees" &&

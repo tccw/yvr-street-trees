@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { titleCase } from '../utils'
 
@@ -35,7 +35,6 @@ const StyledFilterTogglePane = styled.div`
     
 `;
 
-// box-shadow: 0px -6px 10px rgba(255, 255, 255, 1), 0px 2px 7px rgba(0, 0, 0, 0.15);
 const StyledFilterBoxes = styled.span`
     background: white;
     box-shadow: 0px -6px 10px rgba(255, 255, 255, 1), 0px 2px 7px rgba(0, 0, 0, 0.15);
@@ -104,7 +103,7 @@ const Dot = styled.div`
 const TreeEntry = styled.li`
     list-style-type: none;
     background-color: ${props => (props.selected ? 'lightgrey' : 'inheret')};
-    color: ${props => (props.selected ? 'inheret' : 'lightgrey')};
+    color: ${props => (props.selected ? 'inheret' : 'darkgrey')};
     &:hover {
         cursor: pointer;
     }
@@ -146,7 +145,8 @@ const heightChoices = [ 'Under 10 feet', '10 to 20 feet',
 
 // pass the treeFilter setter to this component to set parent state
 export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors}) {
-    const [isExpanded, setIsExpanded] = React.useState(false)
+    const [isExpanded, setIsExpanded] = useState(false)
+    const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     // make an object with keys from the array, all values are true
     const [diameterBoxState, setDiameterBoxState] = useState(diameterChoices.reduce(
                                                                 (acc, curr, i) => (acc[curr]={
@@ -236,26 +236,29 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
         )
     });
 
+    
     /**
-     * This should probably be memoized so that it isn't rebuild on every render.
-     * I think React compares the results and won't rerender if the element hasn't changed,
-     * but in this case the element will still be constructed every each rerender so we always
-     * have to loop even if we don't redraw. 
+     * Only have the build the list once, but the "selected" prop doesn't matter because the 
+     * element is not re-rendered by react since it never changes. Will need another solution
+     * to deal with highlighting.
      */
-    let treeCommonNameList = null; // null at beginning so that there are no errors before the data is pulled remotely
-    if (treeNamesAndColors) {
-        treeCommonNameList = [];
-        for (const [key, value] of Object.entries(treeNamesAndColors)) {
-            treeCommonNameList.push(
-                <TreeEntry key={key} style={{color: {value}}} onClick={handleTreeClick} 
-                           selected={Boolean(key === selectedTree)}>
-                    <Dot color={value}></Dot>
-                    {titleCase(key)}
-                </TreeEntry>
-            )
+    useEffect(() => {
+        if (treeNamesAndColors) {
+            var nameList = [];
+            for (const [key, value] of Object.entries(treeNamesAndColors)) {
+                nameList.push(
+                    <TreeEntry key={key} onClick={handleTreeClick} 
+                            selected={Boolean(key === selectedTree)}>
+                        <Dot color={value.color}></Dot>
+                        {titleCase(key)}
+                    </TreeEntry>
+                )
+            }
         }
-    }
 
+        setTreeCommonNameList(nameList); 
+
+    }, [treeNamesAndColors])
 
     return (
         <StyledFilterPanel>

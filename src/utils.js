@@ -30,7 +30,7 @@ export function heightStringFromID(height_range_id) {
  * @returns {Map} a map of the common tree names and their mapped color
  */
 export function getUniqueTreeNames(treeGeoJSON) { // will need to be updated to vector tiles after transition
-  let  uniqueCommonNames = new Map();
+  let uniqueCommonNames = new Map();
   treeGeoJSON.features.forEach((entry) => {
     uniqueCommonNames[entry.properties.common_name] = entry.properties.color;
   });
@@ -114,5 +114,76 @@ export function toPrettyDateString(yyyymmdd) {
   return date.toLocaleDateString('en-US', options);
 }
 
-// build stats map at runtime?
-// {Neighborhood_name: {number of trees, }}
+/**
+ * Constructs an object with neighborhood tree counts for stats displays.
+ * The returned object is the of the form:
+ * 
+ * { 'total_count': <total count of trees on map>,
+ *   'tree_stats' : {
+ *      <tree common name> : {
+ *          'total_count': <tree count for this species in the city>,
+ *          'color': 
+ *          'neighborhood_counts': {
+ *              <neighborhood_name> : <tree count in specific neighborhood>,
+ *              <...other entries>
+ *          }
+ *       }
+ *    }
+ *    'neigh_num_trees`: {
+ *        <neighborhood name> : <total tree count>
+ *        <...other entries>
+ *    }
+ * }
+ *  
+ * NOTE: This might all have to be pre-computed when moving to the full 145k+ trees.
+ * 
+ * @param {JSON} treeGeoJSON 
+ * @returns {object}
+ */
+export function getTreeStats(treeGeoJSON) {
+  let numTrees = treeGeoJSON.features.length;
+  let treeObj = {};
+  let totalCountsNeigh = {};
+
+  // get the total counts for each tree type
+  treeGeoJSON.features.forEach((entry) => {
+    var neighbourhood_name = entry.properties.neighbourhood_name;
+    // if the tree is already in the object count the tree, else add the new tree name to the object
+    if (entry.properties.common_name in treeObj) {
+      treeObj[entry.properties.common_name].total_count++;
+      // if the neighborhood the tree is in has already been added, add the tree to that neighborhood count
+      if (neighbourhood_name in treeObj[entry.properties.common_name].neighborhood_counts) {
+        treeObj[entry.properties.common_name].neighborhood_counts[neighbourhood_name]++;
+      } else {
+      // else add the tree color and add the neightborhood to the neightborhood_counts object
+        treeObj[entry.properties.common_name]['color'] = entry.properties.color;
+        treeObj[entry.properties.common_name].neighborhood_counts[neighbourhood_name] = 1;
+      }
+    } else {
+      treeObj[entry.properties.common_name] = {
+          'color': entry.properties.color,
+          'total_count': 1, 
+          'neighborhood_counts': {
+           [neighbourhood_name]: 1
+        }
+      }
+    } 
+  });
+
+  // counts the number of tree
+  for (const [key, value] of Object.entries(treeObj)) {
+    for (const [k, v] of Object.entries(value.neighborhood_counts)) {
+      
+      if (k in totalCountsNeigh) {
+        totalCountsNeigh[k] += v; // add the count for this tree to the total neightborhood count
+      } else {
+        totalCountsNeigh[k] = v;  //
+      }
+    }
+  }
+
+
+  // get the total tree counts per neighborhood to use for neighborhood stats
+
+  return {'van_num_trees': numTrees, 'tree_stats': treeObj, 'neigh_num_trees': totalCountsNeigh};
+} 
