@@ -25,21 +25,6 @@ export function heightStringFromID(height_range_id) {
 
 
 /**
- * 
- * @param {Object} treeGeoJSON 
- * @returns {Map} a map of the common tree names and their mapped color
- */
-export function getUniqueTreeNames(treeGeoJSON) { // will need to be updated to vector tiles after transition
-  let uniqueCommonNames = new Map();
-  treeGeoJSON.features.forEach((entry) => {
-    uniqueCommonNames[entry.properties.common_name] = entry.properties.color;
-  });
-
-  return uniqueCommonNames;
-}
-
-
-/**
  * Generates a properly formatted filter object to pass to a MapGL <Layer/> component
  * 
  * @param {number[]} diameters A list of diameters to filter by (should be the upper range of the 6 inche provided ranges)
@@ -118,7 +103,7 @@ export function toPrettyDateString(yyyymmdd) {
  * Constructs an object with neighborhood tree counts for stats displays.
  * The returned object is the of the form:
  * 
- * { 'total_count': <total count of trees on map>,
+ * { 'city_tree_count': <total count of trees on map>,
  *   'tree_stats' : {
  *      <tree common name> : {
  *          'total_count': <tree count for this species in the city>,
@@ -170,7 +155,7 @@ export function getTreeStats(treeGeoJSON) {
     } 
   });
 
-  // counts the number of tree
+  // counts the number of trees in each neighborhood
   for (const [key, value] of Object.entries(treeObj)) {
     for (const [k, v] of Object.entries(value.neighborhood_counts)) {
       
@@ -185,5 +170,5 @@ export function getTreeStats(treeGeoJSON) {
 
   // get the total tree counts per neighborhood to use for neighborhood stats
 
-  return {'van_num_trees': numTrees, 'tree_stats': treeObj, 'neigh_num_trees': totalCountsNeigh};
+  return {'city_tree_count': numTrees, 'tree_stats': treeObj, 'neigh_num_trees': totalCountsNeigh};
 } 

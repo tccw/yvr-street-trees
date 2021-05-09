@@ -62,7 +62,6 @@ export default function Map() {
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
     const [trees, setTrees]           = useState(null);
-    const [treeNames, setTreeNames]   = useState(null);
     const [hoverInfo, setHoverInfo]   = useState(null);
     const [selected, setSelected]     = useState(null);
     const [title, setTitle]           = useState(DEFAULT_TITLE)
@@ -99,7 +98,6 @@ export default function Map() {
         .then(response => response.json())
         .then((json) => {
             setTrees(json);
-            setTreeNames(getUniqueTreeNames(json));
             setTreeStats(getTreeStats(json));
         })
         .catch((error) => {
@@ -236,7 +234,7 @@ export default function Map() {
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
                 {selected && selected.layer.id == "trees" &&
-                        <TreeInfoContainer {...selected.properties} >
+                        <TreeInfoContainer {...selected.properties} stats={treeStats} >
                             <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
                                 View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
                             </FilterToTree>

@@ -17,12 +17,12 @@ const StyledTreeInfo = styled.section`
     flex-direction: column;
 `;
 
-const StyledScientificName = styled.span`
+const StyledSubText = styled.span`
     text-align: left;
     color: #63686a;
     margin-left: 20px;
-    font-size: 1.5rem;
-    font-style: italic;
+    font-size: ${props => (props.font_size)};
+    font-style: ${props => (props.font_style)};
     font-weight: 50;
 `; 
 
@@ -57,7 +57,11 @@ const TreeDtailValue = styled.span`
 
 const TreeInfoContainer = (props) => {
 
-    const {genus_name, species_name, tree_id, diameter, civic_number, on_street, height_range_id, date_planted} = props;
+    const {genus_name, species_name, tree_id, 
+           diameter, civic_number, on_street, 
+           height_range_id, date_planted, common_name,
+           neighbourhood_name} = props;
+
     var listValues = {
         'Tree ID' : tree_id,
         'Height' : `${heightStringFromID(height_range_id)}`,
@@ -78,10 +82,38 @@ const TreeInfoContainer = (props) => {
         )
     }
 
+    const citywidePrevalence = (stats) => {
+         let percentage = ((stats.tree_stats[common_name].total_count / stats.city_tree_count) * 100).toFixed(2)
+         return formatPrevalanceResult(parseInt(percentage));
+    };
+    const neighborhoodPrevalance = (stats) => {
+        let percentage = ((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neigh_num_trees[neighbourhood_name]) * 100).toFixed(2);
+        return formatPrevalanceResult(parseInt(percentage));
+    };
+
+    const formatPrevalanceResult = (percentage) => {
+        let result;
+        if (percentage < 0.5) {
+            result = 'Less than 0.5';
+        } else {
+            result = percentage >= 1 ? Math.round(percentage).toFixed(0) : percentage.toFixed(2);
+        }
+        return result;
+    }
+
+
+
     return (
         <StyledTreeInfo>
-            <StyledScientificName>{`${titleCase(genus_name)} ${species_name.toLowerCase()}`}</StyledScientificName>
-            <StyledScientificName>Something fancy</StyledScientificName>
+            <StyledSubText font_size='1.5rem' font_style='italic'>
+                {`${titleCase(genus_name)} ${species_name.toLowerCase()}`}
+            </StyledSubText>
+            <StyledSubText font_size='0.8rem' font_style='none'>
+                {`${neighborhoodPrevalance(props.stats)}% of ${titleCase(neighbourhood_name)} trees.`}
+            </StyledSubText>
+            <StyledSubText font_size='0.8rem' font_style='none'>
+                {`${citywidePrevalence(props.stats)}% of Vancouver trees.`}
+            </StyledSubText>
             <TreeDetailsList>
                 {treeDetails}
             </TreeDetailsList>
@@ -90,4 +122,4 @@ const TreeInfoContainer = (props) => {
     ); 
 }
 
-export default React.memo(TreeInfoContainer); // look into if memoizing this results in worse performance
+export default React.memo(TreeInfoContainer); // look into if memoizing this results in worse performance (or does anything)
