@@ -226,11 +226,13 @@ export default function Map() {
                 </ToolTip>
                 )}
             </MapGL>
+
             <FilterPanel currentState={treeFilterObject} 
                          updateParent={(props) => setTreeFilterObject({...props})}
                          updateSelected={() => setFilterPanelSelected(true)}
                          Selected={selected} // so that clicking the map still can also deselect the tree from the list
-                         treeNamesAndColors={treeStats ? treeStats.tree_stats : null} > Filter Panel </FilterPanel>
+                         treeNamesAndColors={treeStats ? treeStats.tree_stats : null} >
+            </FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
                 {selected && selected.layer.id == "trees" &&

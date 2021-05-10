@@ -113,6 +113,7 @@ const TreeEntry = styled.li`
     color: ${props => (props.selected ? 'inheret' : 'inheret')};
     &:hover {
         cursor: pointer;
+        background-color: rgba(0, 0, 0, 0.1);
     }
 `;
 
@@ -149,7 +150,7 @@ const heightChoices = [ 'Under 10 feet', '10 to 20 feet',
 
 // pass the treeFilter setter to this component to set parent state
 export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors}) {
-    const [isExpanded, setIsExpanded] = useState(true)
+    const [isExpanded, setIsExpanded] = useState(false);
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     // make an object with keys from the array, all values are true
     const [diameterBoxState, setDiameterBoxState] = useState(diameterChoices.reduce(
