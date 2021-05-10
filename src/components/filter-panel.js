@@ -80,12 +80,18 @@ const StyledCheckBox = styled.input`
                 inset 0px 0px 0px 0px #0001,
                 inset 0px 0px 0px 0px #fff9,        
                 inset 0px 0px 0px 0px #0001;
+    cursor: pointer;
     height: 15px;
     width: 15px;
     border: none;
 
-    input:checked {
+    :checked {
         backgroud-color: green;
+    }
+    ::before, ::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: inherit;
     }
 
     &:active {
@@ -220,7 +226,8 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
     }, [heightBoxState, diameterBoxState]);
 
 
-
+    // https://medium.com/@colebemis/building-a-checkbox-component-with-react-and-styled-components-8d3aa1d826dd
+    // for fancy checkboxes
     let diameterCheckboxes = diameterChoices.map((label, i) => {
         return (
             <label key={i} >
