@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { titleCase } from '../utils'
+import { ChevronCollapse, Filter } from '../svg-icons'
 
 
 const StyledFilterPanel = styled.div`
@@ -16,9 +17,15 @@ const StyledFilterPanel = styled.div`
     outline: none;
     width: -moz-fit-content;
     width: fit-content;
+    height: -moz-fit-content;
+    height: fit-content;
+    overflow: hidden;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     
+    border-width: ${props => (props.open ? '0px' : '2px')};
+    border-style: ${props => (props.open ? 'none' : 'solid')};
+    border-color: ${props => (props.open ? 'none' : 'palegreen')};
 `;
 
 const StyledFilterTogglePane = styled.div`
@@ -102,32 +109,29 @@ const Dot = styled.div`
 
 const TreeEntry = styled.li`
     list-style-type: none;
-    background-color: ${props => (props.selected ? 'lightgrey' : 'inheret')};
-    color: ${props => (props.selected ? 'inheret' : 'darkgrey')};
+    background-color: ${props => (props.selected ? 'inheret' : 'inheret')};
+    color: ${props => (props.selected ? 'inheret' : 'inheret')};
     &:hover {
         cursor: pointer;
     }
 `;
 
-const OpenCloseButton = styled.div `
+const OpenCloseButton = styled.button `
+    all: unset;
     display: flex;
-    float: right;
-    width: 0.6em;
-    height: 0.6em;
-    border: 0.1em solid orangered;
-    font-size: 3em;
-    border-radius: 50%;
+    cursor: pointer;
     position: relative;
+    border-radius: 50%;
+    justify-content: flex-end;
+    height: -moz-fit-content;
+    height: fit-content;
+    width: -moz-fit-content;
+    width: fit-content;
     opacity: 0.6;
+    margin: -8px -20px -20px 0px; 
+
     &:hover {
         opacity: 1;
-        background-color: #333;
-        transform: rotate(45deg);
-    }
-    &:after {
-        opacity: 1;
-        background-color: #333;
-        transform: rotate(-45deg);
     }
 `;
 
@@ -145,7 +149,7 @@ const heightChoices = [ 'Under 10 feet', '10 to 20 feet',
 
 // pass the treeFilter setter to this component to set parent state
 export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors}) {
-    const [isExpanded, setIsExpanded] = useState(false)
+    const [isExpanded, setIsExpanded] = useState(true)
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     // make an object with keys from the array, all values are true
     const [diameterBoxState, setDiameterBoxState] = useState(diameterChoices.reduce(
@@ -261,22 +265,29 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
     }, [treeNamesAndColors])
 
     return (
-        <StyledFilterPanel>
-            <OpenCloseButton></OpenCloseButton>
-            <StyledFilterTogglePane>
-                <StyledFilterBoxes>
-                    <b>By tree diameter</b>
-                    {diameterCheckboxes}
-                </StyledFilterBoxes>
-                <StyledFilterBoxes>
-                    <b>By tree height</b>
-                    {heightCheckboxes}
-                </StyledFilterBoxes>
-                <StyledFilterTrees>
-                    <b>By tree name</b>
-                    { treeCommonNameList && treeCommonNameList}
-                </StyledFilterTrees>
+        <StyledFilterPanel open={isExpanded}>
+            <StyledFilterTogglePane >
+                {isExpanded && 
+                    <>
+                        <StyledFilterBoxes>
+                        <b>By tree diameter</b>
+                        {diameterCheckboxes}
+                        </StyledFilterBoxes>
+                        <StyledFilterBoxes>
+                            <b>By tree height</b>
+                            {heightCheckboxes}
+                        </StyledFilterBoxes>
+                        <StyledFilterTrees>
+                            <b>By tree name</b>
+                            { treeCommonNameList && treeCommonNameList}
+                        </StyledFilterTrees>
+                    </>
+                }                
             </StyledFilterTogglePane>
+            <OpenCloseButton onClick={handleToggle}>
+                { ! isExpanded && <p style={{'font-size': '1.2rem', 'margin': '-6px 5px 5px 0px'}}>Filter Map</p> } 
+                { isExpanded ? ChevronCollapse : Filter }
+            </OpenCloseButton>
         </StyledFilterPanel>
     )
 }

@@ -66,7 +66,7 @@ export const boundariesHighlightLayer = {
   id: 'boundaries-focus',
   type: 'line',
   source: 'boundaries',
-  maxzoom: boundaryTrasitionZoomLevel,
+  maxzoom: boundaryTrasitionZoomLevel + 2,
   paint: {
       'line-color': highlightColor,
       'line-width': 3

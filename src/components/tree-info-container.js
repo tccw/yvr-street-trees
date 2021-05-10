@@ -96,7 +96,7 @@ const TreeInfoContainer = (props) => {
         if (percentage < 0.5) {
             result = 'Less than 0.5';
         } else {
-            result = percentage >= 1 ? Math.round(percentage).toFixed(0) : percentage.toFixed(2);
+            result = percentage >= 1 ? `About ${Math.round(percentage).toFixed(0)}` : percentage.toFixed(2);
         }
         return result;
     }
