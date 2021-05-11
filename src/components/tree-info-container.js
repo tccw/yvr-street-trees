@@ -108,12 +108,12 @@ const TreeInfoContainer = (props) => {
             <StyledSubText font_size='1.5rem' font_style='italic'>
                 {`${titleCase(genus_name)} ${species_name.toLowerCase()}`}
             </StyledSubText>
-            <StyledSubText font_size='0.8rem' font_style='none'>
+            {/* <StyledSubText font_size='0.8rem' font_style='none'>
                 {`${neighborhoodPrevalance(props.stats)}% of ${titleCase(neighbourhood_name)} trees.`}
             </StyledSubText>
             <StyledSubText font_size='0.8rem' font_style='none'>
                 {`${citywidePrevalence(props.stats)}% of Vancouver trees.`}
-            </StyledSubText>
+            </StyledSubText> */}
             <TreeDetailsList>
                 {treeDetails}
             </TreeDetailsList>

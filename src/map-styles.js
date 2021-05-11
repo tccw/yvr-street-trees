@@ -1,6 +1,7 @@
 // For more information on data-driven styles, see https://www.mapbox.com/help/gl-dds-ref/
 const boundaryTrasitionZoomLevel = 13.5;
 const highlightColor = '#f75a2f';
+import { LAYER_NAME } from '../env'
 
 export const boundariesLayer = {
   id: 'boundaries',
@@ -40,9 +41,10 @@ export const centroidLayer = {
 
 // to fix later: https://docs.mapbox.com/mapbox-gl-js/style-spec/other/
 export const treesLayer = {
-  id: 'trees',
+  id: LAYER_NAME,
   type: 'circle',
   minzoom: boundaryTrasitionZoomLevel,
+  'source-layer': LAYER_NAME,
   paint: {
       'circle-color': {
           type: 'identity',
@@ -52,7 +54,7 @@ export const treesLayer = {
         property: 'diameter',
         stops: [
           [0, 6],
-          [60, 12]
+          [60, 10]
         ]
       },
       'circle-opacity': 0.7            
@@ -77,7 +79,8 @@ export const treesHighlightLayer = {
   id: 'tree-focus',
   type: 'circle',
   minzoom: boundaryTrasitionZoomLevel,
-  source: 'trees',
+  source: LAYER_NAME,
+  'source-layer': LAYER_NAME,
   paint: {
       'circle-opacity': 0,
       'circle-stroke-width': 3,
@@ -86,7 +89,7 @@ export const treesHighlightLayer = {
         property: 'diameter',
         stops: [
           [0, 6],
-          [60, 12]
+          [60, 10]
         ]
       },  
   }  

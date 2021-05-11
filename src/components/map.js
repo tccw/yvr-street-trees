@@ -10,11 +10,12 @@ import { MAPBOX_TOKEN,
          VAN_BOUNDARIES_URL, 
          VAN_BOUNDARY_CENTROID_URL, 
          WEST_POINT_TREES_URL, 
-         VAN_ALL_TREES_URL } from '../../env'
+         VAN_ALL_TREES_URL,
+         VAN_ALL_TREES_TILES,
+         LAYER_NAME } from '../../env'
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
-
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver's Street Trees`;
@@ -135,7 +136,7 @@ export default function Map() {
             const vp = new WebMercatorViewport(viewport);
             // create options based on layer type id
             var options = {padding: 40, maxZoom:14.5 };
-            if (feature.layer.id == 'trees') {
+            if (feature.layer.id == LAYER_NAME) {
                 options.maxZoom = 17;
             }
             const {longitude, latitude, zoom} = vp.fitBounds(
@@ -158,7 +159,7 @@ export default function Map() {
               transitionDuration: 650
             });
 
-            setTitle(titleCase(feature.layer.id == 'trees' ? feature.properties.common_name : feature.properties.name))
+            setTitle(titleCase(feature.layer.id == LAYER_NAME ? feature.properties.common_name : feature.properties.name))
           } else {
               setTitle(DEFAULT_TITLE);
           }
@@ -190,7 +191,7 @@ export default function Map() {
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
         selection = selected.properties.name;
-    } else if (selected && selected.layer.id == 'trees') {
+    } else if (selected && selected.layer.id == LAYER_NAME) {
         selection = selected.properties.tree_id;
     }
 
@@ -206,7 +207,7 @@ export default function Map() {
                 mapStyle="mapbox://styles/tcowan/cknw84ogv1a3c17o0k0k9sd4y?optimize=true"
                 onViewportChange={setViewport}
                 mapboxApiAccessToken={TOKEN}
-                interactiveLayerIds={['boundaries', 'trees']} // centroids are only labels, not interacitve elements
+                interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
                 onHover={onHover}
                 onClick={onClickZoom}
             >
@@ -217,11 +218,11 @@ export default function Map() {
                 <Source type="geojson" data={centroids}>
                     <Layer {...centroidLayer} />
                 </Source>
-                <Source type="geojson" data={trees}>
+                <Source type="vector" url={VAN_ALL_TREES_TILES}>
                     <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/>                     
                     <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
                 </Source>
-                {hoverInfo && hoverInfo.feature.layer.id == "trees" && (
+                {hoverInfo && hoverInfo.feature.layer.id == LAYER_NAME && (
                 <ToolTip x={hoverInfo.x} y={hoverInfo.y}>
                     <div>{titleCase(hoverInfo.feature.properties.common_name)}</div>
                 </ToolTip>
@@ -235,8 +236,8 @@ export default function Map() {
                          treeNamesAndColors={treeStats ? treeStats.tree_stats : null} >
             </FilterPanel>
             <InfoPanel title={title} 
-                       color={(selected && selected.layer.id == 'trees') ? selected.properties.color : ''}>    
-                {selected && selected.layer.id == "trees" &&
+                       color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}>    
+                {selected && selected.layer.id == LAYER_NAME &&
                         <TreeInfoContainer {...selected.properties} stats={treeStats} >
                             <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
                                 View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 

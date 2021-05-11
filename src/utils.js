@@ -167,7 +167,6 @@ export function getTreeStats(treeGeoJSON) {
     }
   }
 
-
   // get the total tree counts per neighborhood to use for neighborhood stats
 
   return {'city_tree_count': numTrees, 'tree_stats': treeObj, 'neigh_num_trees': totalCountsNeigh};
