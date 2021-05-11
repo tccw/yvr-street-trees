@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { heightStringFromID, titleCase, toPrettyDateString} from '../utils'
 import styled from 'styled-components'
+import { Copy } from '../svg-icons'
 
 // margin order is top right bottom left
 const StyledTreeInfo = styled.section`
@@ -47,10 +48,32 @@ const TreeDetailKey = styled.span`
     text-align: left;
 `;
 
-const TreeDtailValue = styled.span`
+const TreeDetailValue = styled.span`
     flex: 2;
     font-size: 0.9rem;
     color: darkgreen;   
+`;
+
+const CopyButton = styled.button.attrs(props => ({
+    alt: 'copy to clipboard',
+    title:'copy to clipboard'
+}))`
+    all: unset;
+    display: flex;
+    cursor: pointer;
+    position: relative;
+    border-radius: 50%;
+    justify-content: flex-end;
+    height: -moz-fit-content;
+    height: fit-content;
+    width: -moz-fit-content;
+    width: fit-content;
+    opacity: 0.3;
+    vertical-align: middle;
+
+    &:hover {
+        opacity: 1;
+    }
 `;
 
 
@@ -76,7 +99,10 @@ const TreeInfoContainer = (props) => {
             <TreeListElement key={key}>
                 <TreeDetail>
                     <TreeDetailKey>{key}</TreeDetailKey> 
-                    <TreeDtailValue>{value}</TreeDtailValue>
+                    <TreeDetailValue>{value}</TreeDetailValue>
+                    { (key === 'Address') && <CopyButton onClick={() => {
+                        navigator.clipboard.writeText(value); // only for modern browsers
+                    }}>{Copy}</CopyButton>}
                 </TreeDetail>
             </TreeListElement>
         )

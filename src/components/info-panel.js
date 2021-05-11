@@ -53,7 +53,7 @@ const OpenCloseButton = styled.button `
     display: flex;
     cursor: pointer;
     position: relative;
-    border-radius: 50%;
+    border-radius: 20%;
     align-self: flex-end;
     height: -moz-fit-content;
     height: fit-content;
@@ -94,7 +94,7 @@ function InfoPanel(props) {
     return (
         <>
             <Panel open={isExpanded}>
-                <OpenCloseButton onClick={handleToggle}>
+                <OpenCloseButton onClick={handleToggle} title='collapse panel'>
                     {ChevronLeft}
                 </OpenCloseButton>
                         <Title>
@@ -103,10 +103,9 @@ function InfoPanel(props) {
                         </Title>                 
                     {props.children}
             </Panel>
-            {/* temporary toggle button */}
             {! isExpanded && 
                 <OpenFlagContainer>
-                    <OpenCloseButton onClick={handleToggle}>
+                    <OpenCloseButton onClick={handleToggle} title='expand panel'>
                         {ChevronRight}
                     </OpenCloseButton>
                 </OpenFlagContainer>
