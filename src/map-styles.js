@@ -63,7 +63,7 @@ export const treesLayer = {
           [{zoom: 19, value: 60}, 25]
         ]
       },
-      'circle-opacity': 0.8            
+      'circle-opacity': 0.75            
   }
 };
 
