@@ -1,5 +1,5 @@
 // For more information on data-driven styles, see https://www.mapbox.com/help/gl-dds-ref/
-const boundaryTrasitionZoomLevel = 13.5;
+const boundaryTrasitionZoomLevel = 12.5;
 const highlightColor = '#f75a2f';
 import { LAYER_NAME } from '../env'
 
@@ -53,11 +53,17 @@ export const treesLayer = {
       'circle-radius': {
         property: 'diameter',
         stops: [
-          [0, 6],
-          [60, 10]
+          [{zoom: 8, value: 0}, 4],
+          [{zoom: 8, value: 40}, 6],
+          [{zoom: 13, value: 0}, 6],
+          [{zoom: 13, value: 60}, 8],
+          [{zoom: 16, value: 0}, 4],
+          [{zoom: 16, value: 60}, 10],
+          [{zoom: 19, value: 0}, 7],
+          [{zoom: 19, value: 60}, 25]
         ]
       },
-      'circle-opacity': 0.7            
+      'circle-opacity': 0.8            
   }
 };
 
@@ -88,8 +94,14 @@ export const treesHighlightLayer = {
       'circle-radius': {
         property: 'diameter',
         stops: [
-          [0, 6],
-          [60, 10]
+          [{zoom: 8, value: 0}, 4],
+          [{zoom: 8, value: 40}, 6],
+          [{zoom: 13, value: 0}, 6],
+          [{zoom: 13, value: 60}, 8],
+          [{zoom: 16, value: 0}, 4],
+          [{zoom: 16, value: 60}, 10],
+          [{zoom: 19, value: 0}, 7],
+          [{zoom: 19, value: 60}, 25]
         ]
       },  
   }  

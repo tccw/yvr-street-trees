@@ -59,7 +59,7 @@ export default function Map() {
         zoom: 15.5,
         bearing: 0,
         pitch: 0,
-        maxZoom: 17
+        maxZoom: 19
     });
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
