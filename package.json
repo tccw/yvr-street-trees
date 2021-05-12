@@ -11,6 +11,7 @@
     "react": "^16.3.0",
     "react-dom": "^16.3.0",
     "react-map-gl": "^6.0.0",
+    "react-map-gl-geocoder": "^2.1.6",
     "style-loader": "^2.0.0",
     "styled-components": "^5.2.3",
     "topojson": "^3.0.2",

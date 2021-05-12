@@ -7,7 +7,7 @@ import { ChevronCollapse, Filter } from '../svg-icons'
 
 const StyledFilterPanel = styled.div`
     position: absolute;
-    top: 0;
+    top: 65px;
     right: 0;
     background: #f2f2f2;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -23,15 +23,15 @@ const StyledFilterPanel = styled.div`
     display: flex;
     flex-direction: row;
     
-    border-width: ${props => (props.open ? '0px' : '2px')};
+    border-width: ${props => (props.open ? '0px' : '1px')};
     border-style: ${props => (props.open ? 'none' : 'solid')};
-    border-color: ${props => (props.open ? 'none' : 'palegreen')};
+    border-color: ${props => (props.open ? 'none' : 'darkgrey')};
 `;
 
 const StyledFilterTogglePane = styled.div`
     position: relative;
-    top: 0;
-    right: 0;
+    top: 0px;
+    right: 0px;
     background: inheret;
     line-height: 2;
     outline: none;

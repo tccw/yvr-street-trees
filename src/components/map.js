@@ -1,7 +1,9 @@
 import * as React from 'react';
-import {useState, useEffect, useMemo, useCallback} from 'react';
+import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import styled from 'styled-components';
-import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport} from 'react-map-gl';
+import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport, GeolocateControl} from 'react-map-gl';
+import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
 import {FilterPanel} from './filter-panel';
 import TreeInfoContainer from './tree-info-container';
@@ -12,13 +14,20 @@ import { MAPBOX_TOKEN,
          WEST_POINT_TREES_URL, 
          VAN_ALL_TREES_URL,
          VAN_ALL_TREES_TILES,
-         LAYER_NAME } from '../../env'
+         LAYER_NAME, GEOCODER_PROXIMITY } from '../../env'
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver's Street Trees`;
+const MAX_ZOOM = 18.5;
+const GEOLOCATE_POS_OPTIONS = {enableHighAccuracy: true};
+const GEOLOCATE_STYLE = {
+    position: 'absolute',
+    top: 50,
+    right: 220,
+  };
 
 const ToolTip = styled.div`
     position: absolute;
@@ -51,6 +60,7 @@ const FilterToTree = styled.span`
     }
 `;
 
+
 export default function Map() {
 
     const [viewport, setViewport] = useState({
@@ -59,7 +69,7 @@ export default function Map() {
         zoom: 15.5,
         bearing: 0,
         pitch: 0,
-        maxZoom: 19
+        maxZoom: MAX_ZOOM
     });
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
@@ -109,64 +119,78 @@ export default function Map() {
     
     /** set up a slick mouse hover info box */
     const onHover = useCallback(event => {
-        const {
-        features,
-        srcEvent: {offsetX, offsetY}
-        } = event;
-        const hoveredFeature = features && features[0];
-        
-        setHoverInfo(
-        hoveredFeature
-            ? {
-                feature: hoveredFeature,
-                x: offsetX,
-                y: offsetY
-            }
-            : null
-        );
+        if ( ! [...event.target.classList].some(name => name.includes('geocoder')) ) {
+            const {
+                features,
+                srcEvent: {offsetX, offsetY}
+                } = event;
+                const hoveredFeature = features && features[0];
+                
+                setHoverInfo(
+                hoveredFeature
+                    ? {
+                        feature: hoveredFeature,
+                        x: offsetX,
+                        y: offsetY
+                    }
+                    : null
+                );
+        }
+    }, []);
+
+    const handleGeocoderViewportChange = useCallback((newViewport) => {
+        const options = { transitionDuration: 1000, maxZoom: MAX_ZOOM};
+        setViewport({
+            ...newViewport,
+            ...options
+        });
     }, []);
 
     const onClickZoom = event => {
-        const feature = event.features && event.features[0];
+        // this stops clicks from propogating through the geocoder search box to the map below
+        // the DomTokenList has to be spread and cast to an array in order to use some()
+        if ( ! [...event.target.classList].some(name => name.includes('geocoder')) ) {
+            const feature = event.features && event.features[0];
 
-        if (feature) {            
-            // calculate the bounding box of the feature
-            const [minLng, minLat, maxLng, maxLat] = bbox(feature);
-            // construct a viewport instance from the current state
-            const vp = new WebMercatorViewport(viewport);
-            // create options based on layer type id
-            var options = {padding: 40, maxZoom:14.5 };
-            if (feature.layer.id == LAYER_NAME) {
-                options.maxZoom = 17;
+            if (feature) {            
+                // calculate the bounding box of the feature
+                const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+                // construct a viewport instance from the current state
+                const vp = new WebMercatorViewport(viewport);
+                // create options based on layer type id
+                var options = {padding: 40, maxZoom:14.5 };
+                if (feature.layer.id == LAYER_NAME) {
+                    options.maxZoom = 17;
+                }
+                const {longitude, latitude, zoom} = vp.fitBounds(
+                [
+                    [minLng, minLat],
+                    [maxLng, maxLat]
+                ],
+                options
+                );
+            
+                // update the viewport  
+                setViewport({
+                ...viewport,
+                longitude,
+                latitude,
+                zoom,
+                transitionInterpolator: new LinearInterpolator({
+                    around: [event.offsetCenter.x, event.offsetCenter.y]
+                }),
+                transitionDuration: 650
+                });
+
+                setTitle(titleCase(feature.layer.id == LAYER_NAME ? feature.properties.common_name : feature.properties.name))
+            } else {
+                setTitle(DEFAULT_TITLE);
             }
-            const {longitude, latitude, zoom} = vp.fitBounds(
-              [
-                [minLng, minLat],
-                [maxLng, maxLat]
-              ],
-              options
-            );
-        
-            // update the viewport  
-            setViewport({
-              ...viewport,
-              longitude,
-              latitude,
-              zoom,
-              transitionInterpolator: new LinearInterpolator({
-                around: [event.offsetCenter.x, event.offsetCenter.y]
-              }),
-              transitionDuration: 650
-            });
 
-            setTitle(titleCase(feature.layer.id == LAYER_NAME ? feature.properties.common_name : feature.properties.name))
-          } else {
-              setTitle(DEFAULT_TITLE);
-          }
-
-          // update selected
-          setSelected (feature || null);
-          setFilterPanelSelected(Boolean(feature));
+            // update selected
+            setSelected (feature || null);
+            setFilterPanelSelected(Boolean(feature));
+        }
     };
 
     const onClickFilter = () => {
@@ -197,10 +221,12 @@ export default function Map() {
 
     const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
     const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
-    
+    const mapRef = useRef();
+
     return (
         <>
             <MapGL
+                ref={mapRef}
                 {...viewport}
                 width="100%"
                 height="100%"
@@ -211,6 +237,21 @@ export default function Map() {
                 onHover={onHover}
                 onClick={onClickZoom}
             >
+                <GeolocateControl
+                    style={GEOLOCATE_STYLE}
+                    positionOptions={GEOLOCATE_POS_OPTIONS}
+                    trackUserLocation
+                    label="Toggle Find My Location"
+                />
+                <Geocoder 
+                mapRef={mapRef}
+                mapboxApiAccessToken={MAPBOX_TOKEN} 
+                position='top-right'
+                onViewportChange={handleGeocoderViewportChange}
+                placeholder="Search Address"
+                proximity={GEOCODER_PROXIMITY}
+                country='CANADA'>  
+                </Geocoder>                
                 <Source type="geojson" data={boundaries}>
                     <Layer {...boundariesLayer}/>
                     <Layer {...boundariesHighlightLayer} filter={boundaryHighlightFilter}/>
