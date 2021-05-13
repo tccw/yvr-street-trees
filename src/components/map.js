@@ -242,6 +242,7 @@ export default function Map() {
                     positionOptions={GEOLOCATE_POS_OPTIONS}
                     trackUserLocation
                     label="Toggle Find My Location"
+                    onViewportChange={handleGeocoderViewportChange}
                 />
                 <Geocoder 
                 mapRef={mapRef}
