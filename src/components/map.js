@@ -64,16 +64,15 @@ const FilterToTree = styled.span`
 export default function Map() {
 
     const [viewport, setViewport] = useState({
-        latitude: 49.265,
-        longitude: -123.20,
-        zoom: 15.5,
+        latitude: GEOCODER_PROXIMITY.latitude,
+        longitude: GEOCODER_PROXIMITY.longitude,
+        zoom: 12.5,
         bearing: 0,
         pitch: 0,
         maxZoom: MAX_ZOOM
     });
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
-    const [trees, setTrees]           = useState(null);
     const [hoverInfo, setHoverInfo]   = useState(null);
     const [selected, setSelected]     = useState(null);
     const [title, setTitle]           = useState(DEFAULT_TITLE)
@@ -105,20 +104,22 @@ export default function Map() {
      * https://cloud.google.com/storage/docs/cross-origin
      * 
      * */
-    useEffect(() => {
-        fetch( WEST_POINT_TREES_URL || VAN_ALL_TREES_URL )
-        .then(response => response.json())
-        .then((json) => {
-            setTrees(json);
-            setTreeStats(getTreeStats(json));
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    }, []);
+    // useEffect(() => {
+    //     fetch( WEST_POINT_TREES_URL || VAN_ALL_TREES_URL )
+    //     .then(response => response.json())
+    //     .then((json) => {
+    //         setTrees(json);
+    //         setTreeStats(getTreeStats(json));
+    //     })
+    //     .catch((error) => {
+    //         console.error('Error:', error);
+    //     });
+    // }, []);
+
+    
     
     /** set up a slick mouse hover info box */
-    const onHover = useCallback(event => {
+    const onHover = useCallback(event => {        
         if ( ! [...event.target.classList].some(name => name.includes('geocoder')) ) {
             const {
                 features,
@@ -222,6 +223,12 @@ export default function Map() {
     const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
     const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
     const mapRef = useRef();
+    const getTreeInfo = () => {
+        console.log('On Load RUN');
+        let sourceID = mapRef.current.getMap().getLayer(LAYER_NAME).source;
+        let data = mapRef.current.getMap().querySourceFeatures(sourceID, {sourceLayer: LAYER_NAME});
+        setTreeStats(getTreeStats(data));
+    }
 
     return (
         <>
@@ -236,15 +243,16 @@ export default function Map() {
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
                 onHover={onHover}
                 onClick={onClickZoom}
+                onLoad={getTreeInfo}
             >
-                <GeolocateControl
+                {/* <GeolocateControl
                     style={GEOLOCATE_STYLE}
                     positionOptions={GEOLOCATE_POS_OPTIONS}
                     trackUserLocation
                     label="Toggle Find My Location"
                     onViewportChange={handleGeocoderViewportChange}
-                />
-                <Geocoder 
+                /> */}
+                {/* <Geocoder 
                 mapRef={mapRef}
                 mapboxApiAccessToken={MAPBOX_TOKEN} 
                 position='top-right'
@@ -252,7 +260,7 @@ export default function Map() {
                 placeholder="Search Address"
                 proximity={GEOCODER_PROXIMITY}
                 country='CANADA'>  
-                </Geocoder>                
+                </Geocoder>                 */}
                 <Source type="geojson" data={boundaries}>
                     <Layer {...boundariesLayer}/>
                     <Layer {...boundariesHighlightLayer} filter={boundaryHighlightFilter}/>

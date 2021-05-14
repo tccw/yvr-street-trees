@@ -83,7 +83,7 @@ const TreeInfoContainer = (props) => {
     const {genus_name, species_name, tree_id, 
            diameter, civic_number, on_street, 
            height_range_id, date_planted, common_name,
-           neighbourhood_name} = props;
+           neighbourhood_name, cultivar_name} = props;
 
     var listValues = {
         'Tree ID' : tree_id,
@@ -127,19 +127,19 @@ const TreeInfoContainer = (props) => {
         return result;
     }
 
-
+    let cult = cultivar_name ? ` (${titleCase(cultivar_name)})` : '';
 
     return (
         <StyledTreeInfo>
             <StyledSubText font_size='1.5rem' font_style='italic'>
-                {`${titleCase(genus_name)} ${species_name.toLowerCase()}`}
+                {`${titleCase(genus_name)} ${species_name.toLowerCase()}` + cult}
             </StyledSubText>
-            {/* <StyledSubText font_size='0.8rem' font_style='none'>
+            <StyledSubText font_size='0.8rem' font_style='none'>
                 {`${neighborhoodPrevalance(props.stats)}% of ${titleCase(neighbourhood_name)} trees.`}
             </StyledSubText>
             <StyledSubText font_size='0.8rem' font_style='none'>
                 {`${citywidePrevalence(props.stats)}% of Vancouver trees.`}
-            </StyledSubText> */}
+            </StyledSubText>
             <TreeDetailsList>
                 {treeDetails}
             </TreeDetailsList>
