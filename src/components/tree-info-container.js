@@ -78,6 +78,13 @@ const CopyButton = styled.button.attrs(props => ({
 
 
 
+/**
+ * This container should reviece the properties of the selected tree
+ * and the treeStats object which is calculated on first render.
+ * 
+ * @param {any} props 
+ * @returns 
+ */
 const TreeInfoContainer = (props) => {
 
     const {genus_name, species_name, tree_id, 

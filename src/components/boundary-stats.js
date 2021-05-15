@@ -8,13 +8,18 @@ const StatsSection = styled.section`
 const StatsHeader = styled.h2`
     text-align: left;
     color: #63686a;
-    margin: 40px 20px;
+    margin: 20px;
     border-bottom: 0.2rem solid #63686a;
     width: -moz-fit-content;
     width: fit-content;
     display: table; 
     text-transform: capitalize;
 `;
+
+const Description = styled.p`
+    color: #63686a;
+    margin: 30px 20px;
+`; 
 
 const StatsDisplay = styled.div`
 
@@ -24,10 +29,11 @@ const StyledStat = styled.div`
 
 `;
 
-export const BoundaryStats = ({heading, stats}) => {
-
+export const BoundaryStats = ({description, heading, stats}) => {
+    console.log(description)
     return (
         <StatsSection>
+            <Description>{description}</Description>
             <StatsHeader> {`${heading} Statistics`} </StatsHeader>
         </StatsSection>
 

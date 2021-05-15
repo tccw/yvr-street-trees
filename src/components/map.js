@@ -280,7 +280,7 @@ export default function Map() {
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
                 {selected && selected.layer.id == 'boundaries' && 
-                    <BoundaryStats heading='Neighborhood' stats={treeStats}></BoundaryStats>
+                    <BoundaryStats  {...selected.properties} heading='Neighborhood' stats={treeStats}></BoundaryStats>
                 }   
                 {selected && selected.layer.id == LAYER_NAME &&
                         <TreeInfoContainer {...selected.properties} stats={treeStats} >
