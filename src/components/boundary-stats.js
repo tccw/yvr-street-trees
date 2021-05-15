@@ -31,9 +31,19 @@ const StyledStat = styled.div`
 
 export const BoundaryStats = ({description, heading, stats}) => {
     console.log(description)
+
+    let blerb = [];
+    for (let i = 0; i < description.length; i++) {
+        blerb.push(
+            <Description>
+                {description[i]}
+            </Description>
+        )
+    }
+
     return (
         <StatsSection>
-            <Description>{description}</Description>
+            {blerb}
             <StatsHeader> {`${heading} Statistics`} </StatsHeader>
         </StatsSection>
 
