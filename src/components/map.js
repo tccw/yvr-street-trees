@@ -8,6 +8,7 @@ import bbox from '@turf/bbox'
 import {FilterPanel} from './filter-panel';
 import TreeInfoContainer from './tree-info-container';
 import InfoPanel from './info-panel';
+import { BoundaryStats } from './boundary-stats';
 import { MAPBOX_TOKEN, 
          VAN_BOUNDARIES_URL, 
          VAN_BOUNDARY_CENTROID_URL, 
@@ -277,7 +278,10 @@ export default function Map() {
                          treeNamesAndColors={treeStats ? treeStats.tree_stats : null} >
             </FilterPanel>
             <InfoPanel title={title} 
-                       color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}>    
+                       color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
+                {selected && selected.layer.id == 'boundaries' && 
+                    <BoundaryStats heading='Neighborhood' stats={treeStats}></BoundaryStats>
+                }   
                 {selected && selected.layer.id == LAYER_NAME &&
                         <TreeInfoContainer {...selected.properties} stats={treeStats} >
                             <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
