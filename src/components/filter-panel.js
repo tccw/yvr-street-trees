@@ -294,7 +294,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                 }                
             </StyledFilterTogglePane>
             <OpenCloseButton onClick={handleToggle} title={isExpanded ? 'collapse panel' : 'expand panel'}>
-                { ! isExpanded && <p style={{'font-size': '1.2rem', 'margin': '-6px 5px 5px 0px'}}>Filter Map</p> } 
+                { ! isExpanded && <p style={{'fontSize': '1.2rem', 'margin': '-6px 5px 5px 0px'}}>Filter Map</p> } 
                 { isExpanded ? ChevronCollapse : Filter }
             </OpenCloseButton>
         </StyledFilterPanel>

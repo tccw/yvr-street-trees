@@ -109,11 +109,15 @@ const TreeInfoContainer = (props) => {
     }
 
     const citywidePrevalence = (stats) => {
-         let percentage = ((stats.tree_stats[common_name].total_count / stats.city_tree_count) * 100).toFixed(2)
+        console.log(`In city: ${stats.tree_stats[common_name].total_count}`);
+        console.log(`Num trees in city: ${stats.city_tree_count}`)
+         let percentage = Math.round(((stats.tree_stats[common_name].total_count / stats.city_tree_count) * 100)).toFixed(2)
          return formatPrevalanceResult(parseInt(percentage));
     };
     const neighborhoodPrevalance = (stats) => {
-        let percentage = ((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neigh_num_trees[neighbourhood_name]) * 100).toFixed(2);
+        console.log(`In Neighborhood: ${stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name]}`);
+        console.log(`Total in Neighborhood: ${stats.neigh_num_trees[neighbourhood_name]}`);
+        let percentage = Math.round(((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neigh_num_trees[neighbourhood_name]) * 100)).toFixed(2);
         return formatPrevalanceResult(parseInt(percentage));
     };
 
@@ -128,17 +132,20 @@ const TreeInfoContainer = (props) => {
     }
 
     let cult = cultivar_name ? ` (${titleCase(cultivar_name)})` : '';
+    let neighPrevalance = React.useMemo(() => neighborhoodPrevalance(props.stats), [tree_id])
+    let totalPrevalance = React.useMemo(() => citywidePrevalence(props.stats), [tree_id])
 
     return (
         <StyledTreeInfo>
             <StyledSubText font_size='1.5rem' font_style='italic'>
                 {`${titleCase(genus_name)} ${species_name.toLowerCase()}` + cult}
             </StyledSubText>
-            <StyledSubText font_size='0.8rem' font_style='none'>
-                {`${neighborhoodPrevalance(props.stats)}% of ${titleCase(neighbourhood_name)} trees.`}
+            <StyledSubText font_size='0.9rem' font_style='none'>
+            {`${neighPrevalance}% of ${titleCase(neighbourhood_name)} trees.`}
+                {/* {`${neighborhoodPrevalance(props.stats)}% of ${titleCase(neighbourhood_name)} trees.`} */}
             </StyledSubText>
-            <StyledSubText font_size='0.8rem' font_style='none'>
-                {`${citywidePrevalence(props.stats)}% of Vancouver trees.`}
+            <StyledSubText font_size='0.9rem' font_style='none'>
+                {`${totalPrevalance}% of Vancouver trees.`}
             </StyledSubText>
             <TreeDetailsList>
                 {treeDetails}

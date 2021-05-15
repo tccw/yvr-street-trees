@@ -28,6 +28,7 @@ const GEOLOCATE_STYLE = {
     top: 50,
     right: 220,
   };
+const BOUNDS = [ [ -122.821261, 49.35818], [ -123.413509, 49.149992 ] ]
 
 const ToolTip = styled.div`
     position: absolute;
@@ -69,7 +70,9 @@ export default function Map() {
         zoom: 12.5,
         bearing: 0,
         pitch: 0,
-        maxZoom: MAX_ZOOM
+        maxZoom: MAX_ZOOM,
+        // minZoom: 11.5,
+        maxbounds: BOUNDS
     });
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
@@ -104,18 +107,6 @@ export default function Map() {
      * https://cloud.google.com/storage/docs/cross-origin
      * 
      * */
-    // useEffect(() => {
-    //     fetch( WEST_POINT_TREES_URL || VAN_ALL_TREES_URL )
-    //     .then(response => response.json())
-    //     .then((json) => {
-    //         setTrees(json);
-    //         setTreeStats(getTreeStats(json));
-    //     })
-    //     .catch((error) => {
-    //         console.error('Error:', error);
-    //     });
-    // }, []);
-
     
     
     /** set up a slick mouse hover info box */
