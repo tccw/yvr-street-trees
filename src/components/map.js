@@ -8,7 +8,7 @@ import bbox from '@turf/bbox'
 import {FilterPanel} from './filter-panel';
 import TreeInfoContainer from './tree-info-container';
 import InfoPanel from './info-panel';
-import { BoundaryStats } from './boundary-stats';
+import BoundaryStats from './boundary-stats';
 import { MAPBOX_TOKEN, 
          VAN_BOUNDARIES_URL, 
          VAN_BOUNDARY_CENTROID_URL, 
@@ -68,7 +68,7 @@ export default function Map() {
     const [viewport, setViewport] = useState({
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
-        zoom: 12.5,
+        zoom: 18.5,
         bearing: 0,
         pitch: 0,
         maxZoom: MAX_ZOOM,
@@ -274,7 +274,7 @@ export default function Map() {
             <FilterPanel currentState={treeFilterObject} 
                          updateParent={(props) => setTreeFilterObject({...props})}
                          updateSelected={() => setFilterPanelSelected(true)}
-                         Selected={selected} // so that clicking the map still can also deselect the tree from the list
+                         Selected={selected} // so that clicking the map can also deselect the tree from the list
                          treeNamesAndColors={treeStats ? treeStats.tree_stats : null} >
             </FilterPanel>
             <InfoPanel title={title} 
