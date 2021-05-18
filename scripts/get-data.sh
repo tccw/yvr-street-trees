@@ -12,13 +12,13 @@ VANCOUVER_BOUNDARIES_URL='https://opendata.vancouver.ca/explore/dataset/local-ar
 NEW_WESTMINSTER_BOUNDARIES_URL='http://opendata.newwestcity.ca/downloads/neighbourhoods/NEIGHBOURHOOD_BOUNDARIES.json'
 
 # file locations
-VAN_TREE_PATH='../data/raw/vancouver-all-trees-raw.json'
-NW_WEST_TREE_PATH='../data/raw/new-westminster-west-trees-raw.json'
-NW_EAST_TREE_PATH='../data/raw/new-westminster-east-trees-raw.json'
-NW_TMP_MERGE_PATH='../data/raw/new-westminster-trees-merged_tmp.json'
-NW_FINAL_MERGE_PATH='../data/raw/new-westminster-trees-merged.json'
-VAN_BOUNDARY_PATH='../data/raw/vancouver-boundaries-raw.json'
-NW_BOUNDARY_PATH='../data/raw/new-westminster-boundaries-raw.json'
+VAN_TREE_PATH='../opendata/raw/vancouver-all-trees-raw.json'
+NW_WEST_TREE_PATH='../opendata/raw/new-westminster-west-trees-raw.json'
+NW_EAST_TREE_PATH='../opendata/raw/new-westminster-east-trees-raw.json'
+NW_TMP_MERGE_PATH='../opendata/raw/new-westminster-trees-merged_tmp.json'
+NW_FINAL_MERGE_PATH='../opendata/raw/new-westminster-trees-merged.json'
+VAN_BOUNDARY_PATH='../opendata/raw/vancouver-boundaries-raw.json'
+NW_BOUNDARY_PATH='../opendata/raw/new-westminster-boundaries-raw.json'
 
 usage()
 {
@@ -41,8 +41,8 @@ download_vancouver_trees()
 
 merge_new_west_trees()
 {
-    jq -s '.[0]["features"] + .[1]["features"]' $NW_WEST_TREE_PATH $NW_EAST_TREE_PATH > $NW_TMP_MERGE_PATH
-    jq -s '{"type": "FeatureCollection", "features": .[]}' $NW_TMP_MERGE_PATH >> $NW_FINAL_MERGE_PATH
+    jq --slurp '.[0]["features"] + .[1]["features"]' $NW_WEST_TREE_PATH $NW_EAST_TREE_PATH > $NW_TMP_MERGE_PATH
+    jq --slurp '{"type": "FeatureCollection", "features": .[]}' $NW_TMP_MERGE_PATH >> $NW_FINAL_MERGE_PATH
     
     # remove all the intermediary files
     rm -f $NW_WEST_TREE_PATH $NW_EAST_TREE_PATH $NW_TMP_MERGE_PATH 

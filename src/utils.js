@@ -107,7 +107,7 @@ export function toPrettyDateString(yyyymmdd) {
  *   'tree_stats' : {
  *      <tree common name> : {
  *          'total_count': <tree count for this species in the city>,
- *          'color': 
+ *          'color': <hex color>
  *          'neighborhood_counts': {
  *              <neighborhood_name> : <tree count in specific neighborhood>,
  *              <...other entries>
