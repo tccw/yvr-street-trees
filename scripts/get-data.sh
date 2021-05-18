@@ -54,7 +54,7 @@ download_newwest_trees()
     curl "$NEW_WESTMINSTER_EAST_URL" --create-dirs -o $NW_EAST_TREE_PATH
     curl "$NEW_WESTMINSTER_WEST_URL" --create-dirs -o $NW_WEST_TREE_PATH
 
-    # merge the East and West side tree data together
+    echo "Merging East and West New Westminster data..."
     merge_new_west_trees
 }
 
