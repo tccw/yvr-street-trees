@@ -15,7 +15,8 @@ import { MAPBOX_TOKEN,
          WEST_POINT_TREES_URL, 
          VAN_ALL_TREES_URL,
          VAN_ALL_TREES_TILES,
-         LAYER_NAME, GEOCODER_PROXIMITY } from '../../env'
+         LAYER_NAME, GEOCODER_PROXIMITY,
+         TREE_BLURB_URL } from '../../env'
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
@@ -83,6 +84,7 @@ export default function Map() {
     const [treeFilterObject, setTreeFilterObject] = useState({trees: null, diameters: null, height_ids: null})
     const [filterPanelSelected, setFilterPanelSelected] = useState(false);
     const [treeStats, setTreeStats] = useState(null);
+    const [blurbs, setBlurbs] = useState(null);
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -96,6 +98,12 @@ export default function Map() {
             .then(response => response.json())
             .then(json => setCentroids(json));
     }, []);
+
+    useEffect(() => {
+        fetch(TREE_BLURB_URL)
+            .then(response => response.json())
+            .then(json => setBlurbs(json));
+    }, [])
 
 
     /** 
@@ -283,7 +291,7 @@ export default function Map() {
                     <BoundaryStats  {...selected.properties} heading='Neighborhood' stats={treeStats}></BoundaryStats>
                 }   
                 {selected && selected.layer.id == LAYER_NAME &&
-                        <TreeInfoContainer {...selected.properties} stats={treeStats} >
+                        <TreeInfoContainer {...selected.properties} stats={treeStats} blurbs={blurbs}>
                             <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
                                 View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
                             </FilterToTree>

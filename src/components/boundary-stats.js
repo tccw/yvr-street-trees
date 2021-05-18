@@ -51,9 +51,9 @@ const BoundaryStats = ({name, description, heading, stats}) => {
     const displayStats = React.useMemo(() => getStats(), [name]);
 
     description = JSON.parse(description);
-    let blerb = [];
+    let blurb = [];
     for (let i = 0; i < description.length; i++) {
-        blerb.push(
+        blurb.push(
             <Description key={i}>
                 {description[i]}
             </Description>
@@ -64,7 +64,7 @@ const BoundaryStats = ({name, description, heading, stats}) => {
 
     return (
         <StatsSection>
-            {blerb}
+            {blurb}
             <StatsHeader> {`${heading} Statistics`} </StatsHeader>
             <StatsDisplay>
                 <StyledStat>{displayStats.mostCommonSpecies.treeName}</StyledStat>

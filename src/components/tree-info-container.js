@@ -25,6 +25,7 @@ const StyledSubText = styled.span`
     font-size: ${props => (props.font_size)};
     font-style: ${props => (props.font_style)};
     font-weight: 50;
+    text-transform: ${props => (props.text_transform ? props.text_transform : 'none')};
 `; 
 
 const TreeDetailsList = styled.ul`
@@ -137,15 +138,30 @@ const TreeInfoContainer = (props) => {
         }
         return result;
     }
+    
+    const getBlurb = (blurbs) => {
+        let key = formatSciName().toLowerCase().split(' ').join('_')
+        return key in blurbs ? blurbs[key] : null;
+    }
+
+    const formatSciName = () => {
+        let tmp_species_name = species_name;
+        let species_name_arr = species_name.trim().split(' ');
+        if (species_name_arr[species_name_arr.length - 1].toLowerCase() === 'x') {
+            tmp_species_name = `${species_name_arr[species_name_arr.length - 1]} ${species_name_arr[0]}`;
+        }
+        return titleCase(`${genus_name} ${tmp_species_name}`);
+    }
 
     let cult = cultivar_name ? ` (${titleCase(cultivar_name)})` : '';
-    let neighPrevalance = React.useMemo(() => neighborhoodPrevalance(props.stats), [tree_id])
-    let totalPrevalance = React.useMemo(() => citywidePrevalence(props.stats), [tree_id])
+    let neighPrevalance = React.useMemo(() => neighborhoodPrevalance(props.stats), [tree_id]);
+    let totalPrevalance = React.useMemo(() => citywidePrevalence(props.stats), [tree_id]);
+    let blurb = React.useMemo(() => getBlurb(props.blurbs), [tree_id]);
 
     return (
         <StyledTreeInfo>
-            <StyledSubText font_size='1.5rem' font_style='italic'>
-                {`${titleCase(genus_name)} ${species_name.toLowerCase()}` + cult}
+            <StyledSubText font_size='1.5rem' font_style='italic' text_transform='capitalize'>
+                {`${formatSciName()} ` + cult}
             </StyledSubText>
             <StyledSubText font_size='0.9rem' font_style='none'>
             {`${neighPrevalance}% of ${titleCase(neighbourhood_name)} trees.`}
@@ -158,6 +174,7 @@ const TreeInfoContainer = (props) => {
                 {treeDetails}
             </TreeDetailsList>
             {props.children}
+            {blurb && <p style={{'fontSize': '1.1rem', 'lineHeight': '1.6'}}>{blurb}</p>}
         </StyledTreeInfo>    
     ); 
 }
