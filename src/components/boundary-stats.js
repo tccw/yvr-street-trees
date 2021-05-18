@@ -1,5 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
+import { titleCase } from '../utils'
 
 const StatsSection = styled.section`
 
@@ -26,7 +27,11 @@ const StatsDisplay = styled.div`
     flex-wrap: wrap;
 `;
 
-const StyledStat = styled.div`
+const StyledStat = styled.p`
+    color: darkgreen;
+    font: 1.5rem;
+    lineHeight: 1.5rem;
+    fontWeight: bold;
 `;
 
 const BoundaryStats = ({name, description, heading, stats}) => {
@@ -67,7 +72,7 @@ const BoundaryStats = ({name, description, heading, stats}) => {
             {blurb}
             <StatsHeader> {`${heading} Statistics`} </StatsHeader>
             <StatsDisplay>
-                <StyledStat>{displayStats.mostCommonSpecies.treeName}</StyledStat>
+                <StyledStat>{titleCase(displayStats.mostCommonSpecies.treeName)}</StyledStat>
                 <StyledStat>{stats.neigh_num_trees[name].toLocaleString()}</StyledStat>
             </StatsDisplay>
         </StatsSection>
