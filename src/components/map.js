@@ -69,7 +69,7 @@ export default function Map() {
     const [viewport, setViewport] = useState({
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
-        zoom: 14.5,
+        zoom: 12.5,
         bearing: 0,
         pitch: 0,
         maxZoom: MAX_ZOOM,

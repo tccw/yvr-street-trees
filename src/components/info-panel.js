@@ -18,6 +18,7 @@ const Panel = styled.div`
     background-color: white;
     color:black;
     overflow: hidden;
+    overflow-y: auto;
     transition: ease-in-out 0.3s;
     width: ${props => (props.open ? '500px' : '0px')};
 

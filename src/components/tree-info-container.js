@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { heightStringFromID, titleCase, toPrettyDateString} from '../utils'
+import { heightStringFromID, titleCase, toPrettyDateString, sentenceCase} from '../utils'
 import styled from 'styled-components'
 import { Copy } from '../svg-icons'
 
@@ -25,7 +25,6 @@ const StyledSubText = styled.span`
     font-size: ${props => (props.font_size)};
     font-style: ${props => (props.font_style)};
     font-weight: 50;
-    text-transform: ${props => (props.text_transform ? props.text_transform : 'none')};
 `; 
 
 const TreeDetailsList = styled.ul`
@@ -150,7 +149,7 @@ const TreeInfoContainer = (props) => {
         if (species_name_arr[species_name_arr.length - 1].toLowerCase() === 'x') {
             tmp_species_name = `${species_name_arr[species_name_arr.length - 1]} ${species_name_arr[0]}`;
         }
-        return titleCase(`${genus_name} ${tmp_species_name}`);
+        return sentenceCase(`${genus_name} ${tmp_species_name}`);
     }
 
     let cult = cultivar_name ? ` (${titleCase(cultivar_name)})` : '';
@@ -160,7 +159,7 @@ const TreeInfoContainer = (props) => {
 
     return (
         <StyledTreeInfo>
-            <StyledSubText font_size='1.5rem' font_style='italic' text_transform='capitalize'>
+            <StyledSubText font_size='1.5rem' font_style='italic'>
                 {`${formatSciName()} ` + cult}
             </StyledSubText>
             <StyledSubText font_size='0.9rem' font_style='none'>
