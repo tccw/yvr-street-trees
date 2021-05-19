@@ -1,15 +1,17 @@
+import { propertiesContainsFilter } from '@turf/clusters';
 import * as React from 'react'
 import styled from 'styled-components'
 import { titleCase } from '../utils'
 
 const StatsSection = styled.section`
-
+    margin: 0px 20px;
 `;
 
 const StatsHeader = styled.h2`
     text-align: left;
     color: #63686a;
-    margin: 0px 20px;
+    margin-left: 0px;
+    margin-bottom: 20px;
     border-bottom: 0.2rem solid #63686a;
     width: -moz-fit-content;
     width: fit-content;
@@ -19,20 +21,37 @@ const StatsHeader = styled.h2`
 
 const Description = styled.p`
     color: #63686a;
-    margin: 30px 20px;
+    margin-left: inheret;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: justify;
 `; 
 
-const StatsDisplay = styled.div`
-    display: flex;
-    flex-wrap: wrap;
+const StatsGrid = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: inheret;
+`;
+
+const StatsGridItem = styled.div`
+    margin: 10px;
 `;
 
 const StyledStat = styled.p`
     color: darkgreen;
-    font: 1.5rem;
-    lineHeight: 1.5rem;
-    fontWeight: bold;
+    font-size: 1.5rem;
+    line-height: 1.5rem;
+    font-weight: bold;
+    margin: 0;
 `;
+
+const StatsSubtitle = styled.span`
+    color: ${props => (props.color ? props.color : '#63686a')};
+    font-weight: ${props => (props.weight ? props.weight : 'bold')};
+    font-size: ${props => (props.font_size ? props.font_size : '1')}rem;
+`;
+
+
 
 const BoundaryStats = ({name, description, heading, stats}) => {
     // these won't match the hard-coded neighborhood count because 
@@ -65,16 +84,33 @@ const BoundaryStats = ({name, description, heading, stats}) => {
         )
     }
 
-    console.log(displayStats);
-
     return (
         <StatsSection>
             {blurb}
             <StatsHeader> {`${heading} Statistics`} </StatsHeader>
-            <StatsDisplay>
-                <StyledStat>{titleCase(displayStats.mostCommonSpecies.treeName)}</StyledStat>
-                <StyledStat>{stats.neigh_num_trees[name].toLocaleString()}</StyledStat>
-            </StatsDisplay>
+            <StatsGrid>
+                <StatsGridItem>
+                    <StyledStat>{stats.neigh_num_trees[name].toLocaleString()}</StyledStat>
+                    <StatsSubtitle>Mapped Trees</StatsSubtitle>
+                </StatsGridItem>
+                <StatsGridItem>
+                    <StyledStat>{displayStats.numSpecies}</StyledStat>
+                    <StatsSubtitle>Total Species</StatsSubtitle>
+                </StatsGridItem>
+                <StatsGridItem style={{'gridColumn': 'span 2'}}>
+                    <StyledStat>{titleCase(displayStats.mostCommonSpecies.treeName)}</StyledStat>
+                    <div>
+                        <StatsSubtitle>Most Common Species</StatsSubtitle>
+                        <br></br>
+                        <StatsSubtitle weight='regular' font_size='0.9'>
+                        <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{`${displayStats.mostCommonSpecies.count.toLocaleString()} `}</StatsSubtitle> 
+                            trees, 
+                            <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{` ${Math.round((displayStats.mostCommonSpecies.count / stats.neigh_num_trees[name]) * 100).toFixed(0)}`}</StatsSubtitle>% 
+                            of mapped {<b>{titleCase(name)}</b>} trees.
+                        </StatsSubtitle>
+                    </div>
+                </StatsGridItem>
+            </StatsGrid>
         </StatsSection>
     )
 }

@@ -6,7 +6,6 @@ import { Copy } from '../svg-icons'
 // margin order is top right bottom left
 const StyledTreeInfo = styled.section`
     position: relative;
-    top: 1rem;
     width: inheret;
     backgroud: white;
     margin: 0 20px;
@@ -22,6 +21,7 @@ const StyledSubText = styled.span`
     text-align: left;
     color: #63686a;
     margin-left: 20px;
+    margin-bottom: ${props => (props.margin_bottom ? props.margin_bottom : 0)};
     font-size: ${props => (props.font_size)};
     font-style: ${props => (props.font_style)};
     font-weight: 50;
@@ -33,12 +33,13 @@ const TreeDetailsList = styled.ul`
 
 const TreeListElement = styled.li`
     border-bottom: 1px solid lightgrey;
-    width: 90%;
-    margin-bottom: 1rem;
+    width: 95%;
+    margin-bottom: 0.5rem;
 `;
 
 const TreeDetail = styled.div`
     display: flex;
+    vertical-align: middle;
 `;
 
 const TreeDetailKey = styled.span`  
@@ -51,7 +52,7 @@ const TreeDetailKey = styled.span`
 const TreeDetailValue = styled.span`
     flex: 2;
     font-size: 0.9rem;
-    color: darkgreen;   
+    color: darkgreen;
 `;
 
 const CopyButton = styled.button.attrs(props => ({
@@ -173,7 +174,7 @@ const TreeInfoContainer = (props) => {
                 {treeDetails}
             </TreeDetailsList>
             {props.children}
-            {blurb && <p style={{'fontSize': '1.1rem', 'lineHeight': '1.6'}}>{blurb}</p>}
+            {blurb && <p style={{'fontSize': '1.1rem', 'lineHeight': '1.6', 'text-align': 'justify'}}>{blurb}</p>}
         </StyledTreeInfo>    
     ); 
 }

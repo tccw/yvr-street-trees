@@ -16,7 +16,7 @@ import { MAPBOX_TOKEN,
          VAN_ALL_TREES_URL,
          VAN_ALL_TREES_TILES,
          LAYER_NAME, GEOCODER_PROXIMITY,
-         TREE_BLURB_URL } from '../../env'
+         TREE_BLURB_URL, MAP_STYLE } from '../../env'
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
@@ -237,7 +237,7 @@ export default function Map() {
                 {...viewport}
                 width="100%"
                 height="100%"
-                mapStyle="mapbox://styles/tcowan/cknw84ogv1a3c17o0k0k9sd4y?optimize=true"
+                mapStyle={MAP_STYLE}
                 onViewportChange={setViewport}
                 mapboxApiAccessToken={TOKEN}
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
@@ -288,7 +288,7 @@ export default function Map() {
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
                 {selected && selected.layer.id == 'boundaries' && 
-                    <BoundaryStats  {...selected.properties} heading='Neighborhood' stats={treeStats}></BoundaryStats>
+                    <BoundaryStats {...selected.properties} heading='Neighborhood' stats={treeStats}></BoundaryStats>
                 }   
                 {selected && selected.layer.id == LAYER_NAME &&
                         <TreeInfoContainer {...selected.properties} stats={treeStats} blurbs={blurbs}>

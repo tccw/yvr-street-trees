@@ -1,16 +1,15 @@
 import { filterProperties } from "@turf/clusters";
 
 /**
- * 
+ * https://stackoverflow.com/questions/35504848/capitalize-hyphenated-names-in-javascript
  * @param {string} string 
  * @returns {string} the formatted string In Title Case Like This
  */
-export function titleCase(string) {
-  var result = "";
-  string.split(" ").forEach((word) => {
-      result += word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() + ' ';
-  })
-  return result.trim();
+export function titleCase(string, separators) {
+
+  separators = separators || [ ' ', '-' ];
+  var regex = new RegExp('(^|[' + separators.join('') + '])(\\w)', 'g');
+  return string.toLowerCase().replace(regex, function(x) { return x.toUpperCase(); }).trim();
 };
 
 export function sentenceCase(string) {

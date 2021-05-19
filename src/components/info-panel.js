@@ -31,7 +31,7 @@ const Panel = styled.div`
 const Title = styled.h1`
     text-align: left;
     color: #63686a;
-    margin: 0 20px -15px 20px;
+    margin: 0 20px 5px 20px;
     border-bottom: 0.5rem solid palegreen;
     width: -moz-fit-content;
     width: fit-content;
