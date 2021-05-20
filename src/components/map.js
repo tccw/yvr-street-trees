@@ -50,7 +50,8 @@ const ToolTip = styled.div`
 
 const FilterToTree = styled.span`
     font-size: 1.1rem;
-    maring-right: 20px;
+    margin-left: 20px;
+    margin-bottom: 20px;
     border-bottom: 0.2rem solid var(--color);
     float: right;
     width: -moz-fit-content;
@@ -73,7 +74,7 @@ export default function Map() {
         bearing: 0,
         pitch: 0,
         maxZoom: MAX_ZOOM,
-        // minZoom: 11.5,
+        minZoom: 11,
         maxbounds: BOUNDS
     });
     const [boundaries, setBoundaries] = useState(null);
@@ -288,7 +289,12 @@ export default function Map() {
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
                 {selected && selected.layer.id == 'boundaries' && 
-                    <BoundaryStats {...selected.properties} heading='Neighborhood' stats={treeStats}></BoundaryStats>
+                    <BoundaryStats currentState={treeFilterObject} 
+                                   updateParent={(props) => setTreeFilterObject({...props})}
+                                   {...selected.properties} 
+                                   heading='Neighborhood' 
+                                   stats={treeStats}>
+                    </BoundaryStats>
                 }   
                 {selected && selected.layer.id == LAYER_NAME &&
                         <TreeInfoContainer {...selected.properties} stats={treeStats} blurbs={blurbs}>

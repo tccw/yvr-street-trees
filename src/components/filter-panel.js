@@ -137,7 +137,6 @@ const OpenCloseButton = styled.button`
     opacity: 0.6;
     margin: -8px -20px -20px 0px;
 
-
     &:hover {
         opacity: 1;
     }
@@ -295,7 +294,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
             </StyledFilterTogglePane>
             <OpenCloseButton onClick={handleToggle} title={isExpanded ? 'collapse panel' : 'expand panel'}>
                 { ! isExpanded && <p style={{'fontSize': '1.2rem', 'margin': '-6px 5px 5px 0px'}}>Filter Map</p> } 
-                { isExpanded ? ChevronCollapse : Filter }
+                { isExpanded ? ChevronCollapse : Filter({height: 24, width: 24}) }
             </OpenCloseButton>
         </StyledFilterPanel>
     )

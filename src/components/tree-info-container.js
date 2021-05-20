@@ -77,6 +77,14 @@ const CopyButton = styled.button.attrs(props => ({
     }
 `;
 
+const Blurb = styled.p`
+    font-size: 1.1rem;
+    line-height: 1.5;
+    text-align: justify;
+    margin-top: 0px;
+    margin-bottom: 20px;
+`;
+
 
 
 /**
@@ -117,14 +125,10 @@ const TreeInfoContainer = (props) => {
     }
 
     const citywidePrevalence = (stats) => {
-        console.log(`In city: ${stats.tree_stats[common_name].total_count}`);
-        console.log(`Num trees in city: ${stats.city_tree_count}`)
          let percentage = Math.round(((stats.tree_stats[common_name].total_count / stats.city_tree_count) * 100)).toFixed(2)
          return formatPrevalanceResult(parseInt(percentage));
     };
     const neighborhoodPrevalance = (stats) => {
-        console.log(`In Neighborhood: ${stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name]}`);
-        console.log(`Total in Neighborhood: ${stats.neigh_num_trees[neighbourhood_name]}`);
         let percentage = Math.round(((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neigh_num_trees[neighbourhood_name]) * 100)).toFixed(2);
         return formatPrevalanceResult(parseInt(percentage));
     };
@@ -140,8 +144,18 @@ const TreeInfoContainer = (props) => {
     }
     
     const getBlurb = (blurbs) => {
-        let key = formatSciName().toLowerCase().split(' ').join('_')
-        return key in blurbs ? blurbs[key] : null;
+        let key = formatSciName().toLowerCase().split(' ').join('_');
+        let blurb = (key in blurbs) ? [] : null;
+        if (blurb) {
+            for (let i = 0; i < blurbs[key].length; i++) {
+                blurb.push(
+                    <Blurb key={i}>
+                        {blurbs[key][i]}
+                    </Blurb>
+                );
+            }
+        }
+        return blurb;
     }
 
     const formatSciName = () => {
@@ -174,7 +188,7 @@ const TreeInfoContainer = (props) => {
                 {treeDetails}
             </TreeDetailsList>
             {props.children}
-            {blurb && <p style={{'fontSize': '1.1rem', 'lineHeight': '1.6', 'text-align': 'justify'}}>{blurb}</p>}
+            {blurb}
         </StyledTreeInfo>    
     ); 
 }

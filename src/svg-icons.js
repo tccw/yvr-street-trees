@@ -16,8 +16,10 @@ export const SquareClose = <svg xmlns="http://www.w3.org/2000/svg"
                                     <line x1="15" y1="9" x2="9" y2="15"></line>
                             </svg>
 
-export const Filter = <svg xmlns="http://www.w3.org/2000/svg" 
-                           width="24" height="24" 
+export const Filter = (props) => { 
+
+                return (<svg xmlns="http://www.w3.org/2000/svg" 
+                           width={props.width} height={props.height} 
                            viewBox="0 0 24 24" 
                            fill="none" 
                            stroke="currentColor" 
@@ -26,7 +28,8 @@ export const Filter = <svg xmlns="http://www.w3.org/2000/svg"
                            strokeLinejoin="round" 
                            className="feather feather-filter">
                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
+                    </svg>)
+}
 
 export const Info = <svg xmlns="http://www.w3.org/2000/svg" 
                         width="24" height="24" 

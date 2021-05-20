@@ -2,6 +2,7 @@ import { propertiesContainsFilter } from '@turf/clusters';
 import * as React from 'react'
 import styled from 'styled-components'
 import { titleCase } from '../utils'
+import {Filter} from '../svg-icons'
 
 const StatsSection = styled.section`
     margin: 0px 20px;
@@ -53,7 +54,7 @@ const StatsSubtitle = styled.span`
 
 
 
-const BoundaryStats = ({name, description, heading, stats}) => {
+const BoundaryStats = ({currentState, updateParent, name, description, heading, stats}) => {
     // these won't match the hard-coded neighborhood count because 
     // there are many trees without geometry that are not displayed
     name = name.toUpperCase();
@@ -84,6 +85,10 @@ const BoundaryStats = ({name, description, heading, stats}) => {
         )
     }
 
+    const handleClick = () => {
+        updateParent({...currentState, trees: [displayStats.mostCommonSpecies.treeName]})
+    }
+
     return (
         <StatsSection>
             {blurb}
@@ -98,14 +103,17 @@ const BoundaryStats = ({name, description, heading, stats}) => {
                     <StatsSubtitle>Total Species</StatsSubtitle>
                 </StatsGridItem>
                 <StatsGridItem style={{'gridColumn': 'span 2'}}>
-                    <StyledStat>{titleCase(displayStats.mostCommonSpecies.treeName)}</StyledStat>
+                    <StyledStat onClick={handleClick} style={{'cursor': 'pointer'}}>
+                        {titleCase(displayStats.mostCommonSpecies.treeName)}
+                        {Filter({height: 15, width: 15})}
+                    </StyledStat>
                     <div>
                         <StatsSubtitle>Most Common Species</StatsSubtitle>
                         <br></br>
                         <StatsSubtitle weight='regular' font_size='0.9'>
                         <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{`${displayStats.mostCommonSpecies.count.toLocaleString()} `}</StatsSubtitle> 
                             trees, 
-                            <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{` ${Math.round((displayStats.mostCommonSpecies.count / stats.neigh_num_trees[name]) * 100).toFixed(0)}`}</StatsSubtitle>% 
+                            <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{` ${Math.round((displayStats.mostCommonSpecies.count / stats.neigh_num_trees[name]) * 100).toFixed(0)}%`}</StatsSubtitle>
                             of mapped {<b>{titleCase(name)}</b>} trees.
                         </StatsSubtitle>
                     </div>
