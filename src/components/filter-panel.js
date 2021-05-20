@@ -212,9 +212,9 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                          height_ids: heightArray.length ? heightArray : [-1]});
     }
 
-    // keys in the geojson are uppercase, but title case display is nicer
+    // keys in the geojson are uppercase, but title case display is nicer for display
     const handleTreeClick = (event) => {
-        updateParent({... currentState, trees: [event.target.textContent.toUpperCase()]})
+        updateParent({...currentState, trees: [event.target.textContent.toUpperCase()]})
         updateSelected();
         setselectedTree(event.target.textContent.toUpperCase());
     }
@@ -259,18 +259,20 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
             var nameList = [];
             for (const [key, value] of Object.entries(treeNamesAndColors)) {
                 nameList.push(
-                    <TreeEntry key={key} onClick={handleTreeClick} 
-                            selected={Boolean(key === selectedTree)}>
+                    <TreeEntry key={key} onClick={handleTreeClick}>
                         <Dot color={value.color}></Dot>
                         {titleCase(key)}
                     </TreeEntry>
+                    // <TreeEntry key={key} onClick={handleTreeClick} 
+                    //         selected={Boolean(key === selectedTree)}>
+                    //     <Dot color={value.color}></Dot>
+                    //     {titleCase(key)}
+                    // </TreeEntry>
                 )
             }
         }
-
         setTreeCommonNameList(nameList); 
-
-    }, [treeNamesAndColors])
+    }, [treeNamesAndColors, currentState])
 
     return (
         <StyledFilterPanel open={isExpanded}>
