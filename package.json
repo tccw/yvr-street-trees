@@ -4,6 +4,7 @@
     "start-local": "webpack-dev-server --env.local --progress --hot --open"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.4",
     "@turf/turf": "^6.3.0",
     "css-loader": "^5.2.4",
     "d3-scale": "^1.0.6",

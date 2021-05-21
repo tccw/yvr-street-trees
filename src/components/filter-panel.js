@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
-import { titleCase } from '../utils'
-import { ChevronCollapse, Filter } from '../svg-icons'
+import { titleCase } from '../utils';
+import { ChevronCollapse, Filter } from '../svg-icons';
+import RangeSlider from './range-slider'
 
 
 const StyledFilterPanel = styled.div`
@@ -38,7 +39,7 @@ const StyledFilterTogglePane = styled.div`
     width: -moz-fit-content;
     width: fit-content;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     
 `;
 
@@ -279,18 +280,24 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
             <StyledFilterTogglePane >
                 {isExpanded && 
                     <>
-                        <StyledFilterBoxes>
+                        {/* <StyledFilterBoxes>
                         <b>By tree diameter</b>
                         {diameterCheckboxes}
                         </StyledFilterBoxes>
                         <StyledFilterBoxes>
                             <b>By tree height</b>
                             {heightCheckboxes}
-                        </StyledFilterBoxes>
+                        </StyledFilterBoxes> */}
+                        <b>By tree name</b>
                         <StyledFilterTrees>
-                            <b>By tree name</b>
                             { treeCommonNameList && treeCommonNameList}
                         </StyledFilterTrees>
+                        <RangeSlider slider_title='Diameter Filter Range (inches)'
+                            min_val={0} max_val={100} 
+                            initial_range={[0,100]}></RangeSlider>
+                        <RangeSlider slider_title='Height Filter Range (feet)'
+                            min_val={0} max_val={110} 
+                            step={10} initial_range={[0,110]}></RangeSlider>
                     </>
                 }                
             </StyledFilterTogglePane>
