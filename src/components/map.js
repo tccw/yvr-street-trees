@@ -86,6 +86,7 @@ export default function Map() {
     const [filterPanelSelected, setFilterPanelSelected] = useState(false);
     const [treeStats, setTreeStats] = useState(null);
     const [blurbs, setBlurbs] = useState(null);
+    const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between 
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -183,7 +184,7 @@ export default function Map() {
                 }),
                 transitionDuration: 650
                 });
-
+                
                 setTitle(titleCase(feature.layer.id == LAYER_NAME ? feature.properties.common_name : feature.properties.name))
             } else {
                 setTitle(DEFAULT_TITLE);
@@ -196,6 +197,7 @@ export default function Map() {
     };
 
     const onClickFilter = () => {
+        setDefaultValue(defaultValue.filter((entry) => (entry.value === selected.properties.common_name)));
         setTreeFilterObject(selected 
                                 ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
                                 : {...treeFilterObject , trees: null});
@@ -210,6 +212,7 @@ export default function Map() {
      */
     useEffect(() => {
         if (! selected && ! filterPanelSelected) {
+            setDefaultValue([]);
             setTreeFilterObject({...treeFilterObject , trees: null});
         }
     }, [selected, filterPanelSelected]);
@@ -254,13 +257,13 @@ export default function Map() {
                     onViewportChange={handleGeocoderViewportChange}
                 /> */}
                 {/* <Geocoder 
-                mapRef={mapRef}
-                mapboxApiAccessToken={MAPBOX_TOKEN} 
-                position='top-right'
-                onViewportChange={handleGeocoderViewportChange}
-                placeholder="Search Address"
-                proximity={GEOCODER_PROXIMITY}
-                country='CANADA'>  
+                    mapRef={mapRef}
+                    mapboxApiAccessToken={MAPBOX_TOKEN} 
+                    position='top-right'
+                    onViewportChange={handleGeocoderViewportChange}
+                    placeholder="Search Address"
+                    proximity={GEOCODER_PROXIMITY}
+                    country='CANADA'>  
                 </Geocoder>                 */}
                 <Source type="geojson" data={boundaries}>
                     <Layer {...boundariesLayer}/>
@@ -284,7 +287,9 @@ export default function Map() {
                          updateParent={(props) => setTreeFilterObject({...props})}
                          updateSelected={() => setFilterPanelSelected(true)}
                          Selected={selected} // so that clicking the map can also deselect the tree from the list
-                         treeNamesAndColors={treeStats ? treeStats.tree_stats : null} >
+                         treeNamesAndColors={treeStats ? treeStats.tree_stats : null}
+                         defaultValue={defaultValue}
+                         setDefaultValue={(value) => setDefaultValue(value)} >
             </FilterPanel>
             <InfoPanel title={title} 
                        color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 

@@ -18,7 +18,9 @@ const StyledFilterPanel = styled.div`
     margin: 20px;
     line-height: 2;
     outline: none;
-    width: 400px;
+    width: -moz-fit-content;
+    width: fit-content;
+    max-width: 450px;
     height: -moz-fit-content;
     height: fit-content;
     overflow: hidden;
@@ -148,7 +150,7 @@ const [diamMIN, heightMIN] = [0, 0] ;
 const [diamMAX, heightMAX] = [42, 100];
 
 // pass the treeFilter setter to this component to set parent state
-export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors}) {
+export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors, defaultValue, setDefaultValue}) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     // make an object with keys from the array, all values are true
@@ -166,10 +168,11 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
     }
 
     // keys in the geojson are uppercase, but title case display is nicer for display
-    const handleTreeClick = (event) => {
-        updateParent({...currentState, trees: [event.target.textContent.toUpperCase()]})
+    const handleTreeClick = (selection) => {
+        updateParent({...currentState, trees: selection.length ? selection.map((entry) => (entry.value)) : null})
+        setDefaultValue(selection); // helps persist through collapses but now is not synchronized with other filtering options
         updateSelected();
-        setselectedTree(event.target.textContent.toUpperCase());
+        // setselectedTree(event.target.textContent.toUpperCase());
     }
     
     useEffect(() => {
@@ -181,28 +184,16 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
      * element is not re-rendered by react since it never changes. Will need another solution
      * to deal with highlighting.
      */
-    // useEffect(() => {
-    //     if (treeNamesAndColors) {
-    //         var nameList = [];
-    //         for (const [key, value] of Object.entries(treeNamesAndColors)) {
-    //             nameList.push(
-    //                 <TreeEntry key={key} onClick={handleTreeClick}>
-    //                     <Dot color={value.color}></Dot>
-    //                     {titleCase(key)}
-    //                 </TreeEntry>
-    //             )
-    //         }
-    //     }
-    //     setTreeCommonNameList(nameList); 
-    // }, [treeNamesAndColors, currentState])
-
     useEffect(() => {
         if (treeNamesAndColors) {
             var nameList = [];
             for (const [key, value] of Object.entries(treeNamesAndColors)) {
                 nameList.push(
                     {
-                        label: titleCase(key),
+                        label: (
+                        <>
+                            <Dot color={value.color}></Dot> {titleCase(key)}
+                        </>),
                         value: key
                     }
                 )
@@ -211,7 +202,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
         setTreeCommonNameList(nameList); 
     }, [treeNamesAndColors, currentState])
 
-
+    console.log(defaultValue);
 
     return (
         <StyledFilterPanel open={isExpanded}>
@@ -219,14 +210,16 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                 {isExpanded && 
                     <>
                         <b>By tree name</b>
-                        <Select 
-                            options={treeCommonNameList}
-                            isMulti
-                            name="Common Names"
-                        />
-                        {/* <StyledFilterTrees>
-                            { treeCommonNameList && treeCommonNameList}
-                        </StyledFilterTrees> */}
+                        <StyledFilterBoxes>
+                            <Select 
+                                key={defaultValue} // using key to force update https://github.com/facebook/react/issues/4101#issuecomment-243625941
+                                options={treeCommonNameList}
+                                isMulti
+                                name="Common Names"
+                                onChange={handleTreeClick}
+                                defaultValue={defaultValue}
+                            />
+                        </StyledFilterBoxes>
                         <StyledFilterBoxes>
                             <RangeSlider slider_title='Diameter Filter Range (inches)'
                                 updateRange={(newValue) => setDiameterRange(newValue)}
