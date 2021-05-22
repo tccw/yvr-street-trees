@@ -3,9 +3,11 @@ import { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { titleCase } from '../utils';
 import { ChevronCollapse, Filter } from '../svg-icons';
-import RangeSlider from './range-slider'
+import RangeSlider from './range-slider';
+import Select from 'react-select';
 
-
+// width: -moz-fit-content;
+//     width: fit-content;
 const StyledFilterPanel = styled.div`
     position: absolute;
     top: 65px;
@@ -16,8 +18,7 @@ const StyledFilterPanel = styled.div`
     margin: 20px;
     line-height: 2;
     outline: none;
-    width: -moz-fit-content;
-    width: fit-content;
+    width: 400px;
     height: -moz-fit-content;
     height: fit-content;
     overflow: hidden;
@@ -180,20 +181,37 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
      * element is not re-rendered by react since it never changes. Will need another solution
      * to deal with highlighting.
      */
+    // useEffect(() => {
+    //     if (treeNamesAndColors) {
+    //         var nameList = [];
+    //         for (const [key, value] of Object.entries(treeNamesAndColors)) {
+    //             nameList.push(
+    //                 <TreeEntry key={key} onClick={handleTreeClick}>
+    //                     <Dot color={value.color}></Dot>
+    //                     {titleCase(key)}
+    //                 </TreeEntry>
+    //             )
+    //         }
+    //     }
+    //     setTreeCommonNameList(nameList); 
+    // }, [treeNamesAndColors, currentState])
+
     useEffect(() => {
         if (treeNamesAndColors) {
             var nameList = [];
             for (const [key, value] of Object.entries(treeNamesAndColors)) {
                 nameList.push(
-                    <TreeEntry key={key} onClick={handleTreeClick}>
-                        <Dot color={value.color}></Dot>
-                        {titleCase(key)}
-                    </TreeEntry>
+                    {
+                        label: titleCase(key),
+                        value: key
+                    }
                 )
             }
         }
         setTreeCommonNameList(nameList); 
     }, [treeNamesAndColors, currentState])
+
+
 
     return (
         <StyledFilterPanel open={isExpanded}>
@@ -201,9 +219,14 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                 {isExpanded && 
                     <>
                         <b>By tree name</b>
-                        <StyledFilterTrees>
+                        <Select 
+                            options={treeCommonNameList}
+                            isMulti
+                            name="Common Names"
+                        />
+                        {/* <StyledFilterTrees>
                             { treeCommonNameList && treeCommonNameList}
-                        </StyledFilterTrees>
+                        </StyledFilterTrees> */}
                         <StyledFilterBoxes>
                             <RangeSlider slider_title='Diameter Filter Range (inches)'
                                 updateRange={(newValue) => setDiameterRange(newValue)}
