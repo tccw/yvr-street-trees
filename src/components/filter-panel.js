@@ -143,6 +143,8 @@ const OpenCloseButton = styled.button`
     }
 `;
 
+const [diamMIN, heightMIN] = [0, 0] ;
+const [diamMAX, heightMAX] = [42, 100];
 
 // pass the treeFilter setter to this component to set parent state
 export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors}) {
@@ -150,21 +152,16 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     // make an object with keys from the array, all values are true
     const [selectedTree, setselectedTree] = useState(null);
-    const [diameterRange, setDiameterRange] = useState([0, 43]);
-    const [heightRange, setHeightRange] = useState([0, 100]);
+    const [diameterRange, setDiameterRange] = useState([diamMIN, diamMAX]);
+    const [heightRange, setHeightRange] = useState([heightMIN, heightMAX]);
 
     const handleToggle = () => {
         setIsExpanded(! isExpanded);
     }
 
     const setFilterState = () => {
-        let diameterArray = diameterRange;
-        var heightArray = Array(Math.round((heightRange[1] - heightRange[0]) / 10)).fill(0).map((_, i) => i + (heightRange[0] / 10));
-        heightArray.push(heightArray[heightArray.length - 1] + 1);
-              
-        updateParent({...currentState, 
-            diameters: diameterArray.length ? diameterArray: null, // filter to [-1] as no trees will match this
-            height_ids: heightArray.length ? heightArray : [-1]});
+        var heightArray = Array(Math.round((heightRange[1] - heightRange[0]) / 10) + 1).fill(0).map((_, i) => i + (heightRange[0] / 10));
+        updateParent({...currentState, diameters: diameterRange, height_ids: heightArray});
     }
 
     // keys in the geojson are uppercase, but title case display is nicer for display
@@ -210,12 +207,12 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                         <StyledFilterBoxes>
                             <RangeSlider slider_title='Diameter Filter Range (inches)'
                                 updateRange={(newValue) => setDiameterRange(newValue)}
-                                min_val={0} max_val={43} 
-                                curr_range={diameterRange}/>
+                                min_val={0} max_val={42}
+                                unit='in' step={6} curr_range={diameterRange}/>
                             <RangeSlider slider_title='Height Filter Range (feet)'
                                 updateRange={(newValue) => setHeightRange(newValue)}
                                 min_val={0} max_val={100} 
-                                step={10} curr_range={heightRange}/>
+                                unit='ft' step={10} curr_range={heightRange}/>
                         </StyledFilterBoxes>
                     </>
                 }                

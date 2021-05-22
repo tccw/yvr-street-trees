@@ -56,33 +56,26 @@ const PrettoSlider = withStyles({
       },
   })(Slider);
 
-function valuetext(value) {
-  return `${value} ft`;
+// format the aria label for accessibility/screen readers
+function valuetext(value, unit) {
+  return `${value} ${unit}`;
 }
 
-export default function RangeSlider({step, min_val, max_val, slider_title, curr_range, updateRange}) {
+export default function RangeSlider({step, min_val, max_val, slider_title, curr_range, updateRange, unit}) {
   const classes = useStyles();
-//   const [value, setValue] = React.useState(initial_range);
 
+  // update the parent state
   const handleChange = (event, newValue) => {
     updateRange(newValue);
   };
 
-  const formatLabelHeight = (value, index) => {
-      if (value < 100) {
+  const formatLabel = (value, index) => {
+      if (value < max_val) {
         return value;
       } else {
-          return '100+';
+          return `${max_val}+`;
       }
   };
-
-  const formatLabelDiameter = (value, index) => {
-    if (value <= 42) {
-      return value;
-    } else {
-        return '42+';
-    }
-};
 
   const generateMarks = () => {
     let marks = [];
@@ -94,7 +87,7 @@ export default function RangeSlider({step, min_val, max_val, slider_title, curr_
     return marks;
 };
 
-  return ( step ?
+  return ( 
     <div className={classes.root}>
       <Typography id="pretto slider" style={{'fontWeight': 'bold'}} gutterBottom>
           {slider_title}
@@ -107,26 +100,10 @@ export default function RangeSlider({step, min_val, max_val, slider_title, curr_
         marks={generateMarks()}
         onChange={handleChange}
         valueLabelDisplay="auto"
-        valueLabelFormat={formatLabelHeight}
+        valueLabelFormat={formatLabel}
         aria-labelledby="pretto slider"
         getAriaValueText={valuetext}
       />
-    </div>
-    : 
-    <div className={classes.root}>
-        <Typography id="pretto slider" style={{'fontWeight': 'bold'}} gutterBottom>
-            {slider_title}
-        </Typography>
-        <PrettoSlider
-        value={curr_range}
-        min={min_val}
-        max={max_val}
-        onChange={handleChange}
-        valueLabelDisplay="auto"
-        valueLabelFormat={formatLabelDiameter}
-        aria-labelledby="pretto slider"
-        getAriaValueText={valuetext}
-    />
     </div>
   );
 }
