@@ -143,74 +143,28 @@ const OpenCloseButton = styled.button`
     }
 `;
 
-const diameterChoices = [ 'Under 6 inches',  '6 to 12 inches', 
-                          '12 to 18 inches', '18 to 24 inches',
-                          '24 to 30 inches', '30 to 36 inches', 
-                          '36 to 42 inches', 'Over 42 inches'];
-
-const heightChoices = [ 'Under 10 feet', '10 to 20 feet',
-                        '20 to 30 feet', '30 to 40 feet',
-                        '40 to 50 feet', '50 to 60 feet', 
-                        '60 to 70 feet', '70 to 80 feet',
-                        '80 to 90 feet', '90 to 100 feet',
-                        'Over 100 feet'];
 
 // pass the treeFilter setter to this component to set parent state
 export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors}) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     // make an object with keys from the array, all values are true
-    const [diameterBoxState, setDiameterBoxState] = useState(diameterChoices.reduce(
-                                                                (acc, curr, i) => (acc[curr]={
-                                                                    checked:true,
-                                                                    value: (i + 1) * 6}, acc), {}));
-    const [heightBoxState, setHeightBoxState] = useState(heightChoices.reduce(
-                                                                (acc, curr, i) => (acc[curr]={
-                                                                    checked:true, 
-                                                                    value: i}, acc), {}));
     const [selectedTree, setselectedTree] = useState(null);
-                                                
+    const [diameterRange, setDiameterRange] = useState([0, 43]);
+    const [heightRange, setHeightRange] = useState([0, 110]);
 
-    const handleDiamChange = (event) => {
-        setDiameterBoxState({...diameterBoxState, [event.target.id]: {
-                                                        checked: event.target.checked, 
-                                                        value: parseInt(event.target.value)
-                                                    }
-                                                });
-        
-    }
-
-    const handleHeightChange = (event) => {
-        setHeightBoxState({...heightBoxState, [event.target.id]: {
-                                                        checked: event.target.checked, 
-                                                        value: parseInt(event.target.value)
-                                                    }
-                                                });
-    }
-    
     const handleToggle = () => {
         setIsExpanded(! isExpanded);
     }
 
     const setFilterState = () => {
-        let diameterArray = [];
-        let heightArray = [];
-
-        for (const [key, value] of Object.entries(diameterBoxState)) {
-            if (value.checked) {
-                diameterArray.push(value.value);  
-            }
-        }
-
-        for (const [key, value] of Object.entries(heightBoxState)) {
-            if (value.checked) {
-                heightArray.push(value.value);
-            }
-        }       
-    
+        let diameterArray = diameterRange;
+        var heightArray = Array(Math.round((heightRange[1] - heightRange[0]) / 10)).fill(0).map((_, i) => i + (heightRange[0] / 10));
+        heightArray.push(heightArray[heightArray.length - 1] + 1);
+              
         updateParent({...currentState, 
-                         diameters: diameterArray.length ? diameterArray: [-1], // filter to [-1] as no trees will match this
-                         height_ids: heightArray.length ? heightArray : [-1]});
+            diameters: diameterArray.length ? diameterArray: null, // filter to [-1] as no trees will match this
+            height_ids: heightArray.length ? heightArray : [-1]});
     }
 
     // keys in the geojson are uppercase, but title case display is nicer for display
@@ -220,35 +174,9 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
         setselectedTree(event.target.textContent.toUpperCase());
     }
     
-
-
     useEffect(() => {
         setFilterState();
-    }, [heightBoxState, diameterBoxState]);
-
-
-    // https://medium.com/@colebemis/building-a-checkbox-component-with-react-and-styled-components-8d3aa1d826dd
-    // for fancy checkboxes
-    let diameterCheckboxes = diameterChoices.map((label, i) => {
-        return (
-            <label key={i} >
-                <input type='checkbox' id={label} value={(i + 1) * 6}
-                        onChange={handleDiamChange} checked={diameterBoxState[label].checked}/>
-                {label}
-            </label>
-        )
-    });
-
-    let heightCheckboxes = heightChoices.map((label, i) => {
-        return (
-            <label key={i}>
-                <input type='checkbox' id={label} value={i} 
-                        onChange={handleHeightChange} checked={heightBoxState[label].checked}/>
-                {label}
-            </label>
-        )
-    });
-
+    }, [diameterRange, heightRange]);
     
     /**
      * Only have the build the list once, but the "selected" prop doesn't matter because the 
@@ -264,11 +192,6 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                         <Dot color={value.color}></Dot>
                         {titleCase(key)}
                     </TreeEntry>
-                    // <TreeEntry key={key} onClick={handleTreeClick} 
-                    //         selected={Boolean(key === selectedTree)}>
-                    //     <Dot color={value.color}></Dot>
-                    //     {titleCase(key)}
-                    // </TreeEntry>
                 )
             }
         }
@@ -280,24 +203,20 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
             <StyledFilterTogglePane >
                 {isExpanded && 
                     <>
-                        {/* <StyledFilterBoxes>
-                        <b>By tree diameter</b>
-                        {diameterCheckboxes}
-                        </StyledFilterBoxes>
-                        <StyledFilterBoxes>
-                            <b>By tree height</b>
-                            {heightCheckboxes}
-                        </StyledFilterBoxes> */}
                         <b>By tree name</b>
                         <StyledFilterTrees>
                             { treeCommonNameList && treeCommonNameList}
                         </StyledFilterTrees>
-                        <RangeSlider slider_title='Diameter Filter Range (inches)'
-                            min_val={0} max_val={100} 
-                            initial_range={[0,100]}></RangeSlider>
-                        <RangeSlider slider_title='Height Filter Range (feet)'
-                            min_val={0} max_val={110} 
-                            step={10} initial_range={[0,110]}></RangeSlider>
+                        <StyledFilterBoxes>
+                            <RangeSlider slider_title='Diameter Filter Range (inches)'
+                                updateRange={(newValue) => setDiameterRange(newValue)}
+                                min_val={0} max_val={43} 
+                                curr_range={diameterRange}/>
+                            <RangeSlider slider_title='Height Filter Range (feet)'
+                                updateRange={(newValue) => setHeightRange(newValue)}
+                                min_val={0} max_val={110} 
+                                step={10} curr_range={heightRange}/>
+                        </StyledFilterBoxes>
                     </>
                 }                
             </StyledFilterTogglePane>

@@ -35,7 +35,33 @@ export function heightStringFromID(height_range_id) {
  * @param {string[]} trees A list of tree common names to filter by
  * @returns {any[]} the formatted filter list ready to be passed to a MapGL <Layer/> component
  */
-export function treeFilterCompositor({diameters, height_ids, trees}) {
+ export function treeFilterCompositor({diameters, height_ids, trees}) {
+  let filter = ['all'];
+
+  if (diameters) {
+    filter.push(['all', ['>=', ['get', 'diameter'], diameters[0]], ['<=', ['get', 'diameter'], diameters[1]]]); // add the case expression to the filter
+  }
+  
+  if (height_ids) {
+    filter.push(['match', ['get','height_range_id'], height_ids, true, false]);
+  }
+
+  if (trees) {
+    filter.push(['match', ['get', 'common_name'], trees, true, false]);
+  }
+  
+  return filter;
+}
+
+/**
+ * Generates a properly formatted filter object to pass to a MapGL <Layer/> component
+ * 
+ * @param {number[]} diameters A list of diameters to filter by (should be the upper range of the 6 inche provided ranges)
+ * @param {number[]} height_ids A list of height ids to filter by
+ * @param {string[]} trees A list of tree common names to filter by
+ * @returns {any[]} the formatted filter list ready to be passed to a MapGL <Layer/> component
+ */
+export function _treeFilterCompositor({diameters, height_ids, trees}) {
   let filter = ['all'];
 
   if (diameters) {
@@ -51,7 +77,6 @@ export function treeFilterCompositor({diameters, height_ids, trees}) {
   }
   
   return filter;
-    
 }
 
 

@@ -13,6 +13,7 @@ const useStyles = makeStyles((theme) => ({
     },
   }));
 
+// slightly modified Pretto styling from Material UI example
 const PrettoSlider = withStyles({
     root: {
       color: '#52af77',
@@ -59,21 +60,29 @@ function valuetext(value) {
   return `${value} ft`;
 }
 
-export default function RangeSlider({step, min_val, max_val, slider_title, initial_range}) {
+export default function RangeSlider({step, min_val, max_val, slider_title, curr_range, updateRange}) {
   const classes = useStyles();
-  const [value, setValue] = React.useState(initial_range);
+//   const [value, setValue] = React.useState(initial_range);
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
+    updateRange(newValue);
   };
 
-  const formatLabel = (value, index) => {
-      if (value != 110) {
+  const formatLabelHeight = (value, index) => {
+      if (value <= 100) {
         return value;
       } else {
           return '100+';
       }
   };
+
+  const formatLabelDiameter = (value, index) => {
+    if (value <= 42) {
+      return value;
+    } else {
+        return '42+';
+    }
+};
 
   const generateMarks = () => {
     let marks = [];
@@ -91,14 +100,14 @@ export default function RangeSlider({step, min_val, max_val, slider_title, initi
           {slider_title}
       </Typography>
       <PrettoSlider
-        value={value}
+        value={curr_range}
         min={min_val}
         max={max_val}
         step={step}
         marks={generateMarks()}
         onChange={handleChange}
         valueLabelDisplay="auto"
-        valueLabelFormat={formatLabel}
+        valueLabelFormat={formatLabelHeight}
         aria-labelledby="pretto slider"
         getAriaValueText={valuetext}
       />
@@ -109,12 +118,12 @@ export default function RangeSlider({step, min_val, max_val, slider_title, initi
             {slider_title}
         </Typography>
         <PrettoSlider
-        value={value}
+        value={curr_range}
         min={min_val}
         max={max_val}
         onChange={handleChange}
         valueLabelDisplay="auto"
-        valueLabelFormat={formatLabel}
+        valueLabelFormat={formatLabelDiameter}
         aria-labelledby="pretto slider"
         getAriaValueText={valuetext}
     />
