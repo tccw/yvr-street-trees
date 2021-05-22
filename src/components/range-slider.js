@@ -69,7 +69,7 @@ export default function RangeSlider({step, min_val, max_val, slider_title, curr_
   };
 
   const formatLabelHeight = (value, index) => {
-      if (value <= 100) {
+      if (value < 100) {
         return value;
       } else {
           return '100+';

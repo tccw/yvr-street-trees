@@ -151,7 +151,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
     // make an object with keys from the array, all values are true
     const [selectedTree, setselectedTree] = useState(null);
     const [diameterRange, setDiameterRange] = useState([0, 43]);
-    const [heightRange, setHeightRange] = useState([0, 110]);
+    const [heightRange, setHeightRange] = useState([0, 100]);
 
     const handleToggle = () => {
         setIsExpanded(! isExpanded);
@@ -214,7 +214,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                                 curr_range={diameterRange}/>
                             <RangeSlider slider_title='Height Filter Range (feet)'
                                 updateRange={(newValue) => setHeightRange(newValue)}
-                                min_val={0} max_val={110} 
+                                min_val={0} max_val={100} 
                                 step={10} curr_range={heightRange}/>
                         </StyledFilterBoxes>
                     </>
