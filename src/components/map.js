@@ -1,7 +1,14 @@
 import * as React from 'react';
 import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import styled from 'styled-components';
-import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport, GeolocateControl} from 'react-map-gl';
+import MapGL, {
+    Source, 
+    Layer, 
+    LinearInterpolator, 
+    WebMercatorViewport,
+    NavigationControl,
+    FullscreenControl, 
+    GeolocateControl} from 'react-map-gl';
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
@@ -25,11 +32,24 @@ const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver's Street Trees`;
 const MAX_ZOOM = 18.5;
 const GEOLOCATE_POS_OPTIONS = {enableHighAccuracy: true};
-const GEOLOCATE_STYLE = {
-    position: 'absolute',
-    top: 50,
-    right: 220,
-  };
+const geolocateStyle = {
+    bottom: 168,
+    right: 0,
+    padding: '10px'
+};
+
+const fullscreenControlStyle = {
+    bottom: 36,
+    right: 0,
+    padding: '10px'
+};
+
+const navStyle = {
+    bottom: 72,
+    right: 0,
+    padding: '10px'
+};
+
 const BOUNDS = [ [ -122.821261, 49.35818], [ -123.413509, 49.149992 ] ]
 
 const ToolTip = styled.div`
@@ -257,13 +277,6 @@ export default function Map() {
                 onClick={onClickZoom}
                 onLoad={getTreeInfo}
             >
-                {/* <GeolocateControl
-                    style={GEOLOCATE_STYLE}
-                    positionOptions={GEOLOCATE_POS_OPTIONS}
-                    trackUserLocation
-                    label="Toggle Find My Location"
-                    onViewportChange={handleGeocoderViewportChange}
-                /> */}
                 {/* <Geocoder 
                     mapRef={mapRef}
                     mapboxApiAccessToken={MAPBOX_TOKEN} 
@@ -289,6 +302,15 @@ export default function Map() {
                     <div>{titleCase(hoverInfo.feature.properties.common_name)}</div>
                 </ToolTip>
                 )}
+                <GeolocateControl
+                    style={geolocateStyle}
+                    positionOptions={GEOLOCATE_POS_OPTIONS}
+                    trackUserLocation
+                    label="Toggle Find My Location"
+                    onViewportChange={handleGeocoderViewportChange}
+                />
+                <FullscreenControl style={fullscreenControlStyle} />
+                <NavigationControl style={navStyle} />
             </MapGL>
 
             <FilterPanel currentState={treeFilterObject} 
@@ -317,6 +339,7 @@ export default function Map() {
                         </TreeInfoContainer>                        
                     }            
             </InfoPanel>
+            
         </>
     );
 }

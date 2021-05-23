@@ -24,7 +24,6 @@ const StyledFilterPanel = styled.div`
     max-width: 450px;
     height: -moz-fit-content;
     height: fit-content;
-    min-height: 800px;
     overflow: hidden;
     display: flex;
     flex-direction: row;
@@ -32,6 +31,7 @@ const StyledFilterPanel = styled.div`
     border-width: ${props => (props.open ? '0px' : '1px')};
     border-style: ${props => (props.open ? 'none' : 'solid')};
     border-color: ${props => (props.open ? 'none' : 'darkgrey')};
+    min-height: ${props => (props.open ? '475px' : 'none')};
 `;
 
 const StyledFilterTogglePane = styled.div`
