@@ -86,21 +86,17 @@ const OpenFlagContainer = styled.div`
 `;
 
 function InfoPanel(props) {
-    const [isExpanded, setIsExpanded] = useState(true); 
-
-    const handleToggle = () => {
-        setIsExpanded(! isExpanded);
-    };
+    const {color, title, handleToggle, isExpanded} = props;
 
     return (
         <>
-            <Panel open={isExpanded}>
+            <Panel open={props.isExpanded}>
                 <OpenCloseButton onClick={handleToggle} title='collapse panel'>
                     {ChevronLeft}
                 </OpenCloseButton>
                         <Title>
-                            {props.title}
-                            {props.color && <Dot color={props.color}></Dot>} 
+                            {title}
+                            {color && <Dot color={color}></Dot>} 
                         </Title>                 
                     {props.children}
             </Panel>

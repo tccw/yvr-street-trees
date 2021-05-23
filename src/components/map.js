@@ -87,6 +87,7 @@ export default function Map() {
     const [treeStats, setTreeStats] = useState(null);
     const [blurbs, setBlurbs] = useState(null);
     const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between 
+    const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -193,6 +194,9 @@ export default function Map() {
             // update selected
             setSelected (feature || null);
             setFilterPanelSelected(Boolean(feature));
+            if (feature && ! isInfoPanelExpanded) {
+                handleToggleInfoPanel();
+            }
         }
     };
 
@@ -201,6 +205,10 @@ export default function Map() {
         setTreeFilterObject(selected 
                                 ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
                                 : {...treeFilterObject , trees: null});
+    }
+
+    const handleToggleInfoPanel = () => {
+        setIsInfoPanelExpanded(! isInfoPanelExpanded)
     }
 
     /**
@@ -291,7 +299,7 @@ export default function Map() {
                          defaultValue={defaultValue}
                          setDefaultValue={(value) => setDefaultValue(value)} >
             </FilterPanel>
-            <InfoPanel title={title} 
+            <InfoPanel title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}
                        color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
                 {selected && selected.layer.id == 'boundaries' && 
                     <BoundaryStats currentState={treeFilterObject} 
