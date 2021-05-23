@@ -317,7 +317,6 @@ export default function Map() {
                         </TreeInfoContainer>                        
                     }            
             </InfoPanel>
-            
         </>
     );
 }

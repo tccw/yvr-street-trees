@@ -61,53 +61,6 @@ const StyledFilterBoxes = styled.span`
     height: fit-content;
 `;
 
-const StyledFilterTrees = styled.span`
-    background: white;
-    box-shadow: 0px -6px 10px rgba(255, 255, 255, 1), 0px 2px 7px rgba(0, 0, 0, 0.15);
-    padding: 12px 24px;
-    margin: 10px;
-    line-height: 2;
-    outline: none;
-    display:flex;
-    flex-direction: column;
-    height: -moz-fit-content;
-    height: fit-content;
-    max-height: 380px;
-    overflow: scroll;
-    text-transform: capitalize; 
-`;
-
-const StyledCheckBox = styled.input`
-    box-shadow: -2px -2px 5px 0px #fff9,
-                -1px -1px 2px 0px #fff9,
-                2px 2px 5px 0px #0002,
-                1px 1px 2px 0px #0001,
-                inset 0px 0px 0px 0px #fff9,
-                inset 0px 0px 0px 0px #0001,
-                inset 0px 0px 0px 0px #fff9,        
-                inset 0px 0px 0px 0px #0001;
-    cursor: pointer;
-    height: 15px;
-    width: 15px;
-    border: none;
-
-    :checked {
-        backgroud-color: green;
-    }
-    ::before, ::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: inherit;
-    }
-
-    &:active {
-        box-shadow:  1px 1px 2px 0 rgba(255,255,255,.5),
-                    -1px -1px 2px 0 rgba(116, 125, 136, .2), 
-                    inset -1px -1px 2px 0 rgba(255,255,255,.5),
-                    inset 1px 1px 2px 0 rgba(116, 125, 136, .3);
-    }
-`;
-
 const Dot = styled.div`
     height: 15px;
     width: 15px;

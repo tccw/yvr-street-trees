@@ -23,8 +23,12 @@ const Panel = styled.div`
     width: ${props => (props.open ? '500px' : '0px')};
 
     @media (max-width: 1200px) {
-        width: 35%;
-        min-width 250px;
+        width: ${props => (props.open ? '35%' : '0px')};
+        min-width ${props => (props.open ? '250px' : '0px')};
+    }
+
+    @media (max-width: 600px) {
+        width: ${props => (props.open ? '100%' : '0px')};
     }
 `;
 
