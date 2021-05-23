@@ -179,7 +179,6 @@ const TreeInfoContainer = (props) => {
             </StyledSubText>
             <StyledSubText font_size='0.9rem' font_style='none'>
             {`${neighPrevalance}% of ${titleCase(neighbourhood_name)} trees.`}
-                {/* {`${neighborhoodPrevalance(props.stats)}% of ${titleCase(neighbourhood_name)} trees.`} */}
             </StyledSubText>
             <StyledSubText font_size='0.9rem' font_style='none'>
                 {`${totalPrevalance}% of Vancouver trees.`}

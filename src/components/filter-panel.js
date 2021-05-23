@@ -5,6 +5,7 @@ import { titleCase } from '../utils';
 import { ChevronCollapse, Filter } from '../svg-icons';
 import RangeSlider from './range-slider';
 import Select from 'react-select';
+import { GreyBorderBottomTitle } from '../styles/global-styles'
 
 // width: -moz-fit-content;
 //     width: fit-content;
@@ -23,6 +24,7 @@ const StyledFilterPanel = styled.div`
     max-width: 450px;
     height: -moz-fit-content;
     height: fit-content;
+    min-height: 800px;
     overflow: hidden;
     display: flex;
     flex-direction: row;
@@ -117,16 +119,6 @@ const Dot = styled.div`
     vertical-align: middle;
 `;
 
-const TreeEntry = styled.li`
-    list-style-type: none;
-    background-color: ${props => (props.selected ? 'inheret' : 'inheret')};
-    color: ${props => (props.selected ? 'inheret' : 'inheret')};
-    &:hover {
-        cursor: pointer;
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-`;
-
 const OpenCloseButton = styled.button`
     all: unset;
     display: flex;
@@ -144,6 +136,18 @@ const OpenCloseButton = styled.button`
     &:hover {
         opacity: 1;
     }
+`;
+
+const LegendLabel = styled.h4`
+    text-align: left;
+    color: #63686a;
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    width: -moz-fit-content;
+    width: fit-content;
+    display: table; 
+    line-height: 1.8rem;
 `;
 
 const [diamMIN, heightMIN] = [0, 0] ;
@@ -202,30 +206,32 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
         setTreeCommonNameList(nameList); 
     }, [treeNamesAndColors, currentState])
 
-    console.log(defaultValue);
-
     return (
         <StyledFilterPanel open={isExpanded}>
             <StyledFilterTogglePane >
                 {isExpanded && 
                     <>
-                        <b>By tree name</b>
+                        <GreyBorderBottomTitle margin_bottom='10px' font_size='1.3rem'>
+                                Filter by Species, Trunk Diameter, and Tree Height
+                            </GreyBorderBottomTitle>
                         <StyledFilterBoxes>
+                            <LegendLabel> By Species (Common Name) </LegendLabel>
                             <Select 
                                 key={defaultValue} // using key to force update https://github.com/facebook/react/issues/4101#issuecomment-243625941
                                 options={treeCommonNameList}
                                 isMulti
-                                name="Common Names"
                                 onChange={handleTreeClick}
                                 defaultValue={defaultValue}
                             />
                         </StyledFilterBoxes>
                         <StyledFilterBoxes>
-                            <RangeSlider slider_title='Diameter Filter Range (inches)'
+                            <LegendLabel> By Diameter Range (inches)</LegendLabel>
+                            <RangeSlider 
                                 updateRange={(newValue) => setDiameterRange(newValue)}
                                 min_val={0} max_val={42}
                                 unit='in' step={6} curr_range={diameterRange}/>
-                            <RangeSlider slider_title='Height Filter Range (feet)'
+                            <LegendLabel>  By Height Range (feet) </LegendLabel>
+                            <RangeSlider
                                 updateRange={(newValue) => setHeightRange(newValue)}
                                 min_val={0} max_val={100} 
                                 unit='ft' step={10} curr_range={heightRange}/>
