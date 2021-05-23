@@ -1,4 +1,5 @@
 import { filterProperties } from "@turf/clusters";
+import { LAYER_NAME } from '../env';
 
 /**
  * https://stackoverflow.com/questions/35504848/capitalize-hyphenated-names-in-javascript
@@ -35,7 +36,9 @@ export function heightStringFromID(height_range_id) {
  * @param {string[]} trees A list of tree common names to filter by
  * @returns {any[]} the formatted filter list ready to be passed to a MapGL <Layer/> component
  */
- export function treeFilterCompositor({diameters, height_ids, trees}) {
+ export function treeFilterCompositor(filterObject, selected) {
+  const {diameters, height_ids, trees} = filterObject;
+
   let filter = ['all'];
 
   if (diameters) {
@@ -53,6 +56,11 @@ export function heightStringFromID(height_range_id) {
 
   if (trees) {
     filter.push(['match', ['get', 'common_name'], trees, true, false]);
+  }
+
+  if (selected && selected.layer.id == LAYER_NAME) {
+    console.log("here")
+    filter.push(['!=', ['get', 'tree_id'], selected.properties.tree_id]);
   }
   
   return filter;

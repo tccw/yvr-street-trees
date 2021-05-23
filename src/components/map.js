@@ -26,7 +26,7 @@ import { MAPBOX_TOKEN,
          TREE_BLURB_URL, MAP_STYLE } from '../../env'
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
-import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
+import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver's Street Trees`;
@@ -252,8 +252,8 @@ export default function Map() {
         selection = selected.properties.tree_id;
     }
 
-    const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
-    const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
+    const boundaryHighlightFilter = useMemo(() => ['==', ['get', 'name'], selection], [selection]);
+    const treeHighlightFilter = useMemo(() => ['==', ['get', 'tree_id'], selection], [selection]);
     const mapRef = useRef();
     const getTreeInfo = () => {
         console.log('On Load RUN');
@@ -294,7 +294,7 @@ export default function Map() {
                     <Layer {...centroidLayer} />
                 </Source>
                 <Source type="vector" url={VAN_ALL_TREES_TILES}>
-                    <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/>                     
+                    <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject, selected)}/>                     
                     <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
                 </Source>
                 {hoverInfo && hoverInfo.feature.layer.id == LAYER_NAME && (
