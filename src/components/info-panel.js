@@ -24,7 +24,7 @@ const Panel = styled.div`
 
     @media (max-width: 1200px) {
         width: ${props => (props.open ? '35%' : '0px')};
-        min-width ${props => (props.open ? '250px' : '0px')};
+        min-width ${props => (props.open ? '350px' : '0px')};
     }
 
     @media (max-width: 600px) {
@@ -39,7 +39,6 @@ const Title = styled.h1`
     border-bottom: 0.5rem solid palegreen;
     width: -moz-fit-content;
     width: fit-content;
-    display: table; 
     text-transform: capitalize;
 `;
 
