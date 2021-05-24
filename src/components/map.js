@@ -8,7 +8,8 @@ import MapGL, {
     WebMercatorViewport,
     NavigationControl,
     FullscreenControl, 
-    GeolocateControl} from 'react-map-gl';
+    GeolocateControl,
+    FlyToInterpolator} from 'react-map-gl';
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
@@ -182,7 +183,7 @@ export default function Map() {
                 // construct a viewport instance from the current state
                 const vp = new WebMercatorViewport(viewport);
                 // create options based on layer type id
-                var options = {padding: 40, maxZoom:14.5 };
+                var options = { padding: 100, maxZoom: 14.5 };
                 if (feature.layer.id == LAYER_NAME) {
                     options.maxZoom = 17;
                 }
@@ -193,7 +194,15 @@ export default function Map() {
                 ],
                 options
                 );
-            
+                
+                // setViewport(vp.fitBounds(
+                //     [
+                //         [minLng, minLat],
+                //         [maxLng, maxLat]
+                //     ],
+                //     options
+                //     ));
+
                 // update the viewport  
                 setViewport({
                 ...viewport,
@@ -245,6 +254,26 @@ export default function Map() {
         }
     }, [selected, filterPanelSelected]);
 
+    useEffect(() => {
+        /**
+         * Padding in fitBounds and padding here do not appear to be the same.
+         * Directly accessing the Map within the DOM and using easeTo seems to the
+         * only way I can utilize padding to center viewport from the user's perspective
+         * as described here: https://github.com/mapbox/mapbox-gl-js/pull/8638
+         */
+        isInfoPanelExpanded 
+            ? mapRef.current.getMap().easeTo({padding: {left: 500}}) 
+            : mapRef.current.getMap().easeTo({padding: {left: 0}});
+        // const vp = new WebMercatorViewport(viewport)
+        // const {latitude, longitude} = viewport;
+        // setViewport(vp.fitBounds(
+        //     [
+        //         [longitude, latitude],
+        //         [longitude, latitude]
+        //     ],
+        //     {padding: {left: 500}}));
+    }, [isInfoPanelExpanded]);
+
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
         selection = selected.properties.name;
@@ -276,6 +305,8 @@ export default function Map() {
                 onHover={onHover}
                 onClick={onClickZoom}
                 onLoad={getTreeInfo}
+                dragRotate={false}
+                touchRotate={false}
             >
                 {/* <Geocoder 
                     mapRef={mapRef}
