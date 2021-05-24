@@ -28,6 +28,7 @@ import { MAPBOX_TOKEN,
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
+import {useContainerDimensions} from '../hooks/general-hooks';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver's Street Trees`;
@@ -87,7 +88,11 @@ const FilterToTree = styled.span`
 
 
 export default function Map() {
+    // references
+    const mapRef = useRef();
+    const infoPanelRef = useRef();
 
+    // state
     const [viewport, setViewport] = useState({
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
@@ -109,6 +114,10 @@ export default function Map() {
     const [blurbs, setBlurbs] = useState(null);
     const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between 
     const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
+
+    // custom hooks
+    const { width, height } = useContainerDimensions(infoPanelRef);
+    console.log(width)
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -194,14 +203,6 @@ export default function Map() {
                 ],
                 options
                 );
-                
-                // setViewport(vp.fitBounds(
-                //     [
-                //         [minLng, minLat],
-                //         [maxLng, maxLat]
-                //     ],
-                //     options
-                //     ));
 
                 // update the viewport  
                 setViewport({
@@ -214,6 +215,10 @@ export default function Map() {
                 }),
                 transitionDuration: 650
                 });
+
+                if (! isInfoPanelExpanded) {
+                    handleToggleInfoPanel();
+                }
                 
                 setTitle(titleCase(feature.layer.id == LAYER_NAME ? feature.properties.common_name : feature.properties.name))
             } else {
@@ -223,9 +228,6 @@ export default function Map() {
             // update selected
             setSelected (feature || null);
             setFilterPanelSelected(Boolean(feature));
-            if (feature && ! isInfoPanelExpanded) {
-                handleToggleInfoPanel();
-            }
         }
     };
 
@@ -262,17 +264,10 @@ export default function Map() {
          * as described here: https://github.com/mapbox/mapbox-gl-js/pull/8638
          */
         isInfoPanelExpanded 
-            ? mapRef.current.getMap().easeTo({padding: {left: 500}}) 
+            ? mapRef.current.getMap().easeTo({padding: {left: width}}) 
             : mapRef.current.getMap().easeTo({padding: {left: 0}});
-        // const vp = new WebMercatorViewport(viewport)
-        // const {latitude, longitude} = viewport;
-        // setViewport(vp.fitBounds(
-        //     [
-        //         [longitude, latitude],
-        //         [longitude, latitude]
-        //     ],
-        //     {padding: {left: 500}}));
-    }, [isInfoPanelExpanded]);
+        
+    }, [isInfoPanelExpanded, width]);
 
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
@@ -283,7 +278,10 @@ export default function Map() {
 
     const boundaryHighlightFilter = useMemo(() => ['==', ['get', 'name'], selection], [selection]);
     const treeHighlightFilter = useMemo(() => ['==', ['get', 'tree_id'], selection], [selection]);
-    const mapRef = useRef();
+    
+   
+    
+
     const getTreeInfo = () => {
         console.log('On Load RUN');
         let sourceID = mapRef.current.getMap().getLayer(LAYER_NAME).source;
@@ -352,7 +350,8 @@ export default function Map() {
                          defaultValue={defaultValue}
                          setDefaultValue={(value) => setDefaultValue(value)} >
             </FilterPanel>
-            <InfoPanel title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}
+            <InfoPanel ref={infoPanelRef}
+                       title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}
                        color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
                 {selected && selected.layer.id == 'boundaries' && 
                     <BoundaryStats currentState={treeFilterObject} 

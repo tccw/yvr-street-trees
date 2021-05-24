@@ -88,12 +88,12 @@ const OpenFlagContainer = styled.div`
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 `;
 
-function InfoPanel(props) {
+const InfoPanel = React.forwardRef((props, ref) => {
     const {color, title, handleToggle, isExpanded} = props;
 
     return (
         <>
-            <Panel open={props.isExpanded}>
+            <Panel open={props.isExpanded} ref={ref}>
                 <OpenCloseButton onClick={handleToggle} title='collapse panel'>
                     {ChevronLeft}
                 </OpenCloseButton>
@@ -112,6 +112,6 @@ function InfoPanel(props) {
             }            
         </>
     )
-}
+});
 
 export default InfoPanel;
