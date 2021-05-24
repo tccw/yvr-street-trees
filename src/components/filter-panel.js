@@ -7,8 +7,7 @@ import RangeSlider from './range-slider';
 import Select from 'react-select';
 import { GreyBorderBottomTitle } from '../styles/global-styles'
 
-// width: -moz-fit-content;
-//     width: fit-content;
+
 const StyledFilterPanel = styled.div`
     position: absolute;
     top: 45px;
@@ -110,8 +109,6 @@ const [diamMAX, heightMAX] = [42, 100];
 export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors, defaultValue, setDefaultValue}) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
-    // make an object with keys from the array, all values are true
-    const [selectedTree, setselectedTree] = useState(null);
     const [diameterRange, setDiameterRange] = useState([diamMIN, diamMAX]);
     const [heightRange, setHeightRange] = useState([heightMIN, heightMAX]);
 
