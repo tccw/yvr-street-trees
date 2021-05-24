@@ -59,7 +59,6 @@ export function heightStringFromID(height_range_id) {
   }
 
   if (selected && selected.layer.id == LAYER_NAME) {
-    console.log("here")
     filter.push(['!=', ['get', 'tree_id'], selected.properties.tree_id]);
   }
   

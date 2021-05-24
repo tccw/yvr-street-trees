@@ -284,11 +284,10 @@ export default function Map() {
         selection = selected.properties.tree_id;
     }
 
+    // memoized filters
     const boundaryHighlightFilter = useMemo(() => ['==', ['get', 'name'], selection], [selection]);
     const treeHighlightFilter = useMemo(() => ['==', ['get', 'tree_id'], selection], [selection]);
-    
-   
-    
+    const treeFilter = useMemo(() => treeFilterCompositor(treeFilterObject, selected))
 
     const getTreeInfo = () => {
         console.log('On Load RUN');
@@ -331,7 +330,7 @@ export default function Map() {
                     <Layer {...centroidLayer} />
                 </Source>
                 <Source type="vector" url={VAN_ALL_TREES_TILES}>
-                    <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject, selected)}/>                     
+                    <Layer {...treesLayer} filter={treeFilter}/>                     
                     <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
                 </Source>
                 {hoverInfo && hoverInfo.feature.layer.id == LAYER_NAME && (
