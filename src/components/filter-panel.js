@@ -11,7 +11,7 @@ import { GreyBorderBottomTitle } from '../styles/global-styles'
 //     width: fit-content;
 const StyledFilterPanel = styled.div`
     position: absolute;
-    top: 65px;
+    top: 45px;
     right: 0;
     background: #f2f2f2;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);

@@ -116,8 +116,7 @@ export default function Map() {
     const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
 
     // custom hooks
-    const { width, height } = useContainerDimensions(infoPanelRef);
-    console.log(width)
+    const { width } = useContainerDimensions(infoPanelRef);
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -238,9 +237,18 @@ export default function Map() {
                                 : {...treeFilterObject , trees: null});
     }
 
-    const handleToggleInfoPanel = () => {
+    /**
+     * Memoize this function so that it can be used as a dependancy for setting padding.
+     * Depending solely on the isInfoPanelExpanded state did not handle the following edge case
+     * CASE:
+     *  - collapse info-panel
+     *  - click on tree (zoom to and force open panel)
+     * The tree padding function would use the wrong padding to center the item and
+     * would not update until there was another expand/collapse or a resize event.
+     */
+    const handleToggleInfoPanel = useCallback(() => {
         setIsInfoPanelExpanded(! isInfoPanelExpanded)
-    }
+    })
 
     /**
      * This seems like a TERRIBLE way to handle the following edge case: 
@@ -267,7 +275,7 @@ export default function Map() {
             ? mapRef.current.getMap().easeTo({padding: {left: width}}) 
             : mapRef.current.getMap().easeTo({padding: {left: 0}});
         
-    }, [isInfoPanelExpanded, width]);
+    }, [width, handleToggleInfoPanel]);
 
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
@@ -306,7 +314,7 @@ export default function Map() {
                 dragRotate={false}
                 touchRotate={false}
             >
-                {/* <Geocoder 
+                <Geocoder 
                     mapRef={mapRef}
                     mapboxApiAccessToken={MAPBOX_TOKEN} 
                     position='top-right'
@@ -314,7 +322,7 @@ export default function Map() {
                     placeholder="Search Address"
                     proximity={GEOCODER_PROXIMITY}
                     country='CANADA'>  
-                </Geocoder>                 */}
+                </Geocoder>                
                 <Source type="geojson" data={boundaries}>
                     <Layer {...boundariesLayer}/>
                     <Layer {...boundariesHighlightLayer} filter={boundaryHighlightFilter}/>
