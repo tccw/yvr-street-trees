@@ -32,7 +32,7 @@ import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, tr
 import {useContainerDimensions} from '../hooks/general-hooks';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
-const DEFAULT_TITLE = `Vancouver's Street Trees`;
+const DEFAULT_TITLE = `Vancouver Street Trees`;
 const MAX_ZOOM = 18.5;
 const GEOLOCATE_POS_OPTIONS = {enableHighAccuracy: true};
 const geolocateStyle = {
@@ -120,7 +120,7 @@ export default function Map() {
     const [treeStats, setTreeStats] = useState(null);
     const [blurbs, setBlurbs] = useState(null);
     const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between 
-    const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
+    const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(false);
 
     // custom hooks
     const { width } = useContainerDimensions(infoPanelRef);

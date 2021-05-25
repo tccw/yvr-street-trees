@@ -1,32 +1,51 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import MapboxLogoWhite from '../../public/mapbox-logo-white.svg'
-
+// grid-template-areas:
+//         'feedback attribution copyright';
 const Foot = styled.footer`
     position: absolute;
-    display: flex;
+    overflow: hidden;
     width: 100%;
-    margin-top: 5px;
     bottom: 0;
-    right: 0;
-    height: 23px;
+    height: 1.5em;
     z-index: 3;
     background-color: lightgrey;
+    display: grid;
+    
+    @media (min-width: 950px) {
+        grid-template-areas:
+        'feedback attribution copyright';
+    }
+    @media (max-width: 950px) {
+        height: 4.5em;
+        grid-template-areas:
+            'feedback' 
+            'attribution' 
+            'copyright';
+    }
+    @media (max-width: 650px) {
+        font-size: 0.7em;
+    }
 `;
 
 const AttributionLink = styled.a`
     vertical-align: middle;    
     flex: 1;
-    margin-left: 20px;
     margin-right: 20px;
 `;
 
-const MapboxAttributionLogo = styled.a`
-
+const MapboxLogo = styled.img`
+    vertical-align: middle;
+    width: 100px;
+    height: 18px;
+    opacity: 0.7;
+    margin-top: 2px;
 `;
 
 const FancyDiv = styled.div`
-    background-color: lightgreen;
+    background-color: ${(props) => (props.color)};
+    grid-area: ${(props) => (props.name)};
 `;
 
 const Footer = () => {
@@ -38,10 +57,20 @@ const Footer = () => {
 
     return (
         <Foot>
-            <FancyDiv>
-                <img src={MapboxLogoWhite}></img>
-                <AttributionLink href='https://opendata.vancouver.ca/pages/licence/'>Species descriptions via Wikipedia CC BY-SA</AttributionLink>
-                <AttributionLink href='https://opendata.vancouver.ca/pages/licence/'>Open Government Licence – Vancouver</AttributionLink>
+            <FancyDiv color='grey' name='feedback'>
+                FEEDBACK PLACEHOLDER
+            </FancyDiv>
+            <FancyDiv color='#80b918' name='attribution'>
+                <AttributionLink href='https://www.mapbox.com/about/maps' target="_blank" rel="noreferror noopener">
+                    <MapboxLogo src={MapboxLogoWhite}/>
+                </AttributionLink>
+                <AttributionLink href='https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License' target="_blank" rel="noreferror noopener">
+                    Wikipedia CC BY-SA 3.0</AttributionLink>
+                <AttributionLink href='https://opendata.vancouver.ca/pages/licence/' target="_blank" rel="noreferror noopener">
+                    Open Government Licence – Vancouver</AttributionLink>
+            </FancyDiv>
+            <FancyDiv color='lightblue' name = 'copyright'>
+                © 2021
             </FancyDiv>
         </Foot>
     )
