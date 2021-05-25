@@ -9,7 +9,7 @@ import MapGL, {
     NavigationControl,
     FullscreenControl, 
     GeolocateControl,
-    FlyToInterpolator} from 'react-map-gl';
+    AttributionControl} from 'react-map-gl';
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
@@ -17,6 +17,7 @@ import {FilterPanel} from './filter-panel';
 import TreeInfoContainer from './tree-info-container';
 import InfoPanel from './info-panel';
 import BoundaryStats from './boundary-stats';
+
 import { MAPBOX_TOKEN, 
          VAN_BOUNDARIES_URL, 
          VAN_BOUNDARY_CENTROID_URL, 
@@ -85,6 +86,12 @@ const FilterToTree = styled.span`
         cursor: pointer;
     }
 `;
+
+const attributionStyle = {
+    position: 'absolute',
+    bottom: '30px',
+    right: '50px'
+}
 
 
 export default function Map() {
@@ -182,6 +189,7 @@ export default function Map() {
     const onClickZoom = event => {
         // this stops clicks from propogating through the geocoder search box to the map below
         // the DomTokenList has to be spread and cast to an array in order to use some()
+        console.log(event.target.classList)
         if ( ! [...event.target.classList].some(name => name.includes('geocoder')) ) {
             const feature = event.features && event.features[0];
 
@@ -312,6 +320,8 @@ export default function Map() {
                 onLoad={getTreeInfo}
                 dragRotate={false}
                 touchRotate={false}
+                attributionControl={false} // handled with the footer
+                
             >
                 <Geocoder 
                     mapRef={mapRef}
@@ -345,37 +355,38 @@ export default function Map() {
                     label="Toggle Find My Location"
                     onViewportChange={handleGeocoderViewportChange}
                 />
-                <FullscreenControl style={fullscreenControlStyle} />
+                {/* <FullscreenControl style={fullscreenControlStyle} /> */}
                 <NavigationControl style={navStyle} />
+                <AttributionControl style={attributionStyle}/>
             </MapGL>
-
-            <FilterPanel currentState={treeFilterObject} 
+            {/* Put these components inside MapGL to be available in fullscreen, but figure out class name assignment to avoid click-through to the map */}
+            <InfoPanel ref={infoPanelRef}
+                            title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}
+                            color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
+                        {selected && selected.layer.id == 'boundaries' && 
+                            <BoundaryStats currentState={treeFilterObject} 
+                                        updateParent={(props) => setTreeFilterObject({...props})}
+                                        {...selected.properties} 
+                                        heading='Neighborhood' 
+                                        stats={treeStats}>
+                            </BoundaryStats>
+                        }   
+                        {selected && selected.layer.id == LAYER_NAME &&
+                                <TreeInfoContainer {...selected.properties} stats={treeStats} blurbs={blurbs}>
+                                    <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
+                                        View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
+                                    </FilterToTree>
+                                </TreeInfoContainer>                        
+                            }            
+                </InfoPanel>
+                <FilterPanel currentState={treeFilterObject} className="damnwhataname"
                          updateParent={(props) => setTreeFilterObject({...props})}
                          updateSelected={() => setFilterPanelSelected(true)}
                          Selected={selected} // so that clicking the map can also deselect the tree from the list
                          treeNamesAndColors={treeStats ? treeStats.tree_stats : null}
                          defaultValue={defaultValue}
                          setDefaultValue={(value) => setDefaultValue(value)} >
-            </FilterPanel>
-            <InfoPanel ref={infoPanelRef}
-                       title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}
-                       color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
-                {selected && selected.layer.id == 'boundaries' && 
-                    <BoundaryStats currentState={treeFilterObject} 
-                                   updateParent={(props) => setTreeFilterObject({...props})}
-                                   {...selected.properties} 
-                                   heading='Neighborhood' 
-                                   stats={treeStats}>
-                    </BoundaryStats>
-                }   
-                {selected && selected.layer.id == LAYER_NAME &&
-                        <TreeInfoContainer {...selected.properties} stats={treeStats} blurbs={blurbs}>
-                            <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
-                                View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
-                            </FilterToTree>
-                        </TreeInfoContainer>                        
-                    }            
-            </InfoPanel>
+                </FilterPanel>
         </>
     );
 }

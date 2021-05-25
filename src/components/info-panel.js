@@ -93,7 +93,7 @@ const InfoPanel = React.forwardRef((props, ref) => {
 
     return (
         <>
-            <Panel open={props.isExpanded} ref={ref}>
+            <Panel open={props.isExpanded} ref={ref} classname={props.className}>
                 <OpenCloseButton onClick={handleToggle} title='collapse panel'>
                     {ChevronLeft}
                 </OpenCloseButton>
