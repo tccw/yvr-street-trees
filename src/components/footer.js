@@ -1,12 +1,12 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import MapboxLogoWhite from '../../public/mapbox-logo-white.svg'
-// grid-template-areas:
-//         'feedback attribution copyright';
+
+// TODO: determine why 100% width creates problems for the MapGL component height
 const Foot = styled.footer`
     position: absolute;
     overflow: hidden;
-    width: 100%;
+    width: 99vw;
     bottom: 0;
     height: 1.5em;
     z-index: 3;

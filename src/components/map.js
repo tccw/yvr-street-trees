@@ -120,7 +120,7 @@ export default function Map() {
     const [treeStats, setTreeStats] = useState(null);
     const [blurbs, setBlurbs] = useState(null);
     const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between 
-    const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(false);
+    const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
 
     // custom hooks
     const { width } = useContainerDimensions(infoPanelRef);
