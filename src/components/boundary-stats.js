@@ -57,6 +57,7 @@ const StatsSubtitle = styled.span`
 const BoundaryStats = ({currentState, updateParent, name, description, heading, stats}) => {
     // these won't match the hard-coded neighborhood count because 
     // there are many trees without geometry that are not displayed
+    
     name = name.toUpperCase();
     const getStats = () => {
         let result = {mostCommonSpecies: {treeName: '', count: -1}, numSpecies: 0}

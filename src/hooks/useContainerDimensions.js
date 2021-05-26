@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState, useEffect } from 'react';
 
 // https://stackoverflow.com/questions/43817118/how-to-get-the-width-of-a-react-element

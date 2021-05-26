@@ -29,7 +29,7 @@ import { MAPBOX_TOKEN,
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
-import {useContainerDimensions} from '../hooks/general-hooks';
+import {useContainerDimensions} from '../hooks/useContainerDimensions';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver Street Trees`;

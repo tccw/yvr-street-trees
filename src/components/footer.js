@@ -12,6 +12,7 @@ const Foot = styled.footer`
     z-index: 3;
     background-color: lightgrey;
     display: grid;
+    text-align: center;
     
     @media (min-width: 950px) {
         grid-template-areas:
@@ -30,9 +31,18 @@ const Foot = styled.footer`
 `;
 
 const AttributionLink = styled.a`
-    vertical-align: middle;    
+    vertical-align: bottom;    
     flex: 1;
+    margin-top: 5px;
     margin-right: 20px;
+    margin-left: 20px;
+    text-decoration: none;
+    :link, :visited {
+        color: white;
+    } 
+    :hover {
+        text-decoration: underline;
+    }
 `;
 
 const MapboxLogo = styled.img`
@@ -71,7 +81,7 @@ const Footer = () => {
                 FEEDBACK PLACEHOLDER
             </FancyDiv>
             <FancyDiv color='lightblue' name = 'copyright'>
-                © 2021
+                <AttributionLink href=''>© 2021</AttributionLink>
             </FancyDiv>
         </Foot>
     )
