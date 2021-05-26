@@ -6,7 +6,7 @@ import MapboxLogoWhite from '../../public/mapbox-logo-white.svg'
 const Foot = styled.footer`
     position: absolute;
     overflow: hidden;
-    width: 99vw;
+    width: 99.85%;
     bottom: 0;
     height: 1.5em;
     z-index: 3;
@@ -57,9 +57,7 @@ const Footer = () => {
 
     return (
         <Foot>
-            <FancyDiv color='grey' name='feedback'>
-                FEEDBACK PLACEHOLDER
-            </FancyDiv>
+            
             <FancyDiv color='#80b918' name='attribution'>
                 <AttributionLink href='https://www.mapbox.com/about/maps' target="_blank" rel="noreferror noopener">
                     <MapboxLogo src={MapboxLogoWhite}/>
@@ -68,6 +66,9 @@ const Footer = () => {
                     Wikipedia CC BY-SA 3.0</AttributionLink>
                 <AttributionLink href='https://opendata.vancouver.ca/pages/licence/' target="_blank" rel="noreferror noopener">
                     Open Government Licence – Vancouver</AttributionLink>
+            </FancyDiv>
+            <FancyDiv color='grey' name='feedback'>
+                FEEDBACK PLACEHOLDER
             </FancyDiv>
             <FancyDiv color='lightblue' name = 'copyright'>
                 © 2021
