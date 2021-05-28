@@ -195,7 +195,7 @@ def reduce_precision(json_data: Dict[str, any], decimals: int) -> Dict[str, any]
 
 
 def print_precision_table(latitude: float) -> None:
-    deg_long_distance = math.cos(latitude) * 111045  # 111045 meters = 69 miles
+    deg_long_distance = math.cos(math.radians(latitude)) * 111045  # 111045 meters = 69 miles
     print("{:<10} {:>10}".format('Decimal\nPlaces\t', 'Precision'))
     for i in range(11):
         fmt_dist = _meters_to_metric_dist_string(deg_long_distance / (10**i))
@@ -209,9 +209,9 @@ def _meters_to_metric_dist_string(meters: float) -> str:
         formatted_str = f'{round(meters / 1000, 3)} km'
     elif meters >= 1:
         formatted_str = f'{round(meters, 3)} m'
-    elif meters > 1e-2:
+    elif meters >= 1e-2:
         formatted_str = f'{round(meters * 10, 3)} cm'
-    elif meters >= 1e-6:
+    elif meters >= 1e-5:
         formatted_str = f'{round(meters * 1000, 3)} mm'
     else:
         formatted_str = f'{round(meters * 10e6, 3)} μm'  # wrong
