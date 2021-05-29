@@ -17,7 +17,7 @@ import traceback
 """
 ./process-data.py create \
     -n nw-tree \
-    -o /home/ubuntu/github/yvr-street-trees-react/opendata/processed/new-westminster-trees-merged-processed.json \
+    -o ../opendata/processed/new-westminster-trees-merged-processed.json \
     -rn '{
             "NEIGH_NAME": "neighborhood_name",
             "Genus": "genus_name",
@@ -30,7 +30,7 @@ import traceback
 
 ./process-data.py create \
     -n van-tree \
-    -o /home/ubuntu/github/yvr-street-trees-react/opendata/processed/vancouver-all-trees-processed.json \
+    -o ../opendata/processed/vancouver-all-trees-processed.json \
     -x std_street root_barrier street_side_name plant_area curb \
     -s
 """
@@ -82,7 +82,7 @@ def assign_random_colors(tree_data: Dict, colors: List[str]) -> Dict[str, any]:
 
     return tree_data
 
-# TODO: reduce duplication by consolidating to 2 functions, process_trees and process_boundaries
+
 def process_trees(args: object):
     data: Dict[str, any] = loadjson(file_paths[args.name])
 
@@ -118,7 +118,7 @@ def calc_tree_stats(json_data: json, outfile: str):
             <tree common name> : {
                 "total_count": <tree count for this species in the city>,
                 "average_diameter": float,
-                "average_height_range": int,
+                "average_height_id": int,
                 "color": <hex color>,
                 "neighborhood_counts": {
                     <neighborhood_name> : <tree count in specific neighborhood>,
@@ -132,20 +132,17 @@ def calc_tree_stats(json_data: json, outfile: str):
                 "average_height": int
                 }
             <...other entries>
-        }
+            }
         }
     }
 
     """
-
-
     tree_stats = _calc_tree_stats(json_data)
-    neighborhood_stats = _calc_neighborhood_stats(tree_stats)
-
+    neighborhood_stats = _calc_neighborhood_stats(json_data)
 
     # get per neighborhood stats
     stats_outfile = f"{outfile[:outfile.rfind('.')]}-stats{outfile[outfile.rfind('.'):]}"
-    savejson(stats_outfile, tree_stats)
+    savejson(stats_outfile, {'tree_stats': tree_stats, 'neighborhood_stats': neighborhood_stats})
 
 
 def _calc_tree_stats(json_data: Dict[str, any]):
@@ -157,7 +154,7 @@ def _calc_tree_stats(json_data: Dict[str, any]):
         if common_name in tree_stats:
             tree_stats[common_name]['total_count'] += 1
             tree_stats[common_name]['average_diameter'] += entry['properties']['diameter']  # will be the sum until the end
-            tree_stats[common_name]['average_height_range'] += entry['properties']['height_range_id']
+            tree_stats[common_name]['average_height_id'] += entry['properties']['height_range_id']
             # if the neighborhood the tree is in has already been added, add the tree to that neighborhood count
             if neighborhood_name in tree_stats[common_name]['neighborhood_counts']:
                 tree_stats[common_name]['neighborhood_counts'][neighborhood_name] += 1
@@ -170,7 +167,7 @@ def _calc_tree_stats(json_data: Dict[str, any]):
             tree_stats[common_name] = {
                 'total_count': 1,
                 'average_diameter': entry['properties']['diameter'],
-                'average_height_range': entry['properties']['height_range_id'],
+                'average_height_id': entry['properties']['height_range_id'],
                 'neighborhood_counts': {
                     neighborhood_name: 1
                 }
@@ -178,19 +175,37 @@ def _calc_tree_stats(json_data: Dict[str, any]):
     # make the averages actual averages
     for k in tree_stats.keys():
         tree_stats[k]['average_diameter'] = round(tree_stats[k]['average_diameter'] / tree_stats[k]['total_count'], 2)
-        tree_stats[k]['average_height_range'] = round(tree_stats[k]['average_height_range'] / tree_stats[k]['total_count'])
+        tree_stats[k]['average_height_id'] = round(tree_stats[k]['average_height_id'] / tree_stats[k]['total_count'])
 
     return tree_stats
 
+
 def _calc_neighborhood_stats(json_data: Dict[str, any]):
     neighborhood_stats = {}
+
+    for entry in json_data['features']:
+        neighborhood_name = entry['properties']['neighbourhood_name']
+        if neighborhood_name in neighborhood_stats:
+            neighborhood_stats[neighborhood_name]['total_count'] += 1
+            neighborhood_stats[neighborhood_name]['average_diameter'] += entry['properties']['diameter']
+            neighborhood_stats[neighborhood_name]['average_height_id'] += entry['properties']['height_range_id']
+        else:
+            neighborhood_stats[neighborhood_name] = {
+                'total_count': 1,
+                'average_diameter': entry['properties']['diameter'],
+                'average_height_id': entry['properties']['height_range_id']
+            }
+
+    for k in neighborhood_stats.keys():
+        neighborhood_stats[k]['average_diameter'] = round(neighborhood_stats[k]['average_diameter'] / neighborhood_stats[k]['total_count'], 2)
+        neighborhood_stats[k]['average_height_id'] = round(neighborhood_stats[k]['average_height_id'] / neighborhood_stats[k]['total_count'])
 
     return neighborhood_stats
 
 
 def rename_prop_keys(json_data: Dict[str, any], swap_json) -> Dict[str, any]:
     """
-        Change the name of
+        Change the name of any property keys
     """
     for entry in json_data['features']:
         for old_key, new_key in swap_json.items():
@@ -260,7 +275,7 @@ def _meters_to_metric_dist_string(meters: float) -> str:
     elif meters >= 1e-5:
         formatted_str = f'{round(meters * 1000, 3)} mm'
     else:
-        formatted_str = f'{round(meters * 10e6, 3)} μm'  # wrong
+        formatted_str = f'{round(meters * 10e6, 3)} μm'
 
     return formatted_str
 
@@ -290,7 +305,7 @@ def quick_stats(json_data: Dict[str, any]):
     _print_JSON_colors(quick_stats, 'murphy')
 
 def count_features_with(json_data: Dict[str, any], feature_map: Dict[str, any]) -> None:
-    pass
+    pass  # stub
 
 
 def _print_JSON_colors(pydict: Dict[str, any], style: str):
