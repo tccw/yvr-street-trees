@@ -5,19 +5,34 @@ import sys
 import json
 import subprocess
 import math
+from numpy import save
 from pylab import cm, matplotlib
 from typing import List, Dict
 from random import randint
 from pygments import highlight, lexers, formatters
-import traceback 
+import traceback
 
 
 # Example usage
 """
 ./process-data.py create \
     -n nw-tree \
-    -o /home/ubuntu/github/yvr-street-trees-react/opendata/raw/new-westminster-trees-merged-modified.json \
-    -rn '{"NEIGH_NAME": "neighborhood_name", "Genus": "genus_name", "Species": "species_name", "Common_Name": "common_name", "Cultivar": "cultivar_name"}'
+    -o /home/ubuntu/github/yvr-street-trees-react/opendata/processed/new-westminster-trees-merged-processed.json \
+    -rn '{
+            "NEIGH_NAME": "neighborhood_name",
+            "Genus": "genus_name",
+            "Species": "species_name",
+            "Common_Name": "common_name",
+            "Cultivar": "cultivar_name",
+            "Scientific_Name": "scientific_name"}' \
+    -rp 5 \
+    -x Location_Type SIDE X Y
+
+./process-data.py create \
+    -n van-tree \
+    -o /home/ubuntu/github/yvr-street-trees-react/opendata/processed/vancouver-all-trees-processed.json \
+    -x std_street root_barrier street_side_name plant_area curb \
+    -s
 """
 
 # ---- Constants ----
@@ -33,7 +48,7 @@ file_paths = {
 def loadjson(filename: str) -> Dict[str, any]:
     with open(filename) as file:
         data: Dict[str, any] = json.load(file)
-    
+
     return data
 
 def savejson(filename: str, data) -> None:
@@ -46,7 +61,7 @@ def choose_color(count: int, bands: List[float], colors: Dict[str,str]) -> str:
         if count <= bands[i]:
             retcol = colors[i]
             break
-    
+
     return retcol
 
 # Assign a random color from the available colors to each unique common name
@@ -55,7 +70,7 @@ def assign_random_colors(tree_data: Dict, colors: List[str]) -> Dict[str, any]:
     for entry in tree_data['features']:
         key = entry['properties']['common_name']
         tree_types[key] = None
-    
+
     # assign a random color to each tree name
     for k in tree_types.keys():
         idx: int = randint(0, len(colors) - 1)
@@ -64,7 +79,7 @@ def assign_random_colors(tree_data: Dict, colors: List[str]) -> Dict[str, any]:
     for tree in tree_data['features']:
         tree_name: str = tree['properties']['common_name']
         tree['properties']['color'] = tree_types[tree_name]
-    
+
     return tree_data
 
 # TODO: reduce duplication by consolidating to 2 functions, process_trees and process_boundaries
@@ -74,13 +89,14 @@ def process_trees(args: object):
     if args.reduce_precision:
         data = reduce_precision(data, args.reduce_precision)
     if args.exclude:
-        data = exlude_keys(data, args.exlude)
+        data = exlude_keys(data, args.exclude)
     if args.rename_properties:
         data = rename_prop_keys(data, args.rename_properties)
-    # stats = calc_tree_stats(data)
-    
+    if args.stats:
+        calc_tree_stats(data, args.outfile)
+
     savejson(args.outfile, data)
-    
+
 
 def process_boundaries(args: object):
     data: Dict[str, any] = loadjson(file_paths[args.name])
@@ -91,69 +107,99 @@ def process_boundaries(args: object):
 
 
 # TODO: remove this function if Tilequery API works out
-def calc_tree_stats(json_data: json):
+def calc_tree_stats(json_data: json, outfile: str):
     """
     Constructs a dictionary with neighborhood tree counts for stats displays.
     The returned dict is of the form:
 
     {
-        'city_tree_count': <total count of trees on map>,
-        'tree_stats': {
+        "city_tree_count": <total count of trees on map>,
+        "tree_stats": {
             <tree common name> : {
-                'total_count': <tree count for this species in the city>,
-                'color': <hex color>,
-                'neighborhood_counts': {
+                "total_count": <tree count for this species in the city>,
+                "average_diameter": float,
+                "average_height_range": int,
+                "color": <hex color>,
+                "neighborhood_counts": {
                     <neighborhood_name> : <tree count in specific neighborhood>,
                     <...other entries>
                 }
             }
-            'neigh_num_trees': {
-                <neighborhood name> : <total tree count>
-                <...other entries>
-            }
+        "neighborhood_stats": {
+            <neighborhood name> : {
+                "total_count": <total tree count>,
+                "average_diameter": float,
+                "average_height": int
+                }
+            <...other entries>
+        }
         }
     }
 
     """
-    trees = {}
-    total_neighborhood_count = {}
 
+
+    tree_stats = _calc_tree_stats(json_data)
+    neighborhood_stats = _calc_neighborhood_stats(tree_stats)
+
+
+    # get per neighborhood stats
+    stats_outfile = f"{outfile[:outfile.rfind('.')]}-stats{outfile[outfile.rfind('.'):]}"
+    savejson(stats_outfile, tree_stats)
+
+
+def _calc_tree_stats(json_data: Dict[str, any]):
+    tree_stats = {}
     for entry in json_data['features']:
-        neighborhood_name = entry['properties']['neighborhood_name']
+        neighborhood_name = entry['properties']['neighbourhood_name']
         common_name = entry['properties']['common_name']
         # if the tree is already in the object count the tree, else add the new tree name to the object
-        if common_name in trees:
-            trees[common_name]['total_count'] += 1
+        if common_name in tree_stats:
+            tree_stats[common_name]['total_count'] += 1
+            tree_stats[common_name]['average_diameter'] += entry['properties']['diameter']  # will be the sum until the end
+            tree_stats[common_name]['average_height_range'] += entry['properties']['height_range_id']
             # if the neighborhood the tree is in has already been added, add the tree to that neighborhood count
-            if neighborhood_name in trees[common_name]['neighborhood_counts']:
-                trees[common_name]['neighborhood_counts'][neighborhood_name] += 1
+            if neighborhood_name in tree_stats[common_name]['neighborhood_counts']:
+                tree_stats[common_name]['neighborhood_counts'][neighborhood_name] += 1
             # else add the tree color and add the neightborhood to the neightborhood_counts object
             else:
+                pass
                 # do something with the colors here
-                trees[common_name]['neighborhood_counts'][neighborhood_name] = 1
+                tree_stats[common_name]['neighborhood_counts'][neighborhood_name] = 1
         else:
-            trees[common_name] = {
+            tree_stats[common_name] = {
                 'total_count': 1,
+                'average_diameter': entry['properties']['diameter'],
+                'average_height_range': entry['properties']['height_range_id'],
                 'neighborhood_counts': {
                     neighborhood_name: 1
                 }
             }
-    
-    # count the number of trees in each neighborhood
-    
+    # make the averages actual averages
+    for k in tree_stats.keys():
+        tree_stats[k]['average_diameter'] = round(tree_stats[k]['average_diameter'] / tree_stats[k]['total_count'], 2)
+        tree_stats[k]['average_height_range'] = round(tree_stats[k]['average_height_range'] / tree_stats[k]['total_count'])
+
+    return tree_stats
+
+def _calc_neighborhood_stats(json_data: Dict[str, any]):
+    neighborhood_stats = {}
+
+    return neighborhood_stats
+
 
 def rename_prop_keys(json_data: Dict[str, any], swap_json) -> Dict[str, any]:
     """
-        Change the name of 
+        Change the name of
     """
     for entry in json_data['features']:
         for old_key, new_key in swap_json.items():
             if old_key in entry['properties']:
                 value = entry['properties'].pop(old_key)
                 entry['properties'][new_key] = value
-    
+
     return json_data
-                
+
 
 def keys_to_upper(json_data: Dict[str, any]) -> Dict[str, any]:
     for entry in json_data['features']:
@@ -165,7 +211,7 @@ def keys_to_upper(json_data: Dict[str, any]) -> Dict[str, any]:
 def keys_to_lower(json_data: Dict[str, any]) -> Dict[str, any]:
     for entry in json_data['features']:
         entry['properties'] = {k.lower(): v for k,v in entry['properties'].items()}
-    
+
     return json_data
 
 
@@ -174,7 +220,7 @@ def exlude_keys(json_data: Dict[str, any], exlude_keys: List[str]):
         for ex_key in exlude_keys:
             if ex_key in entry['properties']:
                 entry['properties'].pop(ex_key)
-    
+
     return json_data
 
 
@@ -190,7 +236,7 @@ def reduce_precision(json_data: Dict[str, any], decimals: int) -> Dict[str, any]
             entry['geometry']['coordinates'] = round_list(entry['geometry']['coordinates'])
         elif geometry == 'Polygon':
             entry['geometry']['coordinates'] = [[round_list(pair) for pair in segment] for segment in entry['geometry']['coordinates']]
-    
+
     return json_data
 
 
@@ -199,7 +245,7 @@ def print_precision_table(latitude: float) -> None:
     print("{:<10} {:>10}".format('Decimal\nPlaces\t', 'Precision'))
     for i in range(11):
         fmt_dist = _meters_to_metric_dist_string(deg_long_distance / (10**i))
-        fmt_str: str = "{:<5} {:>13} ".format(i, fmt_dist) 
+        fmt_str: str = "{:<5} {:>13} ".format(i, fmt_dist)
         print(fmt_str)
 
 
@@ -217,6 +263,7 @@ def _meters_to_metric_dist_string(meters: float) -> str:
         formatted_str = f'{round(meters * 10e6, 3)} μm'  # wrong
 
     return formatted_str
+
 
 def nth_entry(json_data: Dict[str, any], index: int):
     try:
@@ -242,9 +289,12 @@ def quick_stats(json_data: Dict[str, any]):
             quick_stats['feature_types'][entry['geometry']['type']] = 1
     _print_JSON_colors(quick_stats, 'murphy')
 
+def count_features_with(json_data: Dict[str, any], feature_map: Dict[str, any]) -> None:
+    pass
+
 
 def _print_JSON_colors(pydict: Dict[str, any], style: str):
-    json_str: str = json.dumps(pydict, indent=4) 
+    json_str: str = json.dumps(pydict, indent=4)
     formatted_str: str = highlight(json_str, lexers.JsonLexer(), formatters.TerminalFormatter(style=style))
     print(formatted_str)
 
@@ -253,10 +303,10 @@ def get_boundary_colors(num: int, cmap_name: str) -> List[str]:
     # creates a dictionary of discrete colors from a continuous colormap
     cmap = cm.get_cmap(cmap_name, num)
     return {i : matplotlib.colors.rgb2hex(cmap(i)) for i in range(cmap.N)}
-    
+
 # --- End Helpers ---
 
-try: 
+try:
     parser = argparse.ArgumentParser(description=('street tree data processing cli'),
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', '--verbose', action='store_true', help='increase the script verbosity')
@@ -275,11 +325,14 @@ try:
     parser_create.add_argument('-lc', '--lower-case', action='store_true', help='make all property keys lowercase')
     parser_create.add_argument('-uc', '--upper-case', action='store_true', help='make all property keys uppercase')
     parser_create.add_argument('-rp', '--reduce-precision', type=int, help='reduce the precision of geometry to the provided decimal places (will not expand precision)')
+    parser_create.add_argument('-nk', '--new-key', help='add a new key with either a constant value or a value derived from other keys')  # TODO: big time TODO
+    parser_create.add_argument('-s', '--stats', action='store_true', help='generate JSON file with tree counts and avg height/diameter; will run after all other processing is complete')
 
     # 'info' command
     parser_info = subparsers.add_parser('info', help='get information about a dataset')
 
-    parser_info.add_argument('-n', '--name', required=True, help='name of the data to processes [van-tree | nw-tree | van-bound | nw-bound]')
+    parser_info.add_argument('-n', '--name', help='name of the data to processes [van-tree | nw-tree | van-bound | nw-bound]')
+    parser_info.add_argument('-i', '--infile', help='path to a GeoJSON file')
     parser_info.add_argument('-nf', '--nth-feature', type=int, help='print the Nth feature to the console (negative indexing allowed)')
     parser_info.add_argument('-qs', '--quick-stats', action='store_true', help='prints out the number and type of features in the GeoJSON')
     parser_info.add_argument('-cfw', '--count-features-with', type=json.loads, help='count features with the provided key value pairs')
@@ -293,16 +346,16 @@ try:
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     # dictionary dispatch by case
-    data_choices = {'van-tree': process_trees, 
-                    'nw-tree': process_trees, 
-                    'van-bound': process_boundaries, 
+    data_choices = {'van-tree': process_trees,
+                    'nw-tree': process_trees,
+                    'van-bound': process_boundaries,
                     'nw-bound': process_boundaries
                     }
-    shell_args = {'van-tree': '-v', 
-                   'nw-tree': '-w', 
-                   'van-bound': '-b', 
-                   'nw-bound': '-b'
-                   }
+    shell_args = {'van-tree': '-v',
+                  'nw-tree': '-w',
+                  'van-bound': '-b',
+                  'nw-bound': '-b'
+                  }
 
     if args.cmd == 'create':
         if args.download_data and args.name in shell_args:
@@ -310,23 +363,28 @@ try:
             proc.communicate()
             if proc.returncode != 0:
                 logging.error('Error downloading data from source.')
-                sys.exit(1)                
+                sys.exit(1)
 
         # get returns the value associated with the key, or a default (the second argument)
         data_choices.get(args.name,
                 lambda x: parser.error(
-                    ('\'create\' command expected one of' 
-                     '[van-tree | nw-tree | van-bound | nw-bound]'
-                     f'but recieved \"{args.name}\"'))
-                    )(args)
+                            ('\'create\' command expected one of'
+                            '[van-tree | nw-tree | van-bound | nw-bound]'
+                            f'but recieved \"{args.name}\"'))
+                            )(args)
     elif args.cmd == 'info':
-        json_data: Dict[str, any] = loadjson(file_paths[args.name])
+        if args.name and args.infile:
+            parser.error('requires -n/--name OR -i/--infile but recieved both')
+        if not (args.name or args.infile):
+            parser.error('requires ONE of -n/--name or -i/--infile')
+
+        json_data: Dict[str, any] = loadjson(file_paths[args.name] if args.name else args.infile)
         if args.nth_feature:
             nth_entry(json_data, args.nth_feature)
         if args.quick_stats:
             quick_stats(json_data)
         if args.count_features_with:
-            print('not implemented yet')
+            count_features_with(json_data, args.count_features_with)
     elif args.cmd == 'table':
         if args.precision_at_latitude is not None:
             print_precision_table(args.precision_at_latitude)
