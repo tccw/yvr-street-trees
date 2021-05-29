@@ -18,23 +18,27 @@ const Panel = styled.div`
     background-color: white;
     color:black;
     overflow: hidden;
+    overflow-y: auto;
     transition: ease-in-out 0.3s;
     width: ${props => (props.open ? '500px' : '0px')};
 
     @media (max-width: 1200px) {
-        width: 35%;
-        min-width 250px;
+        width: ${props => (props.open ? '35%' : '0px')};
+        min-width ${props => (props.open ? '350px' : '0px')};
+    }
+
+    @media (max-width: 600px) {
+        width: ${props => (props.open ? '100%' : '0px')};
     }
 `;
 
 const Title = styled.h1`
     text-align: left;
     color: #63686a;
-    margin: 0 20px -15px 20px;
+    margin: 0 20px 5px 20px;
     border-bottom: 0.5rem solid palegreen;
     width: -moz-fit-content;
     width: fit-content;
-    display: table; 
     text-transform: capitalize;
 `;
 
@@ -84,22 +88,18 @@ const OpenFlagContainer = styled.div`
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 `;
 
-function InfoPanel(props) {
-    const [isExpanded, setIsExpanded] = useState(true); 
-
-    const handleToggle = () => {
-        setIsExpanded(! isExpanded);
-    };
+const InfoPanel = React.forwardRef((props, ref) => {
+    const {color, title, handleToggle, isExpanded} = props;
 
     return (
         <>
-            <Panel open={isExpanded}>
+            <Panel open={props.isExpanded} ref={ref} classname={props.className}>
                 <OpenCloseButton onClick={handleToggle} title='collapse panel'>
                     {ChevronLeft}
                 </OpenCloseButton>
                         <Title>
-                            {props.title}
-                            {props.color && <Dot color={props.color}></Dot>} 
+                            {title}
+                            {color && <Dot color={color}></Dot>} 
                         </Title>                 
                     {props.children}
             </Panel>
@@ -112,6 +112,6 @@ function InfoPanel(props) {
             }            
         </>
     )
-}
+});
 
 export default InfoPanel;

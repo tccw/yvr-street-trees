@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { heightStringFromID, titleCase, toPrettyDateString} from '../utils'
+import { heightStringFromID, titleCase, toPrettyDateString, sentenceCase} from '../utils'
 import styled from 'styled-components'
 import { Copy } from '../svg-icons'
 
 // margin order is top right bottom left
 const StyledTreeInfo = styled.section`
     position: relative;
-    top: 1rem;
     width: inheret;
     backgroud: white;
     margin: 0 20px;
@@ -22,6 +21,7 @@ const StyledSubText = styled.span`
     text-align: left;
     color: #63686a;
     margin-left: 20px;
+    margin-bottom: ${props => (props.margin_bottom ? props.margin_bottom : 0)};
     font-size: ${props => (props.font_size)};
     font-style: ${props => (props.font_style)};
     font-weight: 50;
@@ -33,12 +33,13 @@ const TreeDetailsList = styled.ul`
 
 const TreeListElement = styled.li`
     border-bottom: 1px solid lightgrey;
-    width: 90%;
-    margin-bottom: 1rem;
+    width: 95%;
+    margin-bottom: 0.5rem;
 `;
 
 const TreeDetail = styled.div`
     display: flex;
+    vertical-align: middle;
 `;
 
 const TreeDetailKey = styled.span`  
@@ -51,7 +52,7 @@ const TreeDetailKey = styled.span`
 const TreeDetailValue = styled.span`
     flex: 2;
     font-size: 0.9rem;
-    color: darkgreen;   
+    color: darkgreen;
 `;
 
 const CopyButton = styled.button.attrs(props => ({
@@ -76,8 +77,23 @@ const CopyButton = styled.button.attrs(props => ({
     }
 `;
 
+const Blurb = styled.p`
+    font-size: 1.1rem;
+    line-height: 1.5;
+    text-align: justify;
+    margin-top: 0px;
+    margin-bottom: 20px;
+`;
 
 
+
+/**
+ * This container should reviece the properties of the selected tree
+ * and the treeStats object which is calculated on first render.
+ * 
+ * @param {any} props 
+ * @returns 
+ */
 const TreeInfoContainer = (props) => {
 
     const {genus_name, species_name, tree_id, 
@@ -109,11 +125,11 @@ const TreeInfoContainer = (props) => {
     }
 
     const citywidePrevalence = (stats) => {
-         let percentage = ((stats.tree_stats[common_name].total_count / stats.city_tree_count) * 100).toFixed(2)
+         let percentage = Math.round(((stats.tree_stats[common_name].total_count / stats.city_tree_count) * 100)).toFixed(2)
          return formatPrevalanceResult(parseInt(percentage));
     };
     const neighborhoodPrevalance = (stats) => {
-        let percentage = ((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neigh_num_trees[neighbourhood_name]) * 100).toFixed(2);
+        let percentage = Math.round(((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neigh_num_trees[neighbourhood_name]) * 100)).toFixed(2);
         return formatPrevalanceResult(parseInt(percentage));
     };
 
@@ -126,24 +142,52 @@ const TreeInfoContainer = (props) => {
         }
         return result;
     }
+    
+    const getBlurb = (blurbs) => {
+        let key = formatSciName().toLowerCase().split(' ').join('_');
+        let blurb = (key in blurbs) ? [] : null;
+        if (blurb) {
+            for (let i = 0; i < blurbs[key].length; i++) {
+                blurb.push(
+                    <Blurb key={i}>
+                        {blurbs[key][i]}
+                    </Blurb>
+                );
+            }
+        }
+        return blurb;
+    }
+
+    const formatSciName = () => {
+        let tmp_species_name = species_name;
+        let species_name_arr = species_name.trim().split(' ');
+        if (species_name_arr[species_name_arr.length - 1].toLowerCase() === 'x') {
+            tmp_species_name = `${species_name_arr[species_name_arr.length - 1]} ${species_name_arr[0]}`;
+        }
+        return sentenceCase(`${genus_name} ${tmp_species_name}`);
+    }
 
     let cult = cultivar_name ? ` (${titleCase(cultivar_name)})` : '';
+    let neighPrevalance = React.useMemo(() => neighborhoodPrevalance(props.stats), [tree_id]);
+    let totalPrevalance = React.useMemo(() => citywidePrevalence(props.stats), [tree_id]);
+    let blurb = React.useMemo(() => getBlurb(props.blurbs), [tree_id]);
 
     return (
         <StyledTreeInfo>
             <StyledSubText font_size='1.5rem' font_style='italic'>
-                {`${titleCase(genus_name)} ${species_name.toLowerCase()}` + cult}
+                {`${formatSciName()} ` + cult}
             </StyledSubText>
-            <StyledSubText font_size='0.8rem' font_style='none'>
-                {`${neighborhoodPrevalance(props.stats)}% of ${titleCase(neighbourhood_name)} trees.`}
+            <StyledSubText font_size='0.9rem' font_style='none'>
+            {`${neighPrevalance}% of ${titleCase(neighbourhood_name)} trees.`}
             </StyledSubText>
-            <StyledSubText font_size='0.8rem' font_style='none'>
-                {`${citywidePrevalence(props.stats)}% of Vancouver trees.`}
+            <StyledSubText font_size='0.9rem' font_style='none'>
+                {`${totalPrevalance}% of Vancouver trees.`}
             </StyledSubText>
             <TreeDetailsList>
                 {treeDetails}
             </TreeDetailsList>
             {props.children}
+            {blurb}
         </StyledTreeInfo>    
     ); 
 }

@@ -1,33 +1,59 @@
 import * as React from 'react';
 import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import styled from 'styled-components';
-import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport, GeolocateControl} from 'react-map-gl';
+import MapGL, {
+    Source, 
+    Layer, 
+    LinearInterpolator, 
+    WebMercatorViewport,
+    NavigationControl,
+    FullscreenControl, 
+    GeolocateControl,
+    AttributionControl} from 'react-map-gl';
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
 import {FilterPanel} from './filter-panel';
 import TreeInfoContainer from './tree-info-container';
 import InfoPanel from './info-panel';
+import BoundaryStats from './boundary-stats';
+
 import { MAPBOX_TOKEN, 
          VAN_BOUNDARIES_URL, 
          VAN_BOUNDARY_CENTROID_URL, 
          WEST_POINT_TREES_URL, 
          VAN_ALL_TREES_URL,
          VAN_ALL_TREES_TILES,
-         LAYER_NAME, GEOCODER_PROXIMITY } from '../../env'
+         LAYER_NAME, GEOCODER_PROXIMITY,
+         TREE_BLURB_URL, MAP_STYLE } from '../../env'
 
 import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
-import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../map-styles.js';
+import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
+import {useContainerDimensions} from '../hooks/useContainerDimensions';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
-const DEFAULT_TITLE = `Vancouver's Street Trees`;
+const DEFAULT_TITLE = `Vancouver Street Trees`;
 const MAX_ZOOM = 18.5;
 const GEOLOCATE_POS_OPTIONS = {enableHighAccuracy: true};
-const GEOLOCATE_STYLE = {
-    position: 'absolute',
-    top: 50,
-    right: 220,
-  };
+const geolocateStyle = {
+    bottom: 168,
+    right: 0,
+    padding: '10px'
+};
+
+const fullscreenControlStyle = {
+    bottom: 36,
+    right: 0,
+    padding: '10px'
+};
+
+const navStyle = {
+    bottom: 72,
+    right: 0,
+    padding: '10px'
+};
+
+const BOUNDS = [ [ -122.821261, 49.35818], [ -123.413509, 49.149992 ] ]
 
 const ToolTip = styled.div`
     position: absolute;
@@ -47,7 +73,8 @@ const ToolTip = styled.div`
 
 const FilterToTree = styled.span`
     font-size: 1.1rem;
-    maring-right: 20px;
+    margin-left: 20px;
+    margin-bottom: 20px;
     border-bottom: 0.2rem solid var(--color);
     float: right;
     width: -moz-fit-content;
@@ -60,16 +87,28 @@ const FilterToTree = styled.span`
     }
 `;
 
+const attributionStyle = {
+    position: 'absolute',
+    bottom: '30px',
+    right: '50px'
+}
+
 
 export default function Map() {
+    // references
+    const mapRef = useRef();
+    const infoPanelRef = useRef();
 
+    // state
     const [viewport, setViewport] = useState({
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
         zoom: 12.5,
         bearing: 0,
         pitch: 0,
-        maxZoom: MAX_ZOOM
+        maxZoom: MAX_ZOOM,
+        minZoom: 11,
+        maxbounds: BOUNDS
     });
     const [boundaries, setBoundaries] = useState(null);
     const [centroids, setCentroids]   = useState(null);
@@ -79,6 +118,12 @@ export default function Map() {
     const [treeFilterObject, setTreeFilterObject] = useState({trees: null, diameters: null, height_ids: null})
     const [filterPanelSelected, setFilterPanelSelected] = useState(false);
     const [treeStats, setTreeStats] = useState(null);
+    const [blurbs, setBlurbs] = useState(null);
+    const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between 
+    const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
+
+    // custom hooks
+    const { width } = useContainerDimensions(infoPanelRef);
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -93,6 +138,12 @@ export default function Map() {
             .then(json => setCentroids(json));
     }, []);
 
+    useEffect(() => {
+        fetch(TREE_BLURB_URL)
+            .then(response => response.json())
+            .then(json => setBlurbs(json));
+    }, [])
+
 
     /** 
      * For local CORS errors, use: gsutil defacl ch -u AllUsers:R gs://<bucket> to fix 
@@ -104,18 +155,6 @@ export default function Map() {
      * https://cloud.google.com/storage/docs/cross-origin
      * 
      * */
-    // useEffect(() => {
-    //     fetch( WEST_POINT_TREES_URL || VAN_ALL_TREES_URL )
-    //     .then(response => response.json())
-    //     .then((json) => {
-    //         setTrees(json);
-    //         setTreeStats(getTreeStats(json));
-    //     })
-    //     .catch((error) => {
-    //         console.error('Error:', error);
-    //     });
-    // }, []);
-
     
     
     /** set up a slick mouse hover info box */
@@ -150,6 +189,7 @@ export default function Map() {
     const onClickZoom = event => {
         // this stops clicks from propogating through the geocoder search box to the map below
         // the DomTokenList has to be spread and cast to an array in order to use some()
+        console.log(event.target.classList)
         if ( ! [...event.target.classList].some(name => name.includes('geocoder')) ) {
             const feature = event.features && event.features[0];
 
@@ -159,7 +199,7 @@ export default function Map() {
                 // construct a viewport instance from the current state
                 const vp = new WebMercatorViewport(viewport);
                 // create options based on layer type id
-                var options = {padding: 40, maxZoom:14.5 };
+                var options = { padding: 100, maxZoom: 14.5 };
                 if (feature.layer.id == LAYER_NAME) {
                     options.maxZoom = 17;
                 }
@@ -170,7 +210,7 @@ export default function Map() {
                 ],
                 options
                 );
-            
+
                 // update the viewport  
                 setViewport({
                 ...viewport,
@@ -183,6 +223,10 @@ export default function Map() {
                 transitionDuration: 650
                 });
 
+                if (! isInfoPanelExpanded) {
+                    handleToggleInfoPanel();
+                }
+                
                 setTitle(titleCase(feature.layer.id == LAYER_NAME ? feature.properties.common_name : feature.properties.name))
             } else {
                 setTitle(DEFAULT_TITLE);
@@ -195,10 +239,24 @@ export default function Map() {
     };
 
     const onClickFilter = () => {
+        setDefaultValue(defaultValue.filter((entry) => (entry.value === selected.properties.common_name)));
         setTreeFilterObject(selected 
                                 ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
                                 : {...treeFilterObject , trees: null});
     }
+
+    /**
+     * Memoize this function so that it can be used as a dependancy for setting padding.
+     * Depending solely on the isInfoPanelExpanded state did not handle the following edge case
+     * CASE:
+     *  - collapse info-panel
+     *  - click on tree (zoom to and force open panel)
+     * The tree padding function would use the wrong padding to center the item and
+     * would not update until there was another expand/collapse or a resize event.
+     */
+    const handleToggleInfoPanel = useCallback(() => {
+        setIsInfoPanelExpanded(! isInfoPanelExpanded)
+    })
 
     /**
      * This seems like a TERRIBLE way to handle the following edge case: 
@@ -209,9 +267,23 @@ export default function Map() {
      */
     useEffect(() => {
         if (! selected && ! filterPanelSelected) {
+            setDefaultValue([]);
             setTreeFilterObject({...treeFilterObject , trees: null});
         }
     }, [selected, filterPanelSelected]);
+
+    useEffect(() => {
+        /**
+         * Padding in fitBounds and padding here do not appear to be the same.
+         * Directly accessing the Map within the DOM and using easeTo seems to the
+         * only way I can utilize padding to center viewport from the user's perspective
+         * as described here: https://github.com/mapbox/mapbox-gl-js/pull/8638
+         */
+        isInfoPanelExpanded 
+            ? mapRef.current.getMap().easeTo({padding: {left: width}}) 
+            : mapRef.current.getMap().easeTo({padding: {left: 0}});
+        
+    }, [width, handleToggleInfoPanel]);
 
     var selection = '';
     if (selected && selected.layer.id == 'boundaries') {
@@ -220,9 +292,11 @@ export default function Map() {
         selection = selected.properties.tree_id;
     }
 
-    const boundaryHighlightFilter = useMemo(() => ['match', ['get', 'name'], [selection], true, false], [selection]);
-    const treeHighlightFilter = useMemo(() => ['match', ['get', 'tree_id'], [selection], true, false], [selection]);
-    const mapRef = useRef();
+    // memoized filters
+    const boundaryHighlightFilter = useMemo(() => ['==', ['get', 'name'], selection], [selection]);
+    const treeHighlightFilter = useMemo(() => ['==', ['get', 'tree_id'], selection], [selection]);
+    const treeFilter = useMemo(() => treeFilterCompositor(treeFilterObject, selected))
+
     const getTreeInfo = () => {
         console.log('On Load RUN');
         let sourceID = mapRef.current.getMap().getLayer(LAYER_NAME).source;
@@ -237,30 +311,27 @@ export default function Map() {
                 {...viewport}
                 width="100%"
                 height="100%"
-                mapStyle="mapbox://styles/tcowan/cknw84ogv1a3c17o0k0k9sd4y?optimize=true"
+                mapStyle={MAP_STYLE}
                 onViewportChange={setViewport}
                 mapboxApiAccessToken={TOKEN}
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
                 onHover={onHover}
                 onClick={onClickZoom}
                 onLoad={getTreeInfo}
+                dragRotate={false}
+                touchRotate={false}
+                attributionControl={false} // handled with the footer
+                
             >
-                {/* <GeolocateControl
-                    style={GEOLOCATE_STYLE}
-                    positionOptions={GEOLOCATE_POS_OPTIONS}
-                    trackUserLocation
-                    label="Toggle Find My Location"
+                <Geocoder 
+                    mapRef={mapRef}
+                    mapboxApiAccessToken={MAPBOX_TOKEN} 
+                    position='top-right'
                     onViewportChange={handleGeocoderViewportChange}
-                /> */}
-                {/* <Geocoder 
-                mapRef={mapRef}
-                mapboxApiAccessToken={MAPBOX_TOKEN} 
-                position='top-right'
-                onViewportChange={handleGeocoderViewportChange}
-                placeholder="Search Address"
-                proximity={GEOCODER_PROXIMITY}
-                country='CANADA'>  
-                </Geocoder>                 */}
+                    placeholder="Search Address"
+                    proximity={GEOCODER_PROXIMITY}
+                    country='CANADA'>  
+                </Geocoder>                
                 <Source type="geojson" data={boundaries}>
                     <Layer {...boundariesLayer}/>
                     <Layer {...boundariesHighlightLayer} filter={boundaryHighlightFilter}/>
@@ -269,7 +340,7 @@ export default function Map() {
                     <Layer {...centroidLayer} />
                 </Source>
                 <Source type="vector" url={VAN_ALL_TREES_TILES}>
-                    <Layer {...treesLayer} filter={treeFilterCompositor(treeFilterObject)}/>                     
+                    <Layer {...treesLayer} filter={treeFilter}/>                     
                     <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
                 </Source>
                 {hoverInfo && hoverInfo.feature.layer.id == LAYER_NAME && (
@@ -277,25 +348,45 @@ export default function Map() {
                     <div>{titleCase(hoverInfo.feature.properties.common_name)}</div>
                 </ToolTip>
                 )}
+                <GeolocateControl
+                    style={geolocateStyle}
+                    positionOptions={GEOLOCATE_POS_OPTIONS}
+                    trackUserLocation
+                    label="Toggle Find My Location"
+                    onViewportChange={handleGeocoderViewportChange}
+                />
+                {/* <FullscreenControl style={fullscreenControlStyle} /> */}
+                <NavigationControl style={navStyle} />
+                <AttributionControl style={attributionStyle}/>
             </MapGL>
-
-            <FilterPanel currentState={treeFilterObject} 
+            {/* Put these components inside MapGL to be available in fullscreen, but figure out class name assignment to avoid click-through to the map */}
+            <InfoPanel ref={infoPanelRef}
+                            title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}
+                            color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}> 
+                        {selected && selected.layer.id == 'boundaries' && 
+                            <BoundaryStats currentState={treeFilterObject} 
+                                        updateParent={(props) => setTreeFilterObject({...props})}
+                                        {...selected.properties} 
+                                        heading='Neighborhood' 
+                                        stats={treeStats}>
+                            </BoundaryStats>
+                        }   
+                        {selected && selected.layer.id == LAYER_NAME &&
+                                <TreeInfoContainer {...selected.properties} stats={treeStats} blurbs={blurbs}>
+                                    <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
+                                        View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
+                                    </FilterToTree>
+                                </TreeInfoContainer>                        
+                            }            
+                </InfoPanel>
+                <FilterPanel currentState={treeFilterObject} className="damnwhataname"
                          updateParent={(props) => setTreeFilterObject({...props})}
                          updateSelected={() => setFilterPanelSelected(true)}
-                         Selected={selected} // so that clicking the map still can also deselect the tree from the list
-                         treeNamesAndColors={treeStats ? treeStats.tree_stats : null} >
-            </FilterPanel>
-            <InfoPanel title={title} 
-                       color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}>    
-                {selected && selected.layer.id == LAYER_NAME &&
-                        <TreeInfoContainer {...selected.properties} stats={treeStats} >
-                            <FilterToTree onClick={onClickFilter} style={{'--color': selected.properties.color}}> 
-                                View  all <b>{titleCase(selected.properties.common_name)}</b> trees on the map 
-                            </FilterToTree>
-                        </TreeInfoContainer>                        
-                    }            
-            </InfoPanel>
-            
+                         Selected={selected} // so that clicking the map can also deselect the tree from the list
+                         treeNamesAndColors={treeStats ? treeStats.tree_stats : null}
+                         defaultValue={defaultValue}
+                         setDefaultValue={(value) => setDefaultValue(value)} >
+                </FilterPanel>
         </>
     );
 }
