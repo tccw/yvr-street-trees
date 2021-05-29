@@ -25,7 +25,7 @@ const StyledSubText = styled.span`
     font-size: ${props => (props.font_size)};
     font-style: ${props => (props.font_style)};
     font-weight: 50;
-`; 
+`;
 
 const TreeDetailsList = styled.ul`
     list-style-type: none
@@ -42,7 +42,7 @@ const TreeDetail = styled.div`
     vertical-align: middle;
 `;
 
-const TreeDetailKey = styled.span`  
+const TreeDetailKey = styled.span`
     flex: 1;
     font-weight: bold;
     font-size: 1rem;
@@ -90,14 +90,14 @@ const Blurb = styled.p`
 /**
  * This container should reviece the properties of the selected tree
  * and the treeStats object which is calculated on first render.
- * 
- * @param {any} props 
- * @returns 
+ *
+ * @param {any} props
+ * @returns
  */
 const TreeInfoContainer = (props) => {
 
-    const {genus_name, species_name, tree_id, 
-           diameter, civic_number, on_street, 
+    const {genus_name, species_name, tree_id,
+           diameter, civic_number, on_street,
            height_range_id, date_planted, common_name,
            neighbourhood_name, cultivar_name} = props;
 
@@ -106,7 +106,7 @@ const TreeInfoContainer = (props) => {
         'Height' : `${heightStringFromID(height_range_id)}`,
         'Diameter': `${diameter} inches`,
         'Address': `${civic_number} ${on_street}`,
-        'Date Planted': date_planted ? `${toPrettyDateString(date_planted)}` : 'Unknown' 
+        'Date Planted': date_planted ? `${toPrettyDateString(date_planted)}` : 'Unknown'
     }
 
     var treeDetails = [];
@@ -114,7 +114,7 @@ const TreeInfoContainer = (props) => {
         treeDetails.push(
             <TreeListElement key={key}>
                 <TreeDetail>
-                    <TreeDetailKey>{key}</TreeDetailKey> 
+                    <TreeDetailKey>{key}</TreeDetailKey>
                     <TreeDetailValue>{value}</TreeDetailValue>
                     { (key === 'Address') && <CopyButton onClick={() => {
                         navigator.clipboard.writeText(value); // only for modern browsers
@@ -129,7 +129,7 @@ const TreeInfoContainer = (props) => {
          return formatPrevalanceResult(parseInt(percentage));
     };
     const neighborhoodPrevalance = (stats) => {
-        let percentage = Math.round(((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neigh_num_trees[neighbourhood_name]) * 100)).toFixed(2);
+        let percentage = Math.round(((stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] / stats.neighborhood_stats[neighbourhood_name].total_count) * 100)).toFixed(2);
         return formatPrevalanceResult(parseInt(percentage));
     };
 
@@ -142,7 +142,7 @@ const TreeInfoContainer = (props) => {
         }
         return result;
     }
-    
+
     const getBlurb = (blurbs) => {
         let key = formatSciName().toLowerCase().split(' ').join('_');
         let blurb = (key in blurbs) ? [] : null;
@@ -188,8 +188,8 @@ const TreeInfoContainer = (props) => {
             </TreeDetailsList>
             {props.children}
             {blurb}
-        </StyledTreeInfo>    
-    ); 
+        </StyledTreeInfo>
+    );
 }
 
 export default React.memo(TreeInfoContainer); // look into if memoizing this results in worse performance (or does anything)

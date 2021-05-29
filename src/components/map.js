@@ -7,7 +7,6 @@ import MapGL, {
     LinearInterpolator,
     WebMercatorViewport,
     NavigationControl,
-    FullscreenControl,
     GeolocateControl,
     AttributionControl} from 'react-map-gl';
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -21,13 +20,11 @@ import BoundaryStats from './boundary-stats';
 import { MAPBOX_TOKEN,
          VAN_BOUNDARIES_URL,
          VAN_BOUNDARY_CENTROID_URL,
-         WEST_POINT_TREES_URL,
-         VAN_ALL_TREES_URL,
          VAN_ALL_TREES_TILES,
          LAYER_NAME, GEOCODER_PROXIMITY,
          TREE_BLURB_URL, MAP_STYLE, STATS } from '../../env'
 
-import { titleCase, getUniqueTreeNames, treeFilterCompositor, getTreeStats } from '../utils';
+import { titleCase, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
 import {useContainerDimensions} from '../hooks/useContainerDimensions';
 
@@ -103,7 +100,7 @@ export default function Map() {
     const [viewport, setViewport] = useState({
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
-        zoom: 12.5,
+        zoom: 11.5,
         bearing: 0,
         pitch: 0,
         maxZoom: MAX_ZOOM,
@@ -195,7 +192,6 @@ export default function Map() {
     const onClickZoom = event => {
         // this stops clicks from propogating through the geocoder search box to the map below
         // the DomTokenList has to be spread and cast to an array in order to use some()
-        console.log(event.target.classList)
         if ( ! [...event.target.classList].some(name => name.includes('geocoder')) ) {
             const feature = event.features && event.features[0];
 
@@ -303,12 +299,12 @@ export default function Map() {
     const treeHighlightFilter = useMemo(() => ['==', ['get', 'tree_id'], selection], [selection]);
     const treeFilter = useMemo(() => treeFilterCompositor(treeFilterObject, selected))
 
-    const getTreeInfo = () => {
-        console.log('On Load RUN');
-        let sourceID = mapRef.current.getMap().getLayer(LAYER_NAME).source;
-        let data = mapRef.current.getMap().querySourceFeatures(sourceID, {sourceLayer: LAYER_NAME});
-        setStats(getTreeStats(data));
-    }
+    // const getTreeInfo = () => {
+    //     console.log('On Load RUN');
+    //     let sourceID = mapRef.current.getMap().getLayer(LAYER_NAME).source;
+    //     let data = mapRef.current.getMap().querySourceFeatures(sourceID, {sourceLayer: LAYER_NAME});
+    //     setStats(getTreeStats(data));
+    // }
 
     return (
         <>
@@ -323,7 +319,7 @@ export default function Map() {
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
                 onHover={onHover}
                 onClick={onClickZoom}
-                onLoad={getTreeInfo}
+                // onLoad={getTreeInfo}
                 dragRotate={false}
                 touchRotate={false}
                 attributionControl={false} // handled with the footer

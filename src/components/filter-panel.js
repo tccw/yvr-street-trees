@@ -26,7 +26,7 @@ const StyledFilterPanel = styled.div`
     overflow: hidden;
     display: flex;
     flex-direction: row;
-    
+
     border-width: ${props => (props.open ? '0px' : '1px')};
     border-style: ${props => (props.open ? 'none' : 'solid')};
     border-color: ${props => (props.open ? 'none' : 'darkgrey')};
@@ -44,7 +44,7 @@ const StyledFilterTogglePane = styled.div`
     width: fit-content;
     display: flex;
     flex-direction: column;
-    
+
 `;
 
 const StyledFilterBoxes = styled.span`
@@ -98,7 +98,7 @@ const LegendLabel = styled.h4`
     margin-bottom: 0px;
     width: -moz-fit-content;
     width: fit-content;
-    display: table; 
+    display: table;
     line-height: 1.8rem;
 `;
 
@@ -128,13 +128,13 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
         updateSelected();
         // setselectedTree(event.target.textContent.toUpperCase());
     }
-    
+
     useEffect(() => {
         setFilterState();
     }, [diameterRange, heightRange]);
-    
+
     /**
-     * Only have the build the list once, but the "selected" prop doesn't matter because the 
+     * Only have the build the list once, but the "selected" prop doesn't matter because the
      * element is not re-rendered by react since it never changes. Will need another solution
      * to deal with highlighting.
      */
@@ -146,27 +146,27 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                     {
                         label: (
                         <>
-                            <Dot color={value.color}></Dot> {titleCase(key)}
+                            <Dot color={value.color ? value.color : 'orange'}></Dot> {titleCase(key)}
                         </>),
                         value: key
                     }
                 )
             }
         }
-        setTreeCommonNameList(nameList); 
+        setTreeCommonNameList(nameList);
     }, [treeNamesAndColors, currentState])
 
     return (
         <StyledFilterPanel open={isExpanded}>
             <StyledFilterTogglePane >
-                {isExpanded && 
+                {isExpanded &&
                     <>
                         <GreyBorderBottomTitle margin_bottom='10px' font_size='1.3rem'>
                                 Filter by Species, Trunk Diameter, and Tree Height
                             </GreyBorderBottomTitle>
                         <StyledFilterBoxes>
                             <LegendLabel> By Species (Common Name) </LegendLabel>
-                            <Select 
+                            <Select
                                 key={defaultValue} // using key to force update https://github.com/facebook/react/issues/4101#issuecomment-243625941
                                 options={treeCommonNameList}
                                 isMulti
@@ -176,21 +176,21 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                         </StyledFilterBoxes>
                         <StyledFilterBoxes>
                             <LegendLabel> By Diameter Range (inches)</LegendLabel>
-                            <RangeSlider 
+                            <RangeSlider
                                 updateRange={(newValue) => setDiameterRange(newValue)}
                                 min_val={0} max_val={42}
                                 unit='in' step={6} curr_range={diameterRange}/>
                             <LegendLabel>  By Height Range (feet) </LegendLabel>
                             <RangeSlider
                                 updateRange={(newValue) => setHeightRange(newValue)}
-                                min_val={0} max_val={100} 
+                                min_val={0} max_val={100}
                                 unit='ft' step={10} curr_range={heightRange}/>
                         </StyledFilterBoxes>
                     </>
-                }                
+                }
             </StyledFilterTogglePane>
             <OpenCloseButton onClick={handleToggle} title={isExpanded ? 'collapse panel' : 'expand panel'}>
-                { ! isExpanded && <p style={{'fontSize': '1.2rem', 'margin': '-6px 5px 5px 0px'}}>Filter Map</p> } 
+                { ! isExpanded && <p style={{'fontSize': '1.2rem', 'margin': '-6px 5px 5px 0px'}}>Filter Map</p> }
                 { isExpanded ? ChevronCollapse : Filter({height: 24, width: 24}) }
             </OpenCloseButton>
         </StyledFilterPanel>

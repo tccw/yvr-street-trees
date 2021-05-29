@@ -16,7 +16,7 @@ const StatsHeader = styled.h2`
     border-bottom: 0.2rem solid #63686a;
     width: -moz-fit-content;
     width: fit-content;
-    display: table; 
+    display: table;
     text-transform: capitalize;
 `;
 
@@ -26,7 +26,7 @@ const Description = styled.p`
     margin-top: 0;
     margin-bottom: 20px;
     text-align: justify;
-`; 
+`;
 
 const StatsGrid = styled.div`
     display: grid;
@@ -55,17 +55,17 @@ const StatsSubtitle = styled.span`
 
 
 const BoundaryStats = ({currentState, updateParent, name, description, heading, stats}) => {
-    // these won't match the hard-coded neighborhood count because 
+    // these won't match the hard-coded neighborhood count because
     // there are many trees without geometry that are not displayed
-    
+
     name = name.toUpperCase();
     const getStats = () => {
         let result = {mostCommonSpecies: {treeName: '', count: -1}, numSpecies: 0}
         for (const [key, value] of Object.entries(stats.tree_stats)) {
             if (name in value.neighborhood_counts) {
                 result.numSpecies++;
-                
-                if (result.mostCommonSpecies.count < value.neighborhood_counts[name]) { 
+
+                if (result.mostCommonSpecies.count < value.neighborhood_counts[name]) {
                     result.mostCommonSpecies.treeName = key;
                     result.mostCommonSpecies.count = value.neighborhood_counts[name];
                 }
@@ -90,13 +90,14 @@ const BoundaryStats = ({currentState, updateParent, name, description, heading, 
         updateParent({...currentState, trees: [displayStats.mostCommonSpecies.treeName]})
     }
 
+// this component may be re-rendering too often
     return (
         <StatsSection>
             {blurb}
             <StatsHeader> {`${heading} Statistics`} </StatsHeader>
             <StatsGrid>
                 <StatsGridItem>
-                    <StyledStat>{stats.neigh_num_trees[name].toLocaleString()}</StyledStat>
+                    <StyledStat>{stats.neighborhood_stats[name].total_count.toLocaleString()}</StyledStat>
                     <StatsSubtitle>Mapped Trees</StatsSubtitle>
                 </StatsGridItem>
                 <StatsGridItem>
@@ -112,9 +113,11 @@ const BoundaryStats = ({currentState, updateParent, name, description, heading, 
                         <StatsSubtitle>Most Common Species</StatsSubtitle>
                         <br></br>
                         <StatsSubtitle weight='regular' font_size='0.9'>
-                        <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{`${displayStats.mostCommonSpecies.count.toLocaleString()} `}</StatsSubtitle> 
-                            trees, 
-                            <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{` ${Math.round((displayStats.mostCommonSpecies.count / stats.neigh_num_trees[name]) * 100).toFixed(0)}%`}</StatsSubtitle>
+                        <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{`${displayStats.mostCommonSpecies.count.toLocaleString()} `}</StatsSubtitle>
+                            trees,
+                            <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>
+                                {` ${Math.round((displayStats.mostCommonSpecies.count / stats.neighborhood_stats[name].total_count) * 100).toFixed(0)}%`}
+                            </StatsSubtitle>
                             of mapped {<b>{titleCase(name)}</b>} trees.
                         </StatsSubtitle>
                     </div>
