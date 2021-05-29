@@ -19,7 +19,6 @@ import BoundaryStats from './boundary-stats';
 
 import { MAPBOX_TOKEN,
          VAN_BOUNDARIES_URL,
-         VAN_BOUNDARY_CENTROID_URL,
          VAN_ALL_TREES_TILES,
          LAYER_NAME, GEOCODER_PROXIMITY,
          TREE_BLURB_URL, MAP_STYLE, STATS } from '../../env'
@@ -126,13 +125,30 @@ export default function Map() {
     useEffect(() => {
         fetch(VAN_BOUNDARIES_URL)
             .then(response => response.json())
-            .then(json => setBoundaries(json));
-    }, []);
-
-    useEffect(() => {
-        fetch( VAN_BOUNDARY_CENTROID_URL)
-            .then(response => response.json())
-            .then(json => setCentroids(json));
+            .then(json => {
+                // create the centroids for labeling neighborhoods
+                let centroids = {
+                    type: "FeatureCollection",
+                    features: []
+                }
+                for (let i = 0; i < json.features.length; i++) {
+                    centroids.features.push(
+                        {
+                            type: "Feature",
+                            geometry: {
+                                type: "Point",
+                                coordinates: json.features[i].properties.geo_point_2d.reverse()
+                            },
+                            properties: {
+                                name: json.features[i].properties.name,
+                                tree_count: json.features[i].properties.tree_count
+                            }
+                        }
+                    )
+                }
+                setBoundaries(json);
+                setCentroids(centroids);
+            });
     }, []);
 
     useEffect(() => {
@@ -146,7 +162,6 @@ export default function Map() {
             .then(response => response.json()
             .then(json => setStats(json)))
     }, [])
-
 
     /**
      * For local CORS errors, use: gsutil defacl ch -u AllUsers:R gs://<bucket> to fix
