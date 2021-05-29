@@ -145,7 +145,7 @@ export default function Map() {
         fetch(STATS)
             .then(response => response.json()
             .then(json => setStats(json)))
-    })
+    }, [])
 
 
     /**
@@ -230,6 +230,7 @@ export default function Map() {
                 }
 
                 setTitle(titleCase(feature.layer.id == LAYER_NAME ? feature.properties.common_name : feature.properties.name))
+
             } else {
                 setTitle(DEFAULT_TITLE);
             }
