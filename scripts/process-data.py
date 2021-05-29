@@ -137,12 +137,17 @@ def calc_tree_stats(json_data: json, outfile: str):
     }
 
     """
+    city_tree_count = len(json_data['features'])
     tree_stats = _calc_tree_stats(json_data)
     neighborhood_stats = _calc_neighborhood_stats(json_data)
 
     # get per neighborhood stats
     stats_outfile = f"{outfile[:outfile.rfind('.')]}-stats{outfile[outfile.rfind('.'):]}"
-    savejson(stats_outfile, {'tree_stats': tree_stats, 'neighborhood_stats': neighborhood_stats})
+    savejson(stats_outfile, {
+                            'city_tree_count': city_tree_count,
+                            'tree_stats': tree_stats,
+                            'neighborhood_stats': neighborhood_stats
+                            })
 
 
 def _calc_tree_stats(json_data: Dict[str, any]):
