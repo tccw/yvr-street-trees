@@ -16,8 +16,6 @@ NEW_WESTMINSTER_BOUNDARIES_URL='http://opendata.newwestcity.ca/downloads/neighbo
 VAN_TREE_PATH='../opendata/raw/vancouver-all-trees-raw.json'
 NW_WEST_TREE_PATH='../opendata/raw/new-westminster-west-trees-raw.json'
 NW_EAST_TREE_PATH='../opendata/raw/new-westminster-east-trees-raw.json'
-# NW_WEST_TREE_PATH='../opendata/nw-test1.json'
-# NW_EAST_TREE_PATH='../opendata/nw-test2.json'
 NW_TMP_MERGE_PATH='../opendata/raw/new-westminster-trees-merged_tmp.json'
 NW_FINAL_MERGE_PATH='../opendata/raw/new-westminster-trees-merged.json'
 VAN_BOUNDARY_PATH='../opendata/raw/vancouver-boundaries-raw.json'
@@ -45,12 +43,12 @@ download_vancouver_trees()
 # TODO: add an explanation of wtf I am doing here as I don't remember and jq isn't intuitive to me
 merge_new_west_trees()
 {
-    [ -e $NW_FINAL_MERGE_PATH ] || rm $NW_FINAL_MERGE_PATH 
+    [ -e $NW_FINAL_MERGE_PATH ] || rm $NW_FINAL_MERGE_PATH
     jq --slurp '.[0]["features"] + .[1]["features"]' $NW_WEST_TREE_PATH $NW_EAST_TREE_PATH > $NW_TMP_MERGE_PATH
     jq --slurp '{"type": "FeatureCollection", "features": .[]}' $NW_TMP_MERGE_PATH >> $NW_FINAL_MERGE_PATH
-    
+
     # remove all the intermediary files
-    rm -f $NW_WEST_TREE_PATH $NW_EAST_TREE_PATH $NW_TMP_MERGE_PATH 
+    rm -f $NW_WEST_TREE_PATH $NW_EAST_TREE_PATH $NW_TMP_MERGE_PATH
 }
 
 download_newwest_trees()
@@ -85,7 +83,7 @@ while getopts ":hvwb" opt; do
     b )
         download_boundaries_data
         ;;
-    \?) 
+    \?)
         echo "Invalid option -$OPTARG"
         usage
         ;;
