@@ -34,7 +34,7 @@ import traceback
     -n van-tree \
     -o ../opendata/processed/vancouver-all-trees-processed.json \
     -x std_street root_barrier street_side_name plant_area curb \
-    -s
+    -s -ac ../opendata/processed/testing_color_script.json
 """
 
 # ---- Constants ----
@@ -213,23 +213,27 @@ def _calc_tree_stats(json_data: Dict[str, any], color_dict: Dict[str, str]):
                 tree_stats[common_name]['neighborhood_counts'][neighborhood_name] += 1
             # else add the tree color and add the neightborhood to the neightborhood_counts object
             else:
-                genus_name
-                color: str = ''
-                if cultivar_name:
-                    # print(f'{genus_name} {species_name} {cultivar_name}')
-                    color = color_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name]
-                else:
-                    color = color_dict[genus_name]['species'][species_name]['color']
-                tree_stats[common_name]['color'] = color
+                # tree_stats[common_name]['color'] = (color_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name]
+                #                                         if cultivar_name
+                #                                         else color_dict[genus_name]['species'][species_name]['color'])
                 tree_stats[common_name]['neighborhood_counts'][neighborhood_name] = 1
         else:
+            # print(f'{genus_name} {species_name} {cultivar_name}')
+            try:
+                color: str = (color_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name]
+                                if cultivar_name
+                                else color_dict[genus_name]['species'][species_name]['color'])
+            except KeyError:
+                color: str = color_dict[genus_name]['species'][species_name]['color']
+
             tree_stats[common_name] = {
                 'total_count': 1,
                 'average_diameter': entry['properties']['diameter'],
                 'average_height_id': entry['properties']['height_range_id'],
                 'neighborhood_counts': {
                     neighborhood_name: 1
-                }
+                },
+                'color': color
             }
     # make the averages actual averages
     for k in tree_stats.keys():
@@ -298,8 +302,8 @@ def exlude_keys(json_data: Dict[str, any], exlude_keys: List[str]):
     return json_data
 
 def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: List[str]) -> None:
-    species_delta_e = 30
-    cultivar_delta_e = 15
+    species_delta_e = 18
+    cultivar_delta_e = 7
     output_dict = {}
     for entry in json_data['features']:
         entry = entry['properties']
@@ -309,14 +313,14 @@ def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: Li
 
         if genus_name not in output_dict:
             base_color: Color = Color(hex_color_list[randint(0, len(hex_color_list) -1)])# choose from a dict of colors in the future
-            species_color: Color = Color(base_color.similar_color(deltaE=30))
+            species_color: Color = Color(base_color.similar_color(deltaE=species_delta_e))
             output_dict[genus_name] = {
                 'color': base_color.as_hex(),
                 'species': {
                     species_name: {
                         'color': species_color.as_hex(),
                         'cultivars': {
-                            cultivar_name: species_color.similar_color(deltaE=15)
+                            cultivar_name: species_color.similar_color(deltaE=cultivar_delta_e)
                         } if cultivar_name else {}
                     }
                 }
@@ -325,11 +329,11 @@ def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: Li
         else:
             if species_name not in output_dict[genus_name]['species']:
                 output_dict[genus_name]['species'][species_name] = {
-                    'color': Color(output_dict[genus_name]['color']).similar_color(deltaE=30),
+                    'color': Color(output_dict[genus_name]['color']).similar_color(deltaE=species_delta_e),
                     'cultivars': {}
                 }
             elif cultivar_name:
-                output_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name] = Color(output_dict[genus_name]['species'][species_name]['color']).similar_color(deltaE=15)
+                output_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name] = Color(output_dict[genus_name]['species'][species_name]['color']).similar_color(deltaE=cultivar_delta_e)
 
     savejson('../opendata/processed/testing_color_script.json', output_dict)
 
@@ -411,6 +415,15 @@ def count_features_with(json_data: Dict[str, any], feature_map: Dict[str, any]) 
 
     _print_JSON_colors(result_dict)
 
+def first_occurange(json_data: Dict[str, any], feature_map: Dict[str, any]) -> None:
+    for entry in json_data['features']:
+        count = 0
+        for k,v in feature_map.items():
+            if k in entry['properties'] and entry['properties'][k] == v:
+                count += 1
+        if count == len(list(feature_map.keys())):
+            _print_JSON_colors(entry)
+            return
 
 
 def _print_JSON_colors(pydict: Dict[str, any], style: str = 'emacs'):
@@ -457,6 +470,7 @@ try:
     parser_info.add_argument('-nf', '--nth-feature', type=int, help='print the Nth feature to the console (negative indexing allowed)')
     parser_info.add_argument('-qs', '--quick-stats', action='store_true', help='prints out the number and type of features in the GeoJSON')
     parser_info.add_argument('-cfw', '--count-features-with', type=json.loads, help='count features with the provided key value pairs')
+    parser_info.add_argument('-fo', '--first-occurance', type=json.loads, help='print first occurance of the feature with the provided properties')
 
     # 'table' command
     parser_table = subparsers.add_parser('table', help='helpful tables and unit reminders')
@@ -506,6 +520,8 @@ try:
             quick_stats(json_data)
         if args.count_features_with:
             count_features_with(json_data, args.count_features_with)
+        if args.first_occurance:
+            first_occurange(json_data, args.first_occurance)
     elif args.cmd == 'table':
         if args.precision_at_latitude is not None:
             print_precision_table(args.precision_at_latitude)
