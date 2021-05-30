@@ -5,6 +5,8 @@ import sys
 import json
 import subprocess
 import math
+import numpy as np
+from skimage import color
 from numpy import save
 from pylab import cm, matplotlib
 from typing import List, Dict, Tuple
@@ -42,6 +44,48 @@ file_paths = {
     'van-bound': '../opendata/raw/vancouver-boundaries-raw.json',
     'nw-bound': '../opendata/raw/new-westminster-boundaries-raw.json'
 }
+
+# ---- Local Classes ----
+class Color:
+    def __init__(self, hex_color: str) -> None:
+        self.hex_color = hex_color.lower()
+        self.rgb_color = self._hex2rgb(hex_color)
+
+    def similar_color(self, deltaE: int) -> str:  # hex color
+        # This doesn't seem to produce colors with exactly the same deltaE when checking with
+        # 3rd party tools. Should look into it more.
+        # center of the sphere
+        center = self.as_lab()
+
+        #TODO: this is broken
+        # generate a unit vector using three standard normal random variables
+        unit_vector: np.ndarray = np.random.randn(3)
+        norm: float = np.linalg.norm(unit_vector)
+        unit_vector: np.ndarray = unit_vector / norm
+
+        # scale and shift the vector so that it is centered at Lab space center, and has magnitude deltaE
+        scaled_vector: np.ndarray = (unit_vector * deltaE) + center
+        L, a, b = scaled_vector
+        L = 0 if L < 0 else (100 if L > 100 else L)
+        a = -128 if a < -128 else (128 if a > 128 else a)
+        b = -128 if b < -128 else (128 if b > 128 else b)
+
+        print((L, a, b))
+        return matplotlib.colors.rgb2hex(color.lab2rgb((L, a, b)))
+
+    def as_lab(self):
+        return color.rgb2lab(self.rgb_color)
+
+    def as_hex(self) -> str:
+        return self.hex_color
+
+    @staticmethod
+    def _hex2rgb(hex_color: str) -> Tuple[int, int ,int]:
+        # ignores any alpha information
+        return (int(f'0x{hex_color[1:3]}', 0) / 256,
+                int(f'0x{hex_color[3:5]}', 0) / 256,
+                int(f'0x{hex_color[5:7]}', 0) / 256)
+
 
 
 # ----- Helpers -----
@@ -91,10 +135,11 @@ def process_trees(args: object):
         data = exlude_keys(data, args.exclude)
     if args.rename_properties:
         data = rename_prop_keys(data, args.rename_properties)
-    if args.assign_colors:
-        generate_genus_list(data)
-    if args.stats:
-        calc_stats(data, args.outfile)
+    if args.generate_colors:
+        hex_color_list: List[str] = loadjson(args.generate_colors)
+        generate_genus_list(data, hex_color_list)
+    if args.stats and args.assign_colors:
+        calc_stats(data, args.outfile, loadjson(args.assign_colors))
 
     savejson(args.outfile, data)
 
@@ -108,7 +153,7 @@ def process_boundaries(args: object):
 
 
 # TODO: remove this function if Tilequery API works out
-def calc_stats(json_data: json, outfile: str):
+def calc_stats(json_data: json, outfile: str, color_dict: Dict[str, str]):
     """
     Constructs a dictionary with neighborhood tree counts for stats displays.
     The returned dict is of the form:
@@ -139,7 +184,7 @@ def calc_stats(json_data: json, outfile: str):
 
     """
     city_tree_count = len(json_data['features'])
-    tree_stats = _calc_tree_stats(json_data)
+    tree_stats = _calc_tree_stats(json_data, color_dict)
     neighborhood_stats = _calc_neighborhood_stats(json_data)
 
     # get per neighborhood stats
@@ -151,11 +196,14 @@ def calc_stats(json_data: json, outfile: str):
                             })
 
 
-def _calc_tree_stats(json_data: Dict[str, any]):
+def _calc_tree_stats(json_data: Dict[str, any], color_dict: Dict[str, str]):
     tree_stats = {}
     for entry in json_data['features']:
         neighborhood_name = entry['properties']['neighbourhood_name']
         common_name = entry['properties']['common_name']
+        genus_name = entry['properties']['genus_name']
+        species_name = entry['properties']['species_name']
+        cultivar_name = entry['properties']['cultivar_name'] if 'cultivar_name' in entry['properties'] else None
         # if the tree is already in the object count the tree, else add the new tree name to the object
         if common_name in tree_stats:
             tree_stats[common_name]['total_count'] += 1
@@ -166,8 +214,14 @@ def _calc_tree_stats(json_data: Dict[str, any]):
                 tree_stats[common_name]['neighborhood_counts'][neighborhood_name] += 1
             # else add the tree color and add the neightborhood to the neightborhood_counts object
             else:
-                pass
-                # do something with the colors here
+                genus_name
+                color: str = ''
+                if cultivar_name:
+                    print(f'{genus_name} {species_name} {cultivar_name}')
+                    color = color_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name]
+                else:
+                    color = color_dict[genus_name]['species'][species_name]['color']
+                tree_stats[common_name]['color'] = color
                 tree_stats[common_name]['neighborhood_counts'][neighborhood_name] = 1
         else:
             tree_stats[common_name] = {
@@ -244,8 +298,9 @@ def exlude_keys(json_data: Dict[str, any], exlude_keys: List[str]):
 
     return json_data
 
-def generate_genus_list(json_data: Dict[str, Dict[str, str]]) -> None:
-
+def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: List[str]) -> None:
+    species_delta_e = 30
+    cultivar_delta_e = 15
     output_dict = {}
     for entry in json_data['features']:
         entry = entry['properties']
@@ -254,15 +309,15 @@ def generate_genus_list(json_data: Dict[str, Dict[str, str]]) -> None:
         cultivar_name = entry['cultivar_name'] if 'cultivar_name' in entry else None
 
         if genus_name not in output_dict:
-            base_color = '#58f587'  # choose from a dict of colors in the future
-            species_color = similar_color(base_color, deltaE=18)
+            base_color: Color = Color(hex_color_list[randint(0, len(hex_color_list) -1)])# choose from a dict of colors in the future
+            species_color: Color = Color(base_color.similar_color(deltaE=30))
             output_dict[genus_name] = {
-                'color': base_color,
+                'color': base_color.as_hex(),
                 'species': {
                     species_name: {
-                        'color': species_color,
+                        'color': species_color.as_hex(),
                         'cultivars': {
-                            cultivar_name: pastel_from(species_color)
+                            cultivar_name: species_color.similar_color(deltaE=15)
                         } if cultivar_name else {}
                     }
                 }
@@ -271,23 +326,13 @@ def generate_genus_list(json_data: Dict[str, Dict[str, str]]) -> None:
         else:
             if species_name not in output_dict[genus_name]['species']:
                 output_dict[genus_name]['species'][species_name] = {
-                    'color': similar_color(output_dict[genus_name]['color'], deltaE=18),
+                    'color': Color(output_dict[genus_name]['color']).similar_color(deltaE=30),
                     'cultivars': {}
                 }
             elif cultivar_name:
-                output_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name] = pastel_from(output_dict[genus_name]['species'][species_name]['color'])
+                output_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name] = Color(output_dict[genus_name]['species'][species_name]['color']).similar_color(deltaE=15)
 
     savejson('../opendata/processed/testing_color_script.json', output_dict)
-
-
-def similar_color(color: str, deltaE: int) -> str:  # hex color
-    pass # stub
-
-def pastel_from(hex_color: str) -> str:
-    pass # stub
-
-def hex2rgb(hex_color: str) -> Tuple[int, int ,int]:
-    pass # stub
 
 
 # reduce precision without expanding if already below
@@ -385,7 +430,8 @@ try:
     parser_create.add_argument('-n', '--name', required=True, help='name of the data to processes [van-tree | nw-tree | van-bound | nw-bound]')
     parser_create.add_argument('-o', '--outfile', required=True, help='the filename for the processed data')
     parser_create.add_argument('-x', '--exclude', nargs='+', help='a list of property fields to exlude')
-    parser_create.add_argument('-c', '--assign-colors', help='assign colors to trees from the provided list')  # random genus assignment for now, possibly from a dict later
+    parser_create.add_argument('-gc', '--generate-colors', help='generate a genus-species-cultivar dictionry of colors from the provided list')  # random genus assignment for now, possibly from a dict later
+    parser_create.add_argument('-ac', '--assign-colors', help='assign colors based on the passed path to a genus-species-cultivar dictionry')
     parser_create.add_argument('-d', '--download-data', action='store_true', help='download the data before processing')
     parser_create.add_argument('-rn', '--rename-properties', type=json.loads, help='rename property keys; provide a JSON mapping of property field names to new names. Ex: \'{"curr_key": "new_key"}\'')
     parser_create.add_argument('-lc', '--lower-case', action='store_true', help='make all property keys lowercase')
