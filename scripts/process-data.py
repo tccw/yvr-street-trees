@@ -70,7 +70,6 @@ class Color:
         a = -128 if a < -128 else (128 if a > 128 else a)
         b = -128 if b < -128 else (128 if b > 128 else b)
 
-        print((L, a, b))
         return matplotlib.colors.rgb2hex(color.lab2rgb((L, a, b)))
 
     def as_lab(self):
@@ -217,7 +216,7 @@ def _calc_tree_stats(json_data: Dict[str, any], color_dict: Dict[str, str]):
                 genus_name
                 color: str = ''
                 if cultivar_name:
-                    print(f'{genus_name} {species_name} {cultivar_name}')
+                    # print(f'{genus_name} {species_name} {cultivar_name}')
                     color = color_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name]
                 else:
                     color = color_dict[genus_name]['species'][species_name]['color']
@@ -401,10 +400,20 @@ def quick_stats(json_data: Dict[str, any]):
     _print_JSON_colors(quick_stats, 'murphy')
 
 def count_features_with(json_data: Dict[str, any], feature_map: Dict[str, any]) -> None:
-    pass  # stub
+    result_dict = {}
+    for entry in json_data['features']:
+        for k,v in feature_map.items():
+            result_key = f'{k} == {v}'
+            if result_key in result_dict and entry['properties'][k] == v:
+                result_dict[result_key] += 1
+            elif result_key not in result_dict and entry['properties'][k] == v:
+                result_dict[result_key] = 1
+
+    _print_JSON_colors(result_dict)
 
 
-def _print_JSON_colors(pydict: Dict[str, any], style: str):
+
+def _print_JSON_colors(pydict: Dict[str, any], style: str = 'emacs'):
     json_str: str = json.dumps(pydict, indent=4)
     formatted_str: str = highlight(json_str, lexers.JsonLexer(), formatters.TerminalFormatter(style=style))
     print(formatted_str)
