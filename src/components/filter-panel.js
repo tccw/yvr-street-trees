@@ -147,7 +147,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                     {
                         label: (
                         <>
-                            <Dot color={value.color ? value.color : 'orange'}></Dot> {titleCase(key)}
+                            <Dot color={value.color}></Dot> {titleCase(key)}
                         </>),
                         value: key
                     }

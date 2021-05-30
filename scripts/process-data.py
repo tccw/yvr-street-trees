@@ -138,7 +138,10 @@ def process_trees(args: object):
         hex_color_list: List[str] = loadjson(args.generate_colors)
         generate_genus_list(data, hex_color_list)
     if args.stats and args.assign_colors:
-        calc_stats(data, args.outfile, loadjson(args.assign_colors))
+        stats: Dict[str, any] = calc_stats(data, args.outfile, loadjson(args.assign_colors))
+        data = assign_colors_all_trees(data, stats['tree_stats'])
+    elif args.assign_colors:
+        data = assign_colors_all_trees(data, loadjson('../opendata/processed/vancouver-all-trees-processed-stats.json')['tree_stats'])
 
     savejson(args.outfile, data)
 
@@ -151,8 +154,17 @@ def process_boundaries(args: object):
     savejson(args.outfile, data)
 
 
+def assign_colors_all_trees(json_data: Dict[str, any], tree_stats: Dict[str, any]) -> Dict[str, any]:
+    print()
+    for entry in json_data['features']:
+        properties = entry['properties']
+        common_name = properties['common_name']
+        properties['color'] = tree_stats[common_name]['color']
+
+    return json_data
+
 # TODO: remove this function if Tilequery API works out
-def calc_stats(json_data: json, outfile: str, color_dict: Dict[str, str]):
+def calc_stats(json_data: json, outfile: str, color_dict: Dict[str, str]) -> Dict[str, any]:
     """
     Constructs a dictionary with neighborhood tree counts for stats displays.
     The returned dict is of the form:
@@ -182,17 +194,15 @@ def calc_stats(json_data: json, outfile: str, color_dict: Dict[str, str]):
     }
 
     """
-    city_tree_count = len(json_data['features'])
-    tree_stats = _calc_tree_stats(json_data, color_dict)
-    neighborhood_stats = _calc_neighborhood_stats(json_data)
-
-    # get per neighborhood stats
     stats_outfile = f"{outfile[:outfile.rfind('.')]}-stats{outfile[outfile.rfind('.'):]}"
-    savejson(stats_outfile, {
-                            'city_tree_count': city_tree_count,
-                            'tree_stats': tree_stats,
-                            'neighborhood_stats': neighborhood_stats
-                            })
+    stats = {
+            'city_tree_count': len(json_data['features']),
+            'tree_stats': _calc_tree_stats(json_data, color_dict),
+            'neighborhood_stats': _calc_neighborhood_stats(json_data)
+            }
+    savejson(stats_outfile, stats)
+
+    return stats
 
 
 def _calc_tree_stats(json_data: Dict[str, any], color_dict: Dict[str, str]):
