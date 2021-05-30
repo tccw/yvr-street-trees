@@ -7,7 +7,7 @@ import subprocess
 import math
 from numpy import save
 from pylab import cm, matplotlib
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from random import randint
 from pygments import highlight, lexers, formatters
 import traceback
@@ -47,9 +47,8 @@ file_paths = {
 # ----- Helpers -----
 def loadjson(filename: str) -> Dict[str, any]:
     with open(filename) as file:
-        data: Dict[str, any] = json.load(file)
+        return json.load(file)
 
-    return data
 
 def savejson(filename: str, data) -> None:
     with open(filename, 'w') as file:
@@ -92,8 +91,10 @@ def process_trees(args: object):
         data = exlude_keys(data, args.exclude)
     if args.rename_properties:
         data = rename_prop_keys(data, args.rename_properties)
+    if args.assign_colors:
+        generate_genus_list(data)
     if args.stats:
-        calc_tree_stats(data, args.outfile)
+        calc_stats(data, args.outfile)
 
     savejson(args.outfile, data)
 
@@ -107,7 +108,7 @@ def process_boundaries(args: object):
 
 
 # TODO: remove this function if Tilequery API works out
-def calc_tree_stats(json_data: json, outfile: str):
+def calc_stats(json_data: json, outfile: str):
     """
     Constructs a dictionary with neighborhood tree counts for stats displays.
     The returned dict is of the form:
@@ -243,6 +244,51 @@ def exlude_keys(json_data: Dict[str, any], exlude_keys: List[str]):
 
     return json_data
 
+def generate_genus_list(json_data: Dict[str, Dict[str, str]]) -> None:
+
+    output_dict = {}
+    for entry in json_data['features']:
+        entry = entry['properties']
+        genus_name = entry['genus_name']
+        species_name = entry['species_name']
+        cultivar_name = entry['cultivar_name'] if 'cultivar_name' in entry else None
+
+        if genus_name not in output_dict:
+            base_color = '#58f587'  # choose from a dict of colors in the future
+            species_color = similar_color(base_color, deltaE=18)
+            output_dict[genus_name] = {
+                'color': base_color,
+                'species': {
+                    species_name: {
+                        'color': species_color,
+                        'cultivars': {
+                            cultivar_name: pastel_from(species_color)
+                        } if cultivar_name else {}
+                    }
+                }
+            }
+
+        else:
+            if species_name not in output_dict[genus_name]['species']:
+                output_dict[genus_name]['species'][species_name] = {
+                    'color': similar_color(output_dict[genus_name]['color'], deltaE=18),
+                    'cultivars': {}
+                }
+            elif cultivar_name:
+                output_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name] = pastel_from(output_dict[genus_name]['species'][species_name]['color'])
+
+    savejson('../opendata/processed/testing_color_script.json', output_dict)
+
+
+def similar_color(color: str, deltaE: int) -> str:  # hex color
+    pass # stub
+
+def pastel_from(hex_color: str) -> str:
+    pass # stub
+
+def hex2rgb(hex_color: str) -> Tuple[int, int ,int]:
+    pass # stub
+
 
 # reduce precision without expanding if already below
 def reduce_precision(json_data: Dict[str, any], decimals: int) -> Dict[str, any]:
@@ -339,7 +385,7 @@ try:
     parser_create.add_argument('-n', '--name', required=True, help='name of the data to processes [van-tree | nw-tree | van-bound | nw-bound]')
     parser_create.add_argument('-o', '--outfile', required=True, help='the filename for the processed data')
     parser_create.add_argument('-x', '--exclude', nargs='+', help='a list of property fields to exlude')
-    parser_create.add_argument('-c', '--colors', action='store_true', help='pick colors for the data (omit if colors are already assigned)')
+    parser_create.add_argument('-c', '--assign-colors', help='assign colors to trees from the provided list')  # random genus assignment for now, possibly from a dict later
     parser_create.add_argument('-d', '--download-data', action='store_true', help='download the data before processing')
     parser_create.add_argument('-rn', '--rename-properties', type=json.loads, help='rename property keys; provide a JSON mapping of property field names to new names. Ex: \'{"curr_key": "new_key"}\'')
     parser_create.add_argument('-lc', '--lower-case', action='store_true', help='make all property keys lowercase')

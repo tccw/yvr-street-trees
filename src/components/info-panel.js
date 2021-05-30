@@ -99,17 +99,17 @@ const InfoPanel = React.forwardRef((props, ref) => {
                 </OpenCloseButton>
                         <Title>
                             {title}
-                            {color && <Dot color={color}></Dot>} 
-                        </Title>                 
+                            {color && <Dot color={color}></Dot>}
+                        </Title>
                     {props.children}
             </Panel>
-            {! isExpanded && 
+            {! isExpanded &&
                 <OpenFlagContainer>
                     <OpenCloseButton onClick={handleToggle} title='expand panel'>
                         {ChevronRight}
                     </OpenCloseButton>
                 </OpenFlagContainer>
-            }            
+            }
         </>
     )
 });
