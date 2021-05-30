@@ -16,12 +16,14 @@ import {FilterPanel} from './filter-panel';
 import TreeInfoContainer from './tree-info-container';
 import InfoPanel from './info-panel';
 import BoundaryStats from './boundary-stats';
+import MapStyleToggle from './map-style-toggle';
 
 import { MAPBOX_TOKEN,
          VAN_BOUNDARIES_URL,
          VAN_ALL_TREES_TILES,
          LAYER_NAME, GEOCODER_PROXIMITY,
-         TREE_BLURB_URL, MAP_STYLE, STATS } from '../../env'
+         TREE_BLURB_URL, MAP_STYLE_PARKS,
+         MAP_STYLE_CONTRAST, MAP_STYLE_SATELLITE, STATS } from '../../env'
 
 import { titleCase, treeFilterCompositor, getTreeStats } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
@@ -30,6 +32,7 @@ import {useContainerDimensions} from '../hooks/useContainerDimensions';
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver Street Trees`;
 const MAX_ZOOM = 18.5;
+const MIN_ZOOM = 11;
 const GEOLOCATE_POS_OPTIONS = {enableHighAccuracy: true};
 const geolocateStyle = {
     bottom: 168,
@@ -96,6 +99,7 @@ export default function Map() {
     const infoPanelRef = useRef();
 
     // state
+    const [style, setStyle] = useState(MAP_STYLE_PARKS);
     const [viewport, setViewport] = useState({
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
@@ -103,7 +107,7 @@ export default function Map() {
         bearing: 0,
         pitch: 0,
         maxZoom: MAX_ZOOM,
-        minZoom: 11,
+        minZoom: MIN_ZOOM,
         maxbounds: BOUNDS
     });
     const [boundaries, setBoundaries] = useState(null);
@@ -315,13 +319,6 @@ export default function Map() {
     const treeHighlightFilter = useMemo(() => ['==', ['get', 'tree_id'], selection], [selection]);
     const treeFilter = useMemo(() => treeFilterCompositor(treeFilterObject, selected))
 
-    // const getTreeInfo = () => {
-    //     console.log('On Load RUN');
-    //     let sourceID = mapRef.current.getMap().getLayer(LAYER_NAME).source;
-    //     let data = mapRef.current.getMap().querySourceFeatures(sourceID, {sourceLayer: LAYER_NAME});
-    //     setStats(getTreeStats(data));
-    // }
-
     return (
         <>
             <MapGL
@@ -329,7 +326,7 @@ export default function Map() {
                 {...viewport}
                 width="100%"
                 height="100%"
-                mapStyle={MAP_STYLE}
+                mapStyle={style}
                 onViewportChange={setViewport}
                 mapboxApiAccessToken={TOKEN}
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
@@ -376,7 +373,9 @@ export default function Map() {
                 {/* <FullscreenControl style={fullscreenControlStyle} /> */}
                 <NavigationControl style={navStyle} />
                 <AttributionControl style={attributionStyle}/>
+
             </MapGL>
+            <MapStyleToggle setStyle={setStyle} styles={[MAP_STYLE_PARKS, MAP_STYLE_CONTRAST, MAP_STYLE_SATELLITE]}/>
             {/* Put these components inside MapGL to be available in fullscreen, but figure out class name assignment to avoid click-through to the map */}
             <InfoPanel ref={infoPanelRef}
                             title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}

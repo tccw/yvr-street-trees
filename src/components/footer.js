@@ -8,21 +8,22 @@ const Foot = styled.footer`
     overflow: hidden;
     width: 99.85%;
     bottom: 0;
-    height: 1.5em;
+    height: 1.6em;
     z-index: 3;
     background-color: lightgrey;
     display: grid;
     text-align: center;
-    
+
     @media (min-width: 950px) {
         grid-template-areas:
         'feedback attribution copyright';
     }
     @media (max-width: 950px) {
         height: 4.5em;
+        text-align: left;
         grid-template-areas:
-            'feedback' 
-            'attribution' 
+            'feedback'
+            'attribution'
             'copyright';
     }
     @media (max-width: 650px) {
@@ -31,7 +32,7 @@ const Foot = styled.footer`
 `;
 
 const AttributionLink = styled.a`
-    vertical-align: bottom;    
+    vertical-align: bottom;
     flex: 1;
     margin-top: 5px;
     margin-right: 20px;
@@ -39,7 +40,7 @@ const AttributionLink = styled.a`
     text-decoration: none;
     :link, :visited {
         color: white;
-    } 
+    }
     :hover {
         text-decoration: underline;
     }
@@ -50,12 +51,12 @@ const MapboxLogo = styled.img`
     width: 100px;
     height: 18px;
     opacity: 0.7;
-    margin-top: 2px;
 `;
 
 const FancyDiv = styled.div`
     background-color: ${(props) => (props.color)};
     grid-area: ${(props) => (props.name)};
+    padding: 3px 6px;
 `;
 
 const Footer = () => {
@@ -67,7 +68,7 @@ const Footer = () => {
 
     return (
         <Foot>
-            
+
             <FancyDiv color='#80b918' name='attribution'>
                 <AttributionLink href='https://www.mapbox.com/about/maps' target="_blank" rel="noreferror noopener">
                     <MapboxLogo src={MapboxLogoWhite}/>
