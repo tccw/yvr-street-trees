@@ -332,7 +332,7 @@ export default function Map() {
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
                 onHover={onHover}
                 onClick={onClickZoom}
-                // onLoad={getTreeInfo}
+                onZoom
                 dragRotate={false}
                 touchRotate={false}
                 attributionControl={false} // handled with the footer
@@ -402,7 +402,8 @@ export default function Map() {
                          Selected={selected} // so that clicking the map can also deselect the tree from the list
                          treeNamesAndColors={stats ? stats.tree_stats : null}
                          defaultValue={defaultValue}
-                         setDefaultValue={(value) => setDefaultValue(value)} >
+                         setDefaultValue={(value) => setDefaultValue(value)}
+                         currentZoom={viewport.zoom} >
                 </FilterPanel>
         </>
     );

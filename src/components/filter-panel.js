@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { titleCase } from '../utils';
-import { ChevronCollapse, Filter } from '../svg-icons';
+import { ChevronCollapse, Filter, Info } from '../svg-icons';
 import RangeSlider from './range-slider';
 import Select from 'react-select';
-import { GreyBorderBottomTitle } from '../styles/global-styles'
+import { GreyBorderBottomTitle } from '../styles/global-styles';
+import { boundaryTrasitionZoomLevel } from '../styles/map-styles';
 
 
 const StyledFilterPanel = styled.div`
@@ -48,7 +49,7 @@ const StyledFilterTogglePane = styled.div`
 `;
 
 const StyledFilterBoxes = styled.span`
-    background: white;
+    background: ${(props) => (props.color ? props.color : 'white')};
     box-shadow: 0px -6px 10px rgba(255, 255, 255, 1), 0px 2px 7px rgba(0, 0, 0, 0.15);
     padding: 12px 24px;
     margin: 10px;
@@ -106,7 +107,7 @@ const [diamMIN, heightMIN] = [0, 0] ;
 const [diamMAX, heightMAX] = [42, 100];
 
 // pass the treeFilter setter to this component to set parent state
-export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors, defaultValue, setDefaultValue}) {
+export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors, defaultValue, setDefaultValue, currentZoom}) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     const [diameterRange, setDiameterRange] = useState([diamMIN, diamMAX]);
@@ -172,6 +173,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                                 isMulti
                                 onChange={handleTreeClick}
                                 defaultValue={defaultValue}
+                                isDisabled={(currentZoom <= boundaryTrasitionZoomLevel)}
                             />
                         </StyledFilterBoxes>
                         <StyledFilterBoxes>
@@ -179,13 +181,25 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                             <RangeSlider
                                 updateRange={(newValue) => setDiameterRange(newValue)}
                                 min_val={0} max_val={42}
-                                unit='in' step={6} curr_range={diameterRange}/>
+                                unit='in' step={6} curr_range={diameterRange}
+                                disabled={(currentZoom <= boundaryTrasitionZoomLevel)}/>
                             <LegendLabel>  By Height Range (feet) </LegendLabel>
                             <RangeSlider
                                 updateRange={(newValue) => setHeightRange(newValue)}
                                 min_val={0} max_val={100}
-                                unit='ft' step={10} curr_range={heightRange}/>
+                                unit='ft' step={10} curr_range={heightRange}
+                                disabled={(currentZoom <= boundaryTrasitionZoomLevel)}/>
                         </StyledFilterBoxes>
+                        { (currentZoom <= boundaryTrasitionZoomLevel) &&
+                            <StyledFilterBoxes color='#a6e9ff'>
+                                <div style={{"width": "-moz-fit-content",
+                                             "width": "fit-content",
+                                             "height": "-moz-fit-content",
+                                             "height": "fit-content"}}>
+                                    {Info} <b>Filtering Disabled</b> Please zoom in to use filters.
+                                </div>
+                            </StyledFilterBoxes>
+                        }
                     </>
                 }
             </StyledFilterTogglePane>

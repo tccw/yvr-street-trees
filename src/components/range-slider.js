@@ -61,7 +61,7 @@ function valuetext(value, unit) {
   return `${value} ${unit}`;
 }
 
-export default function RangeSlider({step, min_val, max_val, slider_title, curr_range, updateRange, unit}) {
+export default function RangeSlider({step, min_val, max_val, slider_title, curr_range, updateRange, unit, disabled}) {
   const classes = useStyles();
 
   // update the parent state
@@ -87,12 +87,13 @@ export default function RangeSlider({step, min_val, max_val, slider_title, curr_
     return marks;
 };
 
-  return ( 
+  return (
     <div className={classes.root}>
       <Typography id="pretto slider" style={{'fontWeight': 'bold'}} gutterBottom>
           {slider_title}
       </Typography>
       <PrettoSlider
+        disabled={disabled}
         value={curr_range}
         min={min_val}
         max={max_val}

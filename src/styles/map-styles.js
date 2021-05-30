@@ -1,7 +1,7 @@
 // For more information on data-driven styles, see https://www.mapbox.com/help/gl-dds-ref/
 import { LAYER_NAME } from '../../env'
 
-const boundaryTrasitionZoomLevel = 12.5;
+export const boundaryTrasitionZoomLevel = 12.5;
 const highlightColor = '#f75a2f';
 const DIAMETER_STOPS = [
   [{zoom: 12, value: 0}, 2],
