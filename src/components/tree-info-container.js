@@ -1,7 +1,10 @@
-import * as React from 'react'
-import { heightStringFromID, titleCase, toPrettyDateString, sentenceCase} from '../utils'
-import styled from 'styled-components'
-import { Copy } from '../svg-icons'
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { heightStringFromID, titleCase, toPrettyDateString, sentenceCase} from '../utils';
+import styled from 'styled-components';
+import { Copy, Check } from '../svg-icons';
+// import { Check } from '../../public/check.svg';
+import "regenerator-runtime/runtime.js";
 
 // margin order is top right bottom left
 const StyledTreeInfo = styled.section`
@@ -69,7 +72,7 @@ const CopyButton = styled.button.attrs(props => ({
     height: fit-content;
     width: -moz-fit-content;
     width: fit-content;
-    opacity: 0.3;
+    opacity: ${(props) => (props.copied ? 1 : 0.3)};
     vertical-align: middle;
 
     &:hover {
@@ -95,6 +98,7 @@ const Blurb = styled.p`
  * @returns
  */
 const TreeInfoContainer = (props) => {
+    const [copied, setCopied] = useState(false);
 
     const {genus_name, species_name, tree_id,
            diameter, civic_number, on_street,
@@ -109,6 +113,13 @@ const TreeInfoContainer = (props) => {
         'Date Planted': date_planted ? `${toPrettyDateString(date_planted)}` : 'Unknown'
     }
 
+    async function onClick() {
+        setCopied(true);
+        navigator.clipboard.writeText(listValues.Address); // only for modern browsers
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setCopied(false);
+    }
+
     var treeDetails = [];
     for (const [key, value] of Object.entries(listValues)) {
         treeDetails.push(
@@ -116,9 +127,8 @@ const TreeInfoContainer = (props) => {
                 <TreeDetail>
                     <TreeDetailKey>{key}</TreeDetailKey>
                     <TreeDetailValue>{value}</TreeDetailValue>
-                    { (key === 'Address') && <CopyButton onClick={() => {
-                        navigator.clipboard.writeText(value); // only for modern browsers
-                    }}>{Copy}</CopyButton>}
+                    { (key === 'Address') &&
+                    <CopyButton copied={copied} onClick={onClick}>{copied ? Check : Copy}</CopyButton>}
                 </TreeDetail>
             </TreeListElement>
         )

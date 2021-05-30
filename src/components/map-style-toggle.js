@@ -61,7 +61,7 @@ const MapStyleToggle = (props) => {
             <FormControl component='fieldset' >
                 <RadioGroup row aria-label="mapstyle" name="style1" defaultValue={styles[0]} onChange={handleChange}>
                     <FormControlLabel value={styles[0]} control={<GreenRadio />} label="Parks" />
-                    <FormControlLabel value={styles[1]} control={<GreenRadio />} label="Light" />
+                    <FormControlLabel value={styles[1]} control={<GreenRadio />} label="Contrast" />
                     <FormControlLabel value={styles[2]} control={<GreenRadio />} label="Satellite" />
                 </RadioGroup>
             </FormControl>

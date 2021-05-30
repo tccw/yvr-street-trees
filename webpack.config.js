@@ -5,6 +5,7 @@
 const resolve = require('path').resolve;
 const webpack = require('webpack');
 
+
 //------
 
 //------
@@ -43,7 +44,7 @@ const config = {
       },
       {
         test: /\.css$/,
-        use: [ 
+        use: [
           {
             loader: 'style-loader'
           }, {
