@@ -161,6 +161,8 @@ def process_boundaries(args: object):
 def color_by_tree_count(data: Dict[str, any], args: object) -> Dict[str, any]:
     color_bands: List[str] = get_boundary_colors(10, args.cmap)
     stats: Dict[str, any] = loadjson('../opendata/processed/vancouver-all-trees-processed-seed5-stats.json')['neighborhood_stats']  # HC'd for now...
+    descriptions: Dict[str, List[str]] = loadjson('../opendata/raw/tmp/neighborhood_descriptions.json')
+    descriptions = {k.upper(): v for k,v in descriptions.items()}
     counts: List[int] = [neighborhood['total_count'] for neighborhood in stats.values()]
     counts.sort()
     lower_bounds = [counts[0] + ((counts[-1] - counts[0]) / len(color_bands)) * i for i in range(len(color_bands))]
@@ -170,6 +172,7 @@ def color_by_tree_count(data: Dict[str, any], args: object) -> Dict[str, any]:
             if boundary['properties']['name'].upper() == place:
                 boundary['properties']['tree_count'] = stats[place]['total_count']
                 boundary['properties']['color'] = choose_color(stats[place]['total_count'], lower_bounds, color_bands)
+                boundary['properties']['description'] = descriptions[place]
 
     # for boundary in data['features']:
     #     data['properties']
