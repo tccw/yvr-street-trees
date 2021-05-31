@@ -13,6 +13,7 @@ const Foot = styled.footer`
     background-color: lightgrey;
     display: grid;
     text-align: center;
+    vertical-align: middle;
 
     @media (min-width: 950px) {
         grid-template-areas:
@@ -68,7 +69,6 @@ const Footer = () => {
 
     return (
         <Foot>
-
             <FancyDiv color='#80b918' name='attribution'>
                 <AttributionLink href='https://www.mapbox.com/about/maps' target="_blank" rel="noreferror noopener">
                     <MapboxLogo src={MapboxLogoWhite}/>
@@ -79,7 +79,7 @@ const Footer = () => {
                     Open Government Licence – Vancouver</AttributionLink>
             </FancyDiv>
             <FancyDiv color='grey' name='feedback'>
-                FEEDBACK PLACEHOLDER
+                {/* FEEDBACK PLACEHOLDER */}
             </FancyDiv>
             <FancyDiv color='lightblue' name = 'copyright'>
                 <AttributionLink href=''>© 2021</AttributionLink>
