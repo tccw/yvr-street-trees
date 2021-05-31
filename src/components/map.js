@@ -40,12 +40,6 @@ const geolocateStyle = {
     padding: '10px'
 };
 
-const fullscreenControlStyle = {
-    bottom: 36,
-    right: 0,
-    padding: '10px'
-};
-
 const navStyle = {
     bottom: 72,
     right: 0,

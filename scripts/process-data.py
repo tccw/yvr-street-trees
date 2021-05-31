@@ -72,6 +72,7 @@ class Color:
     def similar_color(self, deltaE: int) -> str:  # hex color
         # This doesn't seem to produce colors with exactly the same deltaE when checking with
         # 3rd party tools. Should look into it more.
+
         # center of the sphere
         center = self.as_lab()
 
@@ -115,6 +116,7 @@ def savejson(filename: str, data) -> None:
     with open(filename, 'w') as file:
         json.dump(data, file)
 
+
 def choose_color(count: int, bands: List[float], colors: Dict[str,str]) -> str:
     retcol: str = colors[len(colors) - 1]
     for i in range(len(colors)):
@@ -123,24 +125,6 @@ def choose_color(count: int, bands: List[float], colors: Dict[str,str]) -> str:
             break
 
     return retcol
-
-# Assign a random color from the available colors to each unique common name
-def assign_random_colors(tree_data: Dict, colors: List[str]) -> Dict[str, any]:
-    tree_types: Dict[str, any] = {}
-    for entry in tree_data['features']:
-        key = entry['properties']['common_name']
-        tree_types[key] = None
-
-    # assign a random color to each tree name
-    for k in tree_types.keys():
-        idx: int = np.random.randint(0, len(colors) - 1)
-        tree_types[k] = colors[idx]
-
-    for tree in tree_data['features']:
-        tree_name: str = tree['properties']['common_name']
-        tree['properties']['color'] = tree_types[tree_name]
-
-    return tree_data
 
 
 def process_trees(args: object):
@@ -168,8 +152,28 @@ def process_boundaries(args: object):
     data: Dict[str, any] = loadjson(file_paths[args.name])
     if args.reduce_precision:
         data = reduce_precision(data, args.reduce_precision)
+    if args.stats:
+        data = color_by_tree_count(data, args)
 
     savejson(args.outfile, data)
+
+# TODO:
+def color_by_tree_count(data: Dict[str, any], args: object) -> Dict[str, any]:
+    color_bands: List[str] = get_boundary_colors(10, args.cmap)
+    stats: Dict[str, any] = loadjson('../opendata/processed/vancouver-all-trees-processed-seed5-stats.json')['neighborhood_stats']  # HC'd for now...
+    counts: List[int] = [neighborhood['total_count'] for neighborhood in stats.values()]
+    counts.sort()
+    lower_bounds = [counts[0] + ((counts[-1] - counts[0]) / len(color_bands)) * i for i in range(len(color_bands))]
+
+    for boundary in data['features']: # O(mn) bad times man (in this case 22^2 operations...)
+        for place in list(stats.keys()):
+            if boundary['properties']['name'].upper() == place:
+                boundary['properties']['tree_count'] = stats[place]['total_count']
+                boundary['properties']['color'] = choose_color(stats[place]['total_count'], lower_bounds, color_bands)
+
+    # for boundary in data['features']:
+    #     data['properties']
+    return data
 
 
 def assign_colors_all_trees(json_data: Dict[str, any], tree_stats: Dict[str, any]) -> Dict[str, any]:
@@ -486,6 +490,7 @@ try:
     parser_create.add_argument('-rp', '--reduce-precision', type=int, help='reduce the precision of geometry to the provided decimal places (will not expand precision)')
     parser_create.add_argument('-nk', '--new-key', help='add a new key with either a constant value or a value derived from other keys')  # TODO: big time TODO
     parser_create.add_argument('-s', '--stats', action='store_true', help='generate JSON file with tree counts and avg height/diameter; will run after all other processing is complete')
+    parser_create.add_argument('-cmap', help='the name of a matplotlib colormap to use for coloring boundaries: https://matplotlib.org/stable/gallery/color/colormap_reference.html')
 
     # 'info' command
     parser_info = subparsers.add_parser('info', help='get information about a dataset')
