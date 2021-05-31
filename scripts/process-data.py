@@ -32,9 +32,27 @@ import traceback
 
 ./process-data.py create \
     -n van-tree \
-    -o ../opendata/processed/vancouver-all-trees-processed.json \
+    -o ../opendata/processed/vancouver-all-trees-processed-seed5.json \
     -x std_street root_barrier street_side_name plant_area curb \
-    -s -ac ../opendata/processed/testing_color_script.json
+    -s -ss 5 -gc ../opendata/processed/assigned-tree-colors-seed5.json -ac ../opendata/processed/assigned-tree-colors-seed5.json
+
+
+## To regenerate these same color results ###
+./process-data.py create \
+    -n van-tree\
+    -o ../opendata/processed/vancouver-all-trees-processed-seed5.json \
+    -x std_street root_barrier street_side_name plant_area curb \
+    -s \
+    -ss 5 \
+    -gc ../opendata/color_list.json
+
+./process-data.py create \
+    -n van-tree\
+    -o ../opendata/processed/vancouver-all-trees-processed-seed5.json \
+    -x std_street root_barrier street_side_name plant_area curb \
+    -s \
+    -ss 5 \
+    -ac ../opendata/processed/assigned-tree-colors-seed5.json
 """
 
 # ---- Constants ----
@@ -115,7 +133,7 @@ def assign_random_colors(tree_data: Dict, colors: List[str]) -> Dict[str, any]:
 
     # assign a random color to each tree name
     for k in tree_types.keys():
-        idx: int = randint(0, len(colors) - 1)
+        idx: int = np.random.randint(0, len(colors) - 1)
         tree_types[k] = colors[idx]
 
     for tree in tree_data['features']:
@@ -223,12 +241,8 @@ def _calc_tree_stats(json_data: Dict[str, any], color_dict: Dict[str, str]):
                 tree_stats[common_name]['neighborhood_counts'][neighborhood_name] += 1
             # else add the tree color and add the neightborhood to the neightborhood_counts object
             else:
-                # tree_stats[common_name]['color'] = (color_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name]
-                #                                         if cultivar_name
-                #                                         else color_dict[genus_name]['species'][species_name]['color'])
                 tree_stats[common_name]['neighborhood_counts'][neighborhood_name] = 1
         else:
-            # print(f'{genus_name} {species_name} {cultivar_name}')
             try:
                 color: str = (color_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name]
                                 if cultivar_name
@@ -322,7 +336,7 @@ def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: Li
         cultivar_name = entry['cultivar_name'] if 'cultivar_name' in entry else None
 
         if genus_name not in output_dict:
-            base_color: Color = Color(hex_color_list[randint(0, len(hex_color_list) -1)])# choose from a dict of colors in the future
+            base_color: Color = Color(hex_color_list[np.random.randint(0, len(hex_color_list) -1)]) # choose from a dict of colors in the future
             species_color: Color = Color(base_color.similar_color(deltaE=species_delta_e))
             output_dict[genus_name] = {
                 'color': base_color.as_hex(),
@@ -345,7 +359,7 @@ def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: Li
             elif cultivar_name:
                 output_dict[genus_name]['species'][species_name]['cultivars'][cultivar_name] = Color(output_dict[genus_name]['species'][species_name]['color']).similar_color(deltaE=cultivar_delta_e)
 
-    savejson('../opendata/processed/testing_color_script.json', output_dict)
+    savejson('../opendata/processed/assigned-tree-colors-seed5.json', output_dict)
 
 
 # reduce precision without expanding if already below
@@ -464,6 +478,7 @@ try:
     parser_create.add_argument('-x', '--exclude', nargs='+', help='a list of property fields to exlude')
     parser_create.add_argument('-gc', '--generate-colors', help='generate a genus-species-cultivar dictionry of colors from the provided list')  # random genus assignment for now, possibly from a dict later
     parser_create.add_argument('-ac', '--assign-colors', help='assign colors based on the passed path to a genus-species-cultivar dictionry')
+    parser_create.add_argument('-ss', '--set-seed', type=int, default=0, help='the seed for the randn generator (defaults to 0); used to get repeatable color assignment')
     parser_create.add_argument('-d', '--download-data', action='store_true', help='download the data before processing')
     parser_create.add_argument('-rn', '--rename-properties', type=json.loads, help='rename property keys; provide a JSON mapping of property field names to new names. Ex: \'{"curr_key": "new_key"}\'')
     parser_create.add_argument('-lc', '--lower-case', action='store_true', help='make all property keys lowercase')
@@ -503,6 +518,9 @@ try:
                   }
 
     if args.cmd == 'create':
+        # set the global random seed
+        np.random.seed(args.set_seed)
+
         if args.download_data and args.name in shell_args:
             proc: subprocess.Popen = subprocess.Popen(['./get-data.sh', shell_args[args.name]])
             proc.communicate()
