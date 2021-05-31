@@ -313,6 +313,10 @@ export default function Map() {
     const treeHighlightFilter = useMemo(() => ['==', ['get', 'tree_id'], selection], [selection]);
     const treeFilter = useMemo(() => treeFilterCompositor(treeFilterObject, selected))
 
+    const onLoad = () => {
+        mapRef.current.getMap().moveLayer(LAYER_NAME, 'boundaries-focus')
+    }
+
     return (
         <>
             <MapGL
@@ -326,6 +330,7 @@ export default function Map() {
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
                 onHover={onHover}
                 onClick={onClickZoom}
+                onLoad={onLoad}
                 onZoom
                 dragRotate={false}
                 touchRotate={false}

@@ -23,7 +23,7 @@ export const boundariesLayer = {
       type: 'identity',
       property: 'color'
     },
-    'fill-opacity': 0.6
+    'fill-opacity': 0.8,
   }
 };
 
@@ -45,7 +45,9 @@ export const centroidLayer = {
     'text-font': ['Open Sans Bold']
   },
     paint: {
-      'text-color': '#ffffff'
+      'text-color': '#ffffff',
+      'text-halo-color': 'grey',
+      'text-halo-width': 1
   }
 };
 
@@ -76,7 +78,7 @@ export const boundariesHighlightLayer = {
   id: 'boundaries-focus',
   type: 'line',
   source: 'boundaries',
-  maxzoom: boundaryTrasitionZoomLevel,
+  minzoom: boundaryTrasitionZoomLevel - 2,
   paint: {
       'line-color': highlightColor,
       'line-width': 3
