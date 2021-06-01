@@ -127,7 +127,6 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
         updateParent({...currentState, trees: selection.length ? selection.map((entry) => (entry.value)) : null})
         setDefaultValue(selection); // helps persist through collapses but now is not synchronized with other filtering options
         updateSelected();
-        // setselectedTree(event.target.textContent.toUpperCase());
     }
 
     useEffect(() => {
