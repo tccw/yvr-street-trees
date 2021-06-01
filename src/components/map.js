@@ -25,7 +25,7 @@ import { MAPBOX_TOKEN,
          TREE_BLURB_URL, MAP_STYLE_PARKS,
          MAP_STYLE_CONTRAST, MAP_STYLE_SATELLITE, STATS } from '../../env'
 
-import { titleCase, treeFilterCompositor, getTreeStats } from '../utils';
+import { titleCase, treeFilterCompositor } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
 import {useContainerDimensions} from '../hooks/useContainerDimensions';
 
