@@ -1,7 +1,13 @@
 {
+  "name": "vancouver-street-trees",
+  "homepage": "https://tccw.github.io/yvr-street-trees/",
+  "version": "0.1.0",
   "scripts": {
     "start": "webpack-dev-server --progress --hot --open",
-    "start-local": "webpack-dev-server --env.local --progress --hot --open"
+    "start-local": "webpack-dev-server --env.local --progress --hot --open",
+    "build": "webpack -p",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@material-ui/core": "^4.11.4",
@@ -30,6 +36,7 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "file-loader": "^6.2.0",
     "webpack": "^4.20.0",
+    "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.0"
   },
