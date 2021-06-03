@@ -4,10 +4,11 @@ import MapboxLogoWhite from '../../public/mapbox-logo-white.svg'
 
 // TODO: determine why 100% width creates problems for the MapGL component height
 const Foot = styled.footer`
-    position: absolute;
+    position: relative;
     overflow: hidden;
-    width: 99.85%;
+    width: 100%;
     bottom: 0;
+    margin-top: -1.6em;
     height: 1.6em;
     z-index: 3;
     background-color: lightgrey;
@@ -21,6 +22,7 @@ const Foot = styled.footer`
     }
     @media (max-width: 950px) {
         height: 4.5em;
+        margin-top: -4.5em;
         text-align: left;
         grid-template-areas:
             'feedback'
