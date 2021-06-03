@@ -8,7 +8,7 @@ import { LAYER_NAME } from '../env';
  */
 export function titleCase(string, separators) {
 
-  separators = separators || [ ' ', '-' ];
+  separators = separators || [ ' ', '-', '"', '.' ];
   var regex = new RegExp('(^|[' + separators.join('') + '])(\\w)', 'g');
   return string.toLowerCase().replace(regex, function(x) { return x.toUpperCase(); }).trim();
 };

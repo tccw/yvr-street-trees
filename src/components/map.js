@@ -9,7 +9,7 @@ import MapGL, {
     NavigationControl,
     GeolocateControl,
     AttributionControl} from 'react-map-gl';
-import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import "../../geocoder.css";
 import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
 import {FilterPanel} from './filter-panel';
@@ -48,20 +48,33 @@ const navStyle = {
 
 const BOUNDS = [ [ -122.821261, 49.35818], [ -123.413509, 49.149992 ] ]
 
+
+// https://stackoverflow.com/questions/23885255/how-to-remove-ignore-hover-css-style-on-touch-devices
+/**
+ * The top of this styled-component is a stupid hack to force the text off the page on mobile
+ * as it was still displaying (just without styling).
+ */
 const ToolTip = styled.div`
-    position: absolute;
-    margin: 8px;
-    padding: 4px;
-    border-radius: 5%;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    max-width: 300px;
-    font-size: 14px;
-    z-index: 9;
-    pointer-events: none;
-    text-transform: capitalize;
-    left: ${props => (props.x)}px;
-    top: ${props => (props.y)}px;
+        font-size = 1;
+        position: absolute;
+        top: -50px;
+        left: -50px;
+
+    @media (hover: hover) and (pointer: fine) {
+        position: absolute;
+        margin: 8px;
+        padding: 4px;
+        border-radius: 5%;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        max-width: 300px;
+        font-size: 14px;
+        z-index: 9;
+        pointer-events: none;
+        text-transform: capitalize;
+        left: ${props => (props.x)}px;
+        top: ${props => (props.y)}px;
+    }
 `;
 
 const FilterToTree = styled.span`
@@ -344,8 +357,7 @@ export default function Map() {
                     onViewportChange={handleGeocoderViewportChange}
                     placeholder="Search Address"
                     proximity={GEOCODER_PROXIMITY}
-                    country='CANADA'>
-                </Geocoder>
+                    country='CANADA'/>
                 <Source type="geojson" data={boundaries}>
                     <Layer {...boundariesLayer}/>
                     <Layer {...boundariesHighlightLayer} filter={boundaryHighlightFilter}/>

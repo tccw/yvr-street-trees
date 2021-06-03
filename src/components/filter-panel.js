@@ -21,7 +21,7 @@ const StyledFilterPanel = styled.div`
     outline: none;
     width: -moz-fit-content;
     width: fit-content;
-    max-width: 450px;
+    max-width: 350px;
     height: -moz-fit-content;
     height: fit-content;
     overflow: hidden;
@@ -52,18 +52,19 @@ const StyledFilterBoxes = styled.span`
     background: ${(props) => (props.color ? props.color : 'white')};
     box-shadow: 0px -6px 10px rgba(255, 255, 255, 1), 0px 2px 7px rgba(0, 0, 0, 0.15);
     padding: 12px 24px;
-    margin: 10px;
+    margin: 5px;
     line-height: 2;
     outline: none;
     display:flex;
     flex-direction: column;
     height: -moz-fit-content;
     height: fit-content;
+    max-width: 90%;
 `;
 
 const Dot = styled.div`
-    height: 15px;
-    width: 15px;
+    height: 13px;
+    width: 13px;
     border-radius: 50%;
     background-color: ${props => (props.color)};
     display: inline-block;
@@ -91,7 +92,7 @@ const OpenCloseButton = styled.button`
     }
 `;
 
-const LegendLabel = styled.h4`
+const LegendLabel = styled.span`
     text-align: left;
     color: #63686a;
     margin-left: 0px;
@@ -101,6 +102,24 @@ const LegendLabel = styled.h4`
     width: fit-content;
     display: table;
     line-height: 1.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+
+    @media (max-width: 600px) {
+        font-size: 0.8rem;
+        line-height: 1rem;
+    }
+`;
+
+const SelectEntry = styled.li`
+    list-style-type: none;
+    color: #63686a;
+    font-size: 0.9rem;
+    line-height: 1rem;
+
+    @media (max-width: 360px) {
+        font-size: 0.7rem;
+    }
 `;
 
 const [diamMIN, heightMIN] = [0, 0] ;
@@ -145,9 +164,10 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                 nameList.push(
                     {
                         label: (
-                        <>
-                            <Dot color={value.color}></Dot> {titleCase(key)}
-                        </>),
+                        <SelectEntry key={value}>
+                             <Dot color={value.color}></Dot> {titleCase(key)}
+                        </SelectEntry>
+                        ),
                         value: key
                     }
                 )

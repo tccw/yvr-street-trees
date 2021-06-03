@@ -6,7 +6,7 @@ const GlobalStyle = createGlobalStyle`
         --primary-light: #8abdff;
         --primary: #6d5dfc;
         --primary-dark: #5b0eeb;
-        
+
         --white: #FFFFFF;
         --greyLight-1: #E4EBF5;
         --greyLight-2: #c8d0e7;
@@ -24,6 +24,10 @@ export const GreyBorderBottomTitle = styled.h2`
     border-bottom: 0.2rem solid #63686a;
     width: -moz-fit-content;
     width: fit-content;
-    display: table; 
+    display: table;
     line-height: 1.8rem;
+
+    @media (max-width: 600px) {
+        font-size: 1.3rem;
+    }
 `;

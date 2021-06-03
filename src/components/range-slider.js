@@ -6,10 +6,11 @@ import Slider from '@material-ui/core/Slider';
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      width: 300 + theme.spacing(3) * 2,
+      width: 'calc(95%)',
+      alignSelf: 'center'
     },
     margin: {
-      height: theme.spacing(3),
+      // height: theme.spacing(3),
     },
   }));
 
@@ -25,10 +26,14 @@ const PrettoSlider = withStyles({
       backgroundColor: '#fff',
       border: '2px solid currentColor',
       marginTop: -8,
-      marginLeft: -12,
       '&:focus, &:hover, &$active': {
         boxShadow: 'inherit',
       },
+      '@media (max-width: 380px)': {
+        height: 15,
+        width: 15,
+        marginTop: -5
+      }
     },
     active: {},
     valueLabel: {
@@ -37,9 +42,13 @@ const PrettoSlider = withStyles({
     track: {
       height: 8,
       borderRadius: 4,
+      '@media (max-width: 380px)': {
+        height: 6
+      }
+
     },
     rail: {
-      height: 8,
+      height: 6,
       borderRadius: 4,
     },
     mark: {
@@ -48,7 +57,11 @@ const PrettoSlider = withStyles({
         width: 14,
         borderRadius: '50%',
         marginTop: -3,
-        marginLeft:-7
+        '@media (max-width: 380px)': {
+          height: 12,
+          width: 12,
+          marginTop: -2.5
+        }
       },
       markActive: {
         opacity: 1,
