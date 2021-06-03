@@ -29,6 +29,7 @@ const Panel = styled.div`
 
     @media (max-width: 600px) {
         width: ${props => (props.open ? '100%' : '0px')};
+        min-width: 0px;
     }
 `;
 

@@ -28,7 +28,11 @@ const Foot = styled.footer`
             'copyright';
     }
     @media (max-width: 650px) {
-        font-size: 0.7em;
+        font-size: 0.6em;
+    }
+
+    @media (max-width: 350px) {
+        font-size: 0.45em;
     }
 `;
 
@@ -36,14 +40,19 @@ const AttributionLink = styled.a`
     vertical-align: bottom;
     flex: 1;
     margin-top: 5px;
-    margin-right: 20px;
-    margin-left: 20px;
+    margin-right: 10px;
+    margin-left: 10px;
     text-decoration: none;
     :link, :visited {
         color: white;
     }
     :hover {
         text-decoration: underline;
+    }
+
+    @media (max-width: 350px) {
+        margin-right: 5px;
+        margin-left: 5px;
     }
 `;
 
@@ -52,6 +61,16 @@ const MapboxLogo = styled.img`
     width: 100px;
     height: 18px;
     opacity: 0.7;
+
+    @media (max-width: 650px) {
+        width: 60px;
+        height: 11px;
+    }
+
+    @media (max-width: 320px) {
+        width: 50px;
+        height: 9px;
+    }
 `;
 
 const FancyDiv = styled.div`
@@ -61,11 +80,6 @@ const FancyDiv = styled.div`
 `;
 
 const Footer = () => {
-
-    let sections = [
-        'Species descriptions via Wikipedia CC BY-SA',
-        'Open City Data - Vancouver'
-    ]
 
     return (
         <Foot>

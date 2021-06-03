@@ -85,7 +85,7 @@ const Blurb = styled.p`
     line-height: 1.5;
     text-align: justify;
     margin-top: 0px;
-    margin-bottom: 20px;
+    margin-bottom: 60px;
 `;
 
 
