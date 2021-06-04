@@ -28,6 +28,7 @@ import { MAPBOX_TOKEN,
 import { titleCase, treeFilterCompositor } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
 import {useContainerDimensions} from '../hooks/useContainerDimensions';
+import {useWindowSize} from '../hooks/useWindowSize';
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver Street Trees`;
@@ -128,9 +129,10 @@ export default function Map() {
     const [blurbs, setBlurbs] = useState(null);
     const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between
     const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
+    const isNarrow = useWindowSize(600);
 
     // custom hooks
-    const { width } = useContainerDimensions(infoPanelRef);
+    const { width, height } = useContainerDimensions(infoPanelRef);
 
     /* fetch Vancouver tree related data */
     useEffect(() => {
@@ -308,8 +310,9 @@ export default function Map() {
          * only way I can utilize padding to center viewport from the user's perspective
          * as described here: https://github.com/mapbox/mapbox-gl-js/pull/8638
          */
+        let mapPadding = isNarrow ? {padding: {bottom: height}} : {padding: {left: width}}
         isInfoPanelExpanded
-            ? mapRef.current.getMap().easeTo({padding: {left: width}})
+            ? mapRef.current.getMap().easeTo(mapPadding)
             : mapRef.current.getMap().easeTo({padding: {left: 0}});
 
     }, [width, handleToggleInfoPanel]);

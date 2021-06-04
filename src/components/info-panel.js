@@ -20,7 +20,7 @@ const Panel = styled.div`
     overflow: hidden;
     overflow-y: auto;
     transition: ease-in-out 0.3s;
-    width: ${props => (props.open ? '500px' : '0px')};
+    width: ${props => (props.open ? '500px' : '0')};
 
     @media (max-width: 1200px) {
         width: ${props => (props.open ? '35%' : '0px')};
@@ -30,6 +30,12 @@ const Panel = styled.div`
     @media (max-width: 600px) {
         width: ${props => (props.open ? '100%' : '0px')};
         min-width: 0px;
+        top: ${props => (props.open ? '40%' : '100%')};
+        bottom: 0;
+        left: 2%;
+        width: 96%;
+        height: 60%;
+        border-radius: 2%;
     }
 `;
 
@@ -70,6 +76,11 @@ const OpenCloseButton = styled.button `
     &:hover {
         opacity: 1;
     }
+
+    @media (max-width: 600px) {
+        transform: rotate(-90deg);
+        align-self: flex-start;
+    }
 `;
 
 const OpenFlagContainer = styled.div`
@@ -87,6 +98,12 @@ const OpenFlagContainer = styled.div`
     background-color: white;
     color:black;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+
+    @media (max-width: 600px) {
+        transform: rotate(0deg);
+        top: 90%;
+        border-radius: 5%;
+    }
 `;
 
 const InfoPanel = React.forwardRef((props, ref) => {
