@@ -1,4 +1,4 @@
-### A react SPA map of street trees in Vancouver, BC. 
+### A React SPA map of street trees in Vancouver, BC. 
 
 #### See the site live here: [Vancouver Street Trees Map](https://tccw.github.io/yvr-street-trees/)
 
