@@ -310,10 +310,9 @@ export default function Map() {
          * only way I can utilize padding to center viewport from the user's perspective
          * as described here: https://github.com/mapbox/mapbox-gl-js/pull/8638
          */
-        let mapPadding = isNarrow ? {padding: {bottom: height}} : {padding: {left: width}}
         isInfoPanelExpanded
-            ? mapRef.current.getMap().easeTo(mapPadding)
-            : mapRef.current.getMap().easeTo({padding: {left: 0}});
+            ? mapRef.current.getMap().easeTo({padding: (isNarrow ? {bottom: height} : {left: width})})
+            : mapRef.current.getMap().easeTo({padding: (isNarrow ? {bottom: 0} : {left: 0})});
 
     }, [width, handleToggleInfoPanel]);
 
@@ -380,6 +379,7 @@ export default function Map() {
                 <GeolocateControl
                     style={geolocateStyle}
                     positionOptions={GEOLOCATE_POS_OPTIONS}
+                    fitBoundsOptions={{maxZoom: (isNarrow ? 17 : 15)}}
                     trackUserLocation
                     label="Toggle Find My Location"
                     onViewportChange={handleGeocoderViewportChange}

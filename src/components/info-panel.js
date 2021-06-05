@@ -1,6 +1,4 @@
-import { feature } from '@turf/helpers';
 import * as React from 'react'
-import { useState } from 'react'
 import styled from 'styled-components'
 import { ChevronRight, ChevronLeft } from '../svg-icons'
 
@@ -9,7 +7,7 @@ const Panel = styled.div`
     position: fixed;
     z-index: 2;
     top: 0;
-    left: 0;
+    left: ${props => (props.open ? '0' : '-50%')};
     bottom: 0;
     height: 100%;
     display: flex;
@@ -20,11 +18,12 @@ const Panel = styled.div`
     overflow: hidden;
     overflow-y: auto;
     transition: ease-in-out 0.3s;
-    width: ${props => (props.open ? '500px' : '0')};
+    width: 500px;
 
     @media (max-width: 1200px) {
-        width: ${props => (props.open ? '35%' : '0px')};
+        width: 35%;
         min-width ${props => (props.open ? '350px' : '0px')};
+        left: ${props => (props.open ? '0' : '-50%')};
     }
 
     @media (max-width: 600px) {
@@ -32,6 +31,7 @@ const Panel = styled.div`
         min-width: 0px;
         top: ${props => (props.open ? '40%' : '100%')};
         bottom: 0;
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.3);
         left: 2%;
         width: 96%;
         height: 60%;
@@ -102,7 +102,8 @@ const OpenFlagContainer = styled.div`
     @media (max-width: 600px) {
         transform: rotate(0deg);
         top: 90%;
-        border-radius: 5%;
+        border-radius: 10%;
+        left: 2%;
     }
 `;
 

@@ -5,7 +5,7 @@ import { titleCase } from '../utils'
 import {Filter} from '../svg-icons'
 
 const StatsSection = styled.section`
-    margin: 0px 20px;
+    margin: 0 20px;
 `;
 
 const StatsHeader = styled.h2`
