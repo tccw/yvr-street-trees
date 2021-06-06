@@ -59,6 +59,20 @@ const Dot = styled.div`
     vertical-align: middle;
 `;
 
+const PanelHeader = styled.header`
+    z-index: 3;
+    position: sticky;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: -moz-fit-content;
+    height: fit-content;
+    margin-bottom: 2%;
+    flex-direction: row;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+`;
+
 const OpenCloseButton = styled.button `
     all: unset;
     display: flex;
@@ -81,6 +95,13 @@ const OpenCloseButton = styled.button `
         transform: rotate(-90deg);
         align-self: flex-start;
     }
+`;
+
+const MiddleStyledText = styled.span`
+    align-self: center;
+    font-weight: 300;
+    color: lightgrey;
+    margin-left: 25%;
 `;
 
 const OpenFlagContainer = styled.div`
@@ -113,9 +134,11 @@ const InfoPanel = React.forwardRef((props, ref) => {
     return (
         <>
             <Panel open={props.isExpanded} ref={ref} classname={props.className}>
-                <OpenCloseButton onClick={handleToggle} title='collapse panel'>
-                    {ChevronLeft}
-                </OpenCloseButton>
+                <PanelHeader>
+                    <OpenCloseButton onClick={handleToggle} title='collapse panel'>
+                        {ChevronLeft}
+                    </OpenCloseButton>
+                </PanelHeader>
                         <Title>
                             {title}
                             {color && <Dot color={color}></Dot>}

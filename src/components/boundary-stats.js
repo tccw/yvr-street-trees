@@ -31,7 +31,7 @@ const Description = styled.p`
 const StatsGrid = styled.div`
     display: grid;
     grid-template-columns: 1fr 1fr;
-    margin: inheret;
+    margin-bottom: 50px;
 `;
 
 const StatsGridItem = styled.div`
@@ -53,14 +53,26 @@ const StatsSubtitle = styled.span`
 `;
 
 
+/** type: 'city' | 'neighborhood' */
+const BoundaryStats = ({currentState, updateParent, name, description, heading, stats, type}) => {
 
-const BoundaryStats = ({currentState, updateParent, name, description, heading, stats}) => {
-    // these won't match the hard-coded neighborhood count because
-    // there are many trees without geometry that are not displayed
 
-    name = name.toUpperCase();
+    name = name && name.toUpperCase();
     const getStats = () => {
-        let result = {mostCommonSpecies: {treeName: '', count: -1}, numSpecies: 0}
+        let displayStats = null;
+        if (stats) {
+            if (type === 'neighborhood') {
+                displayStats = getNeighborhoodStats();
+            } else if (type === 'city') {
+                displayStats = getCitywideStats();
+            }
+        }
+
+        return displayStats;
+    }
+
+    const getNeighborhoodStats = () => {
+        let result = {mostCommonSpecies: {treeName: '', count: -1}, numSpecies: 0, total_trees: stats.neighborhood_stats[name].total_count}
         for (const [key, value] of Object.entries(stats.tree_stats)) {
             if (name in value.neighborhood_counts) {
                 result.numSpecies++;
@@ -74,7 +86,35 @@ const BoundaryStats = ({currentState, updateParent, name, description, heading, 
         return result;
     }
 
-    const displayStats = React.useMemo(() => getStats(), [name]);
+    const getCitywideStats = () => {
+        /** TODO: numSpecies is hardcoded now since the counts would be cultivars, not species.
+         * This should be addressed later in the stats file generation (or calculated onLoad)
+         */
+        // Object.keys(stats.tree_stats).length
+        let result = {mostCommonSpecies: {treeName: '', count: -1}, numSpecies: 363, total_trees: stats.city_tree_count}
+
+        for (const [key, value] of Object.entries(stats.tree_stats)) {
+            if (result.mostCommonSpecies.count < value.total_count) {
+                result.mostCommonSpecies.treeName = key;
+                result.mostCommonSpecies.count = value.total_count;
+            }
+        }
+
+        return result
+    }
+
+    const mostCommonSubtitle = () => {
+        let result;
+        if (type === 'neighborhood') {
+            result = ` ${Math.round((displayStats.mostCommonSpecies.count / stats.neighborhood_stats[name].total_count) * 100).toFixed(0)}% `
+        } else if (type === 'city') {
+            result = ` ${Math.round((displayStats.mostCommonSpecies.count / stats.city_tree_count) * 100).toFixed(0)}% `
+        }
+
+        return result;
+    }
+
+    const displayStats = React.useMemo(() => getStats(), [name, stats]);
 
     description = JSON.parse(description);
     let blurb = [];
@@ -94,35 +134,40 @@ const BoundaryStats = ({currentState, updateParent, name, description, heading, 
     return (
         <StatsSection>
             {blurb}
-            <StatsHeader> {`${heading} Statistics`} </StatsHeader>
-            <StatsGrid>
-                <StatsGridItem>
-                    <StyledStat>{stats.neighborhood_stats[name].total_count.toLocaleString()}</StyledStat>
-                    <StatsSubtitle>Mapped Trees</StatsSubtitle>
-                </StatsGridItem>
-                <StatsGridItem>
-                    <StyledStat>{displayStats.numSpecies}</StyledStat>
-                    <StatsSubtitle>Total Species</StatsSubtitle>
-                </StatsGridItem>
-                <StatsGridItem style={{'gridColumn': 'span 2'}}>
-                    <StyledStat onClick={handleClick} style={{'cursor': 'pointer'}}>
-                        {titleCase(displayStats.mostCommonSpecies.treeName)}
-                        {Filter({height: 15, width: 15})}
-                    </StyledStat>
-                    <div>
-                        <StatsSubtitle>Most Common Species</StatsSubtitle>
-                        <br></br>
-                        <StatsSubtitle weight='regular' font_size='0.9'>
-                        <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{`${displayStats.mostCommonSpecies.count.toLocaleString()} `}</StatsSubtitle>
-                            trees,
-                            <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>
-                                {` ${Math.round((displayStats.mostCommonSpecies.count / stats.neighborhood_stats[name].total_count) * 100).toFixed(0)}%`}
-                            </StatsSubtitle>
-                            of mapped {<b>{titleCase(name)}</b>} trees.
-                        </StatsSubtitle>
-                    </div>
-                </StatsGridItem>
-            </StatsGrid>
+            {
+                displayStats &&
+                (<>
+                    <StatsHeader> {`${heading} Statistics`} </StatsHeader>
+                    <StatsGrid>
+                        <StatsGridItem>
+                            <StyledStat>{displayStats.total_trees.toLocaleString()}</StyledStat>
+                            <StatsSubtitle>Mapped Trees</StatsSubtitle>
+                        </StatsGridItem>
+                        <StatsGridItem>
+                            <StyledStat>{displayStats.numSpecies}</StyledStat>
+                            <StatsSubtitle>Total Species</StatsSubtitle>
+                        </StatsGridItem>
+                        <StatsGridItem style={{'gridColumn': 'span 2'}}>
+                            <StyledStat onClick={handleClick} style={{'cursor': 'pointer'}}>
+                                {titleCase(displayStats.mostCommonSpecies.treeName)}
+                                {Filter({height: 15, width: 15})}
+                            </StyledStat>
+                            <div>
+                                <StatsSubtitle>Most Common Species</StatsSubtitle>
+                                <br></br>
+                                <StatsSubtitle weight='regular' font_size='0.9'>
+                                <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>{`${displayStats.mostCommonSpecies.count.toLocaleString()} `}</StatsSubtitle>
+                                    trees,
+                                    <StatsSubtitle color='darkgreen' weight='regular' font_size='0.9'>
+                                        {mostCommonSubtitle()}
+                                    </StatsSubtitle>
+                                    of mapped {<b>{titleCase(name)}</b>} trees.
+                                </StatsSubtitle>
+                            </div>
+                        </StatsGridItem>
+                    </StatsGrid>
+                </>)
+            }
         </StatsSection>
     )
 }

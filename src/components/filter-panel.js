@@ -10,6 +10,7 @@ import { boundaryTrasitionZoomLevel } from '../styles/map-styles';
 
 
 const StyledFilterPanel = styled.div`
+    z-index: 4;
     position: absolute;
     top: 45px;
     right: 0;
@@ -28,6 +29,7 @@ const StyledFilterPanel = styled.div`
     display: flex;
     flex-direction: row;
 
+    border-radius: ${props => (props.open ? '8px' : '4px')};
     border-width: ${props => (props.open ? '0px' : '1px')};
     border-style: ${props => (props.open ? 'none' : 'solid')};
     border-color: ${props => (props.open ? 'none' : 'darkgrey')};
@@ -45,7 +47,6 @@ const StyledFilterTogglePane = styled.div`
     width: fit-content;
     display: flex;
     flex-direction: column;
-
 `;
 
 const StyledFilterBoxes = styled.span`
@@ -60,6 +61,7 @@ const StyledFilterBoxes = styled.span`
     height: -moz-fit-content;
     height: fit-content;
     max-width: 90%;
+    border-radius: 4px;
 `;
 
 const Dot = styled.div`
@@ -122,11 +124,17 @@ const SelectEntry = styled.li`
     }
 `;
 
+const ZoomLink = styled.a`
+    color: #2193b9;
+`;
+
 const [diamMIN, heightMIN] = [0, 0] ;
 const [diamMAX, heightMAX] = [42, 100];
 
 // pass the treeFilter setter to this component to set parent state
-export function FilterPanel({currentState, updateParent, updateSelected, treeNamesAndColors, defaultValue, setDefaultValue, currentZoom}) {
+export function FilterPanel(props) {
+    const {currentState, updateParent, updateSelected, treeNamesAndColors, defaultValue, setDefaultValue, currentZoom, zoomIn} = props
+
     const [isExpanded, setIsExpanded] = useState(false);
     const [treeCommonNameList, setTreeCommonNameList] = useState(null);
     const [diameterRange, setDiameterRange] = useState([diamMIN, diamMAX]);
@@ -215,7 +223,7 @@ export function FilterPanel({currentState, updateParent, updateSelected, treeNam
                                              "width": "fit-content",
                                              "height": "-moz-fit-content",
                                              "height": "fit-content"}}>
-                                    {Info} <b>Filtering Disabled</b> Please zoom in to use filters.
+                                    {Info} <b>Filtering Disabled</b> Please {<ZoomLink onClick={zoomIn} href='#'>zoom</ZoomLink>} in to use filters.
                                 </div>
                             </StyledFilterBoxes>
                         }

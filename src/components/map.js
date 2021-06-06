@@ -23,7 +23,7 @@ import { MAPBOX_TOKEN,
          VAN_ALL_TREES_TILES,
          LAYER_NAME, GEOCODER_PROXIMITY,
          TREE_BLURB_URL, MAP_STYLE_PARKS,
-         MAP_STYLE_CONTRAST, MAP_STYLE_SATELLITE, STATS } from '../../env'
+         MAP_STYLE_CONTRAST, MAP_STYLE_SATELLITE, STATS, WELCOME_MSG } from '../../env'
 
 import { titleCase, treeFilterCompositor } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
@@ -217,7 +217,7 @@ export default function Map() {
         });
     }, []);
 
-    const onClickZoom = event => {
+    const onSelectZoom = event => {
         // this stops clicks from propogating through the geocoder search box to the map below
         // the DomTokenList has to be spread and cast to an array in order to use some()
         if ( ! [...event.target.classList].some(name => name.includes('geocoder')) ) {
@@ -274,6 +274,10 @@ export default function Map() {
         setTreeFilterObject(selected
                                 ? {...treeFilterObject, trees: [selected.properties.common_name]} // only replace the trees object
                                 : {...treeFilterObject , trees: null});
+    }
+
+    const onClickZoom = () => {
+        setViewport({...viewport, zoom: 14.5, transitionDuration: 650});
     }
 
     /**
@@ -344,7 +348,7 @@ export default function Map() {
                 mapboxApiAccessToken={TOKEN}
                 interactiveLayerIds={['boundaries', LAYER_NAME]} // centroids are only labels, not interacitve elements
                 onHover={onHover}
-                onClick={onClickZoom}
+                onClick={onSelectZoom}
                 onLoad={onLoad}
                 onZoom
                 dragRotate={false}
@@ -394,12 +398,23 @@ export default function Map() {
             <InfoPanel ref={infoPanelRef}
                             title={title} isExpanded={isInfoPanelExpanded} handleToggle={handleToggleInfoPanel}
                             color={(selected && selected.layer.id == LAYER_NAME) ? selected.properties.color : ''}>
+                        {! selected &&
+                             <BoundaryStats currentState={treeFilterObject}
+                                            updateParent={(props) => setTreeFilterObject({...props})}
+                                            heading='Citywide'
+                                            name='Vancouer'
+                                            stats={stats}
+                                            type='city'
+                                            description={WELCOME_MSG}>
+                             </BoundaryStats>
+                        }
                         {selected && selected.layer.id == 'boundaries' &&
                             <BoundaryStats currentState={treeFilterObject}
-                                        updateParent={(props) => setTreeFilterObject({...props})}
-                                        {...selected.properties}
-                                        heading='Neighborhood'
-                                        stats={stats}>
+                                           updateParent={(props) => setTreeFilterObject({...props})}
+                                           {...selected.properties}
+                                           heading='Neighborhood'
+                                           stats={stats}
+                                           type='neighborhood'>
                             </BoundaryStats>
                         }
                         {selected && selected.layer.id == LAYER_NAME &&
@@ -417,7 +432,8 @@ export default function Map() {
                          treeNamesAndColors={stats ? stats.tree_stats : null}
                          defaultValue={defaultValue}
                          setDefaultValue={(value) => setDefaultValue(value)}
-                         currentZoom={viewport.zoom} >
+                         currentZoom={viewport.zoom}
+                         zoomIn={onClickZoom} >
                 </FilterPanel>
         </>
     );

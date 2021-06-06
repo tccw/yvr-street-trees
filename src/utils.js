@@ -1,4 +1,3 @@
-// import { filterProperties } from "@turf/clusters";
 import { LAYER_NAME } from '../env';
 
 /**
