@@ -13,8 +13,8 @@ import "../../geocoder.css";
 import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
 import {FilterPanel} from './filter-panel';
-import TreeInfoContainer from './tree-info-container';
-import InfoPanel from './info-panel';
+import {TreeInfoContainer} from './tree-info-container';
+import {InfoPanel} from './info-panel';
 import BoundaryStats from './boundary-stats';
 import MapStyleToggle from './map-style-toggle';
 

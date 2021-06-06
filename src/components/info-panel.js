@@ -128,7 +128,7 @@ const OpenFlagContainer = styled.div`
     }
 `;
 
-const InfoPanel = React.forwardRef((props, ref) => {
+const InfoPanelComponent = React.forwardRef((props, ref) => {
     const {color, title, handleToggle, isExpanded} = props;
 
     return (
@@ -156,4 +156,4 @@ const InfoPanel = React.forwardRef((props, ref) => {
     )
 });
 
-export default InfoPanel;
+export const InfoPanel = React.memo(InfoPanelComponent);

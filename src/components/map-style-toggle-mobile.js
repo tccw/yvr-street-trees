@@ -55,11 +55,11 @@ export const MobileMapStyleToggle = (props) => {
                     <MapFigure>
                         <MapLayerIcon type='image' src={value.icon}
                                         margin='3px 6px'
-                                        size='50px'
+                                        size='70px'
                                         ariaLabel={`${key}-style`}
                                         value={value.url}
                                         onClick={handleClickMap}/>
-                        <figcaption style={{'marginTop': '-5px'}}>{key}</figcaption>
+                        <figcaption style={{'marginTop': '-5px', 'font-weight': '500'}}>{key}</figcaption>
                     </MapFigure>
                 </li>
             )
@@ -76,7 +76,7 @@ export const MobileMapStyleToggle = (props) => {
                         {mapList}
                     </MapStyleGrid>
                   )
-                : <MapLayerIcon type='image' size='20px' onClick={handleClick} src={MapLayersIcon} ariaLabel='map-style-layers'/>
+                : <MapLayerIcon type='image' size='25px' onClick={handleClick} src={MapLayersIcon} ariaLabel='map-style-layers'/>
             }
         </>
     );

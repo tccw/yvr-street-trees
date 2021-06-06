@@ -4,7 +4,11 @@ import { heightStringFromID, titleCase, toPrettyDateString, sentenceCase} from '
 import styled from 'styled-components';
 import { Copy, Check } from '../svg-icons';
 // import { Check } from '../../public/check.svg';
-import "regenerator-runtime/runtime.js";
+import { CustCloudinaryImage } from './custom-cloudinary-image';
+import "regenerator-runtime/runtime.js"; // for async support with Babel
+import treeimage from '../../opendata/processed/lab_processed_images/acer_campestre.JPG';
+import { Image, Transformation, Placeholder } from 'cloudinary-react';
+
 
 // margin order is top right bottom left
 const StyledTreeInfo = styled.section`
@@ -88,6 +92,12 @@ const Blurb = styled.p`
     margin-bottom: 60px;
 `;
 
+const NoTreeImage = styled.div`
+    width: 20%;
+    margin: 5% 40% 5% 40%;
+    border-radius: 1%;
+`;
+
 
 
 /**
@@ -97,13 +107,13 @@ const Blurb = styled.p`
  * @param {any} props
  * @returns
  */
-const TreeInfoContainer = (props) => {
+export const TreeInfoComponent = (props) => {
     const [copied, setCopied] = useState(false);
 
     const {genus_name, species_name, tree_id,
            diameter, civic_number, on_street,
            height_range_id, date_planted, common_name,
-           neighbourhood_name, cultivar_name} = props;
+           neighbourhood_name, cultivar_name, color} = props;
 
     var listValues = {
         'Tree ID' : tree_id,
@@ -193,6 +203,9 @@ const TreeInfoContainer = (props) => {
             <StyledSubText font_size='0.9rem' font_style='none'>
                 {`${totalPrevalance}% of Vancouver trees.`}
             </StyledSubText>
+            <CustCloudinaryImage genus_name={genus_name}
+                                 species_name={species_name}
+                                 color={color}/>
             <TreeDetailsList>
                 {treeDetails}
             </TreeDetailsList>
@@ -202,4 +215,4 @@ const TreeInfoContainer = (props) => {
     );
 }
 
-export default React.memo(TreeInfoContainer); // look into if memoizing this results in worse performance (or does anything)
+export const TreeInfoContainer = React.memo(TreeInfoComponent); // look into if memoizing this results in worse performance (or does anything)

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MobileMapStyleToggle } from './map-tyle-toggle-mobile';
+import { MobileMapStyleToggle } from './map-style-toggle-mobile';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
