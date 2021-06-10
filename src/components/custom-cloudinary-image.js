@@ -22,12 +22,12 @@ export const CustCloudinaryImage = ({genus_name, species_name, color}) => {
             ?  (<Image cloudName='syvr-street-trees'
                     publicId={cloudinaryImageName(genus_name, species_name)}
                     responsive
-                    loading='lazy'
                     >
                         <Transformation fetchFormat='auto'
                                         quality='auto'
                                         border={`2px_solid_rgb:${color.split('#')[1]}`}
                                         radius='5'/>
+                        <Placeholder style='predominant'/>
                 </Image>)
             : <NoTreeImage src={FALLBACK_IMAGE}/>
             )

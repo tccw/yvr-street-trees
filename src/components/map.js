@@ -266,6 +266,7 @@ export default function Map() {
             // update selected
             setSelected (feature || null);
             setFilterPanelSelected(Boolean(feature));
+            infoPanelRef.current.scrollTo(0,0);
         }
     };
 
@@ -290,7 +291,9 @@ export default function Map() {
      * would not update until there was another expand/collapse or a resize event.
      */
     const handleToggleInfoPanel = useCallback(() => {
-        setIsInfoPanelExpanded(! isInfoPanelExpanded)
+        /** Only scrolling to top when expanding avoid a weird jump to top as the element collapses */
+        ! isInfoPanelExpanded && infoPanelRef.current.scrollTo(0,0);
+        setIsInfoPanelExpanded(! isInfoPanelExpanded);
     })
 
     /**
