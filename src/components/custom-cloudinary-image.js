@@ -1,13 +1,22 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import { Image, Transformation, Placeholder } from 'cloudinary-react';
+import { Image, Transformation } from 'cloudinary-react';
 import { VALID_IMAGE_LIST } from './../../env';
 import FALLBACK_IMAGE from '../../public/no_image.png';
+import { CLOUD_NAME } from '../../env'
 
 
 const NoTreeImage = styled.img`
     width: 100px;
     margin: 5% 35% 5% 35%;
+`;
+
+const ImageContainer = styled.section`
+    position: relative;
+    width: inheret;
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
 `;
 
 export const CustCloudinaryImage = ({genus_name, species_name, color}) => {
@@ -19,16 +28,18 @@ export const CustCloudinaryImage = ({genus_name, species_name, color}) => {
     let publicId = cloudinaryImageName(genus_name, species_name);
 
     return (VALID_IMAGE_LIST.has(publicId.split('/')[1])
-            ?  (<Image cloudName='syvr-street-trees'
-                    publicId={cloudinaryImageName(genus_name, species_name)}
-                    responsive
-                    >
-                        <Transformation fetchFormat='auto'
-                                        quality='auto'
-                                        border={`2px_solid_rgb:${color.split('#')[1]}`}
-                                        radius='5'/>
-                        <Placeholder style='predominant'/>
-                </Image>)
+            ?  (<ImageContainer>
+                    <Image cloudName={CLOUD_NAME}
+                        publicId={cloudinaryImageName(genus_name, species_name)}
+                        responsive
+                        >
+                            <Transformation fetchFormat='auto'
+                                            quality='auto'
+                                            border={`2px_solid_rgb:${color.split('#')[1]}`}
+                                            radius='5'/>
+                            {/* <Placeholder style='predominant'/> */}
+                    </Image>
+                </ImageContainer>)
             : <NoTreeImage src={FALLBACK_IMAGE}/>
             )
 }

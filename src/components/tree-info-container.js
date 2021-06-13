@@ -3,11 +3,7 @@ import { useState, useEffect } from 'react';
 import { heightStringFromID, titleCase, toPrettyDateString, sentenceCase} from '../utils';
 import styled from 'styled-components';
 import { Copy, Check } from '../svg-icons';
-// import { Check } from '../../public/check.svg';
 import { CustCloudinaryImage } from './custom-cloudinary-image';
-import "regenerator-runtime/runtime.js"; // for async support with Babel
-import treeimage from '../../opendata/processed/lab_processed_images/acer_campestre.JPG';
-import { Image, Transformation, Placeholder } from 'cloudinary-react';
 
 
 // margin order is top right bottom left
@@ -92,11 +88,7 @@ const Blurb = styled.p`
     margin-bottom: 60px;
 `;
 
-const NoTreeImage = styled.div`
-    width: 20%;
-    margin: 5% 40% 5% 40%;
-    border-radius: 1%;
-`;
+
 
 
 
@@ -204,8 +196,9 @@ export const TreeInfoComponent = (props) => {
                 {`${totalPrevalance}% of Vancouver trees.`}
             </StyledSubText>
             <CustCloudinaryImage genus_name={genus_name}
-                                 species_name={species_name}
-                                 color={color}/>
+                                species_name={species_name}
+                                color={color}/>
+
             <TreeDetailsList>
                 {treeDetails}
             </TreeDetailsList>
