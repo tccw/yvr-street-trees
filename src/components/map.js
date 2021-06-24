@@ -1,14 +1,7 @@
 import * as React from 'react';
 import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import styled from 'styled-components';
-import MapGL, {
-    Source,
-    Layer,
-    LinearInterpolator,
-    WebMercatorViewport,
-    NavigationControl,
-    GeolocateControl,
-    AttributionControl} from 'react-map-gl';
+import MapGL, {Source, Layer, LinearInterpolator, WebMercatorViewport, NavigationControl, GeolocateControl, AttributionControl} from 'react-map-gl';
 import "../../geocoder.css";
 import Geocoder from 'react-map-gl-geocoder';
 import bbox from '@turf/bbox'
@@ -27,8 +20,10 @@ import { MAPBOX_TOKEN,
 
 import { titleCase, treeFilterCompositor } from '../utils';
 import {boundariesLayer, centroidLayer, treesLayer, boundariesHighlightLayer, treesHighlightLayer} from '../styles/map-styles.js';
+import {boundariesLayerWide, centroidLayerWide, treesLayerWide, treesHighlightLayerWide, boundariesHighlightLayerWide} from '../styles/map-styles.js';
 import {useContainerDimensions} from '../hooks/useContainerDimensions';
 import {useWindowSize} from '../hooks/useWindowSize';
+import {filterValidForWideZoom} from '../utils'
 
 const TOKEN = MAPBOX_TOKEN; // Set the mapbox token here
 const DEFAULT_TITLE = `Vancouver Street Trees`;
@@ -130,6 +125,7 @@ export default function Map() {
     const [defaultValue, setDefaultValue] = useState([]); // lifted state from filter-panel. Allows for synchronization between
     const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
     const isNarrow = useWindowSize(600);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     // custom hooks
     const { width, height } = useContainerDimensions(infoPanelRef);
@@ -337,7 +333,9 @@ export default function Map() {
 
     const onLoad = () => {
         mapRef.current.getMap().moveLayer(LAYER_NAME, 'boundaries-focus')
+        setIsLoaded(true);
     }
+
 
     return (
         <>
@@ -368,15 +366,15 @@ export default function Map() {
                     proximity={GEOCODER_PROXIMITY}
                     country='CANADA'/>
                 <Source type="geojson" data={boundaries}>
-                    <Layer {...boundariesLayer}/>
-                    <Layer {...boundariesHighlightLayer} filter={boundaryHighlightFilter}/>
+                    <Layer {...(filterValidForWideZoom(treeFilterObject) ? boundariesLayerWide : boundariesLayer)}/>
+                    <Layer {...(filterValidForWideZoom(treeFilterObject) ?boundariesHighlightLayerWide : boundariesHighlightLayer)} filter={boundaryHighlightFilter}/>
                 </Source>
                 <Source type="geojson" data={centroids}>
-                    <Layer {...centroidLayer} />
+                    <Layer {...(filterValidForWideZoom(treeFilterObject) ? centroidLayerWide : centroidLayer)} />
                 </Source>
                 <Source type="vector" url={VAN_ALL_TREES_TILES}>
-                    <Layer {...treesLayer} filter={treeFilter}/>
-                    <Layer {...treesHighlightLayer} filter={treeHighlightFilter} />
+                    <Layer {...(filterValidForWideZoom(treeFilterObject) ? treesLayerWide : treesLayer)} filter={treeFilter}/>
+                    <Layer {...(filterValidForWideZoom(treeFilterObject) ? treesHighlightLayerWide : treesHighlightLayer)} filter={treeHighlightFilter} />
                 </Source>
                 {hoverInfo && hoverInfo.feature.layer.id == LAYER_NAME && (
                 <ToolTip x={hoverInfo.x} y={hoverInfo.y}>

@@ -200,7 +200,6 @@ export function FilterPanel(props) {
                                 isMulti
                                 onChange={handleTreeClick}
                                 defaultValue={defaultValue}
-                                isDisabled={(currentZoom <= boundaryTrasitionZoomLevel)}
                             />
                         </StyledFilterBoxes>
                         <StyledFilterBoxes>
@@ -223,7 +222,7 @@ export function FilterPanel(props) {
                                              "width": "fit-content",
                                              "height": "-moz-fit-content",
                                              "height": "fit-content"}}>
-                                    {Info} <b>Filtering Disabled</b> Please {<ZoomLink onClick={zoomIn} href='#'>zoom</ZoomLink>} in to use filters.
+                                    {Info} <b>Height and Diameter Filtering Disabled</b> Please {<ZoomLink onClick={zoomIn} href='#'>zoom</ZoomLink>} in to use filters.
                                 </div>
                             </StyledFilterBoxes>
                         }

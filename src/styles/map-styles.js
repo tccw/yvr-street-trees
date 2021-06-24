@@ -1,7 +1,7 @@
 // For more information on data-driven styles, see https://www.mapbox.com/help/gl-dds-ref/
 import { LAYER_NAME } from '../../env'
 
-export const boundaryTrasitionZoomLevel = 12.5;
+export const boundaryTrasitionZoomLevel = 13.5;
 const highlightColor = '#f75a2f';
 const DIAMETER_STOPS = [
   [{zoom: 12, value: 0}, 2],
@@ -105,3 +105,14 @@ export const treesHighlightLayer = {
     }
   }
 }
+
+
+
+// wide zoom styles
+
+export const boundariesLayerWide = {...boundariesLayer, maxzoom: boundaryTrasitionZoomLevel - 5};
+export const centroidLayerWide = {...centroidLayer, maxzoom: boundaryTrasitionZoomLevel - 5};
+// to fix later: https://docs.mapbox.com/mapbox-gl-js/style-spec/other/
+export const treesLayerWide = {...treesLayer, minzoom: boundaryTrasitionZoomLevel - 5};
+export const treesHighlightLayerWide = {...treesHighlightLayer, minzoom: boundaryTrasitionZoomLevel - 5};
+export const boundariesHighlightLayerWide = {...boundariesHighlightLayer, minzoom: boundaryTrasitionZoomLevel - 5};

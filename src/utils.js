@@ -83,3 +83,35 @@ export function toPrettyDateString(yyyymmdd) {
   return date.toLocaleDateString('en-US', options);
 }
 
+
+// Zoom level display control helpers
+
+/**
+ * this may have performance problems when only a minimal filter is set and yet most trees
+ * are still displayed. I could handle this by checking the contents of the filterObject
+ * If it is filtering some trees then it's probably fine to allow low zoom levels (wide view)
+ * if no trees are filtered an the diameter or height aren't very restricted, maybe don't allow
+ * low zooms levels
+ *
+ * Something to think about
+ */
+
+ export function filterValidForWideZoom(filterObject) {
+  return validTreesFilter(filterObject.trees) ||
+         validDiameterFilter(filterObject.diameters) ||
+         validHeightsFilter(filterObject.height_ids);
+}
+
+function validTreesFilter(trees) {
+  return trees && trees.length > 0 && trees.length < 5;
+}
+
+function validDiameterFilter(diameters) {
+  return diameters && ((diameters[1] - diameters[0]) <= 6);
+}
+
+function validHeightsFilter(height_ids) {
+  return (height_ids && (height_ids.length == 1)) ||
+         (height_ids && ((height_ids[height_ids.length - 1] - height_ids[0]) == 1))
+}
+
