@@ -130,6 +130,7 @@ const ZoomLink = styled.a`
 
 const [diamMIN, heightMIN] = [0, 0] ;
 const [diamMAX, heightMAX] = [42, 100];
+const INFO_COLOR = '#a6e9ff'
 
 // pass the treeFilter setter to this component to set parent state
 export function FilterPanel(props) {
@@ -217,7 +218,7 @@ export function FilterPanel(props) {
                                 disabled={(currentZoom <= boundaryTrasitionZoomLevel)}/>
                         </StyledFilterBoxes>
                         { (currentZoom <= boundaryTrasitionZoomLevel) &&
-                            <StyledFilterBoxes color='#a6e9ff'>
+                            <StyledFilterBoxes color={INFO_COLOR}>
                                 <div style={{"width": "-moz-fit-content",
                                              "width": "fit-content",
                                              "height": "-moz-fit-content",
@@ -225,6 +226,16 @@ export function FilterPanel(props) {
                                     {Info} <b>Height and Diameter Filtering Disabled</b> Please {<ZoomLink onClick={zoomIn} href='#'>zoom</ZoomLink>} in to use filters.
                                 </div>
                             </StyledFilterBoxes>
+                        }
+                        {(currentZoom <= boundaryTrasitionZoomLevel) && (currentState.trees) && (currentState.trees.length > 4) &&
+                            <StyledFilterBoxes color={INFO_COLOR}>
+                            <div style={{"width": "-moz-fit-content",
+                                         "width": "fit-content",
+                                         "height": "-moz-fit-content",
+                                         "height": "fit-content"}}>
+                                {Info} <b>Trees filter</b> currently supports a <b>max of 4 when zoomed out</b>. {<ZoomLink onClick={zoomIn} href='#'>Zoom</ZoomLink>} or remove trees from the filter.
+                            </div>
+                        </StyledFilterBoxes>
                         }
                     </>
                 }
