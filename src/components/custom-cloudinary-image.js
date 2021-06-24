@@ -22,6 +22,7 @@ const ImageContainer = styled.section`
 export const CustCloudinaryImage = ({genus_name, species_name, color}) => {
 
     const cloudinaryImageName = (genus, species) => {
+        console.log(`yvr-street-trees/${genus.toLowerCase()}_${species.split(' ')[0].toLowerCase()}`)
         return `yvr-street-trees/${genus.toLowerCase()}_${species.split(' ')[0].toLowerCase()}`
     }
 
@@ -31,13 +32,11 @@ export const CustCloudinaryImage = ({genus_name, species_name, color}) => {
             ?  (<ImageContainer>
                     <Image cloudName={CLOUD_NAME}
                         publicId={cloudinaryImageName(genus_name, species_name)}
-                        responsive
                         >
                             <Transformation fetchFormat='auto'
                                             quality='auto'
                                             border={`2px_solid_rgb:${color.split('#')[1]}`}
                                             radius='5'/>
-                            {/* <Placeholder style='predominant'/> */}
                     </Image>
                 </ImageContainer>)
             : <NoTreeImage src={FALLBACK_IMAGE}/>
