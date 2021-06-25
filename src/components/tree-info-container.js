@@ -112,7 +112,7 @@ export const TreeInfoComponent = (props) => {
         'Height' : `${heightStringFromID(height_range_id)}`,
         'Diameter': `${diameter} inches`,
         'Address': `${civic_number} ${on_street}`,
-        'Date Planted': date_planted ? `${toPrettyDateString(date_planted)}` : 'Unknown'
+        'Date Planted': date_planted ? `${toPrettyDateString(date_planted)}` : 'Before 1989'
     }
 
     async function onClick() {
