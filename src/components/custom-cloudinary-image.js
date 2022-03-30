@@ -22,7 +22,6 @@ const ImageContainer = styled.section`
 export const CustCloudinaryImage = ({genus_name, species_name, color}) => {
 
     const cloudinaryImageName = (genus, species) => {
-        console.log(`yvr-street-trees/${genus.toLowerCase()}_${species.split(' ')[0].toLowerCase()}`)
         return `yvr-street-trees/${genus.toLowerCase()}_${species.split(' ')[0].toLowerCase()}`
     }
 

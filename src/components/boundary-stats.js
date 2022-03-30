@@ -1,8 +1,9 @@
 import { propertiesContainsFilter } from '@turf/clusters';
-import * as React from 'react'
-import styled from 'styled-components'
-import { titleCase } from '../utils'
-import {Filter} from '../svg-icons'
+import * as React from 'react';
+import styled from 'styled-components';
+import { titleCase } from '../utils';
+import {Filter} from '../svg-icons';
+import {CITY_TREE} from '../../env';
 
 const StatsSection = styled.section`
     margin: 0 20px;
@@ -54,7 +55,7 @@ const StatsSubtitle = styled.span`
 
 
 /** type: 'city' | 'neighborhood' */
-const BoundaryStats = ({currentState, updateParent, name, description, heading, stats, type}) => {
+const BoundaryStats = ({currentState, updateParent, name, description, heading, stats, type, setSelected}) => {
 
 
     name = name && name.toUpperCase();
@@ -128,6 +129,7 @@ const BoundaryStats = ({currentState, updateParent, name, description, heading, 
 
     const handleClick = () => {
         updateParent({...currentState, trees: [displayStats.mostCommonSpecies.treeName]})
+        if (type === 'city' && setSelected) {setSelected(CITY_TREE)}
     }
 
 // this component may be re-rendering too often

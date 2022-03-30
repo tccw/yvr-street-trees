@@ -406,7 +406,8 @@ export default function Map() {
                                             name='Vancouer'
                                             stats={stats}
                                             type='city'
-                                            description={WELCOME_MSG}>
+                                            description={WELCOME_MSG}
+                                            setSelected={(tree) => setSelected(tree)}>
                              </BoundaryStats>
                         }
                         {selected && selected.layer.id == 'boundaries' &&
