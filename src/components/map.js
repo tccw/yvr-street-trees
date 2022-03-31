@@ -403,7 +403,7 @@ export default function Map() {
                              <BoundaryStats currentState={treeFilterObject}
                                             updateParent={(props) => setTreeFilterObject({...props})}
                                             heading='Citywide'
-                                            name='Vancouer'
+                                            name='Vancouver'
                                             stats={stats}
                                             type='city'
                                             description={WELCOME_MSG}
