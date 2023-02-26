@@ -5,11 +5,11 @@
 	</defs>
 	<style>
 		tspan { white-space:pre }
-		.shp0 { fill: #c8effe;stroke: #000000;paint-order:stroke fill markers;stroke-width: 16 }
-		.shp1 { fill: #faf8f8;stroke: #000000;paint-order:stroke fill markers;stroke-width: 16 }
-		.shp2 { fill: #b9acac }
-		.shp3 { fill: #6f982e }
-		.shp4 { opacity: 0.251;fill: #9e9797 }
+		.shp0 { fill: #c8effe;stroke: #000000;paint-order:stroke fill markers;stroke-width: 16 } 
+		.shp1 { fill: #faf8f8;stroke: #000000;paint-order:stroke fill markers;stroke-width: 16 } 
+		.shp2 { fill: #b9acac } 
+		.shp3 { fill: #6f982e } 
+		.shp4 { opacity: 0.251;fill: #9e9797 } 
 	</style>
 	<g id="Layer">
 		<g id="Layer">
