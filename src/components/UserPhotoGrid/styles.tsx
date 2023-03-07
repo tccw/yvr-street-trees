@@ -10,7 +10,7 @@ const ImageGrid = styled.section`
 `;
 
 const ImageWrap = styled.div`
-  overflow: hidden;
+//   overflow: hidden;
   height: 0;
   padding: 50% 0;
   position: relative;

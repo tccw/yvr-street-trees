@@ -37,6 +37,7 @@ import {
   MAP_STYLE_SATELLITE,
   STATS,
   WELCOME_MSG,
+  CLOUD_NAME
 } from "../../../env";
 import {
   circle,
@@ -246,13 +247,49 @@ function MapComponent() {
     features: [],
   });
 
-  useEffect(() => {
-    setUserPhotoList({
-      type: "FeatureCollection",
-      features: lat_lons.map((current, index) => {
-        return makePhotoFeature(current, urls[index], index);
-      }),
-    });
+//   useEffect(() => {
+//     setUserPhotoList({
+//       type: "FeatureCollection",
+//       features: lat_lons.map((current, index) => {
+//         return makePhotoFeature(current, urls[index], index);
+//       }),
+//     });
+//   }, []);
+
+//   useEffect(() => {
+//     fetch("http://127.0.0.1:8000/photo/user-photo")
+//         .then((response) => response.json())
+//         .then(json => setUserPhotoList(json));
+//   }, []);
+
+  /* As a second example, an API call inside an useEffect with fetch: */
+
+useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchUserPhotos = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/photo/user-photo", {
+          signal: abortController.signal,
+        });
+        const json = await res.json();
+        // console.log(json)
+        setUserPhotoList(json.data)
+      } catch (error: any) {
+        if (error.name !== "AbortError") {
+          /* Logic for non-aborted error handling goes here. */
+        }
+      }
+    };
+
+    fetchUserPhotos();
+
+    /*
+      Abort the request as it isn't needed anymore, the component being
+      unmounted. It helps avoid, among other things, the well-known "can't
+      perform a React state update on an unmounted component" warning.
+    */
+    return () => abortController.abort();
   }, []);
 
   // window geometry related hooks
@@ -443,8 +480,8 @@ function MapComponent() {
   const userPhotoHighlightFilter = useMemo(
     () => [
       "in",
-      ["get", "id"],
-      ["literal", featuresSelection.map((point) => point.properties.id)],
+      ["get", "public_id"],
+      ["literal", featuresSelection.map((point) => point.properties.public_id)],
     ],
     [featuresSelection]
   );
@@ -561,7 +598,7 @@ function MapComponent() {
         {/* <AttributionControl /> */}
         {featuresSelection[userPhotoId] && (
           <Marker
-            key={`marker-${featuresSelection[userPhotoId].properties.id}`}
+            key={`marker-${featuresSelection[userPhotoId].properties.public_id}`}
             latitude={featuresSelection[userPhotoId].geometry.coordinates[1]}
             longitude={featuresSelection[userPhotoId].geometry.coordinates[0]}
             anchor="bottom"
@@ -570,8 +607,11 @@ function MapComponent() {
             }}
           >
             <UserPhotoMarker
-              size={featuresSelection[userPhotoId].properties.size}
-              url={featuresSelection[userPhotoId].properties.image}
+            //   size={featuresSelection[userPhotoId].properties.size}
+              size={6}
+              url={
+                cloudinaryIdToCircleImage(featuresSelection[userPhotoId].properties.public_id)
+              }
             />
           </Marker>
         )}
@@ -656,6 +696,12 @@ function MapComponent() {
       />
     </>
   );
+}
+
+function cloudinaryIdToCircleImage(publicId: string): string {
+    let base: string = "https://res.cloudinary.com"
+    let circle_url: string = `${base}/${CLOUD_NAME}/image/upload/h_150,ar_1.0,c_fill,q_auto/r_max/${publicId}`
+    return circle_url
 }
 
 export default MapComponent;
