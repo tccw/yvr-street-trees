@@ -211,7 +211,7 @@ useEffect(() => {
                                     "width": "fit-content",
                                     "height": "-moz-fit-content",
                                     "height": "fit-content"}}>
-                        {Info} <b>Height and Diameter Filtering Disabled</b> Please {<ZoomLink onClick={zoomIn} href='#'>zoom in</ZoomLink>} in to use filters.
+                        {Info} <b>Height and Diameter Filtering Disabled</b> Please click to {<ZoomLink onClick={zoomIn} href='#'>zoom in</ZoomLink>} in to use filters.
                     </div>
                 </StyledFilterBoxes>
                 }

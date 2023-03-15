@@ -12,6 +12,7 @@
   "dependencies": {
     "@emotion/styled": "^11.10.5",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
+    "@mui/icons-material": "^5.11.11",
     "@mui/material": "^5.11.6",
     "@mui/styled-engine-sc": "^5.11.0",
     "@react-hookz/web": "^22.0.0",

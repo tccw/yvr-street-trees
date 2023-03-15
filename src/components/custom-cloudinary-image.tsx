@@ -36,7 +36,7 @@ interface CloudinaryCustomImageType {
 }
 
 
-const CustCloudinaryImage = (props: CloudinaryCustomImageType) => {
+const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
   const { cloudImageId, color } = props;
 
 //   let publicId = cloudinaryImageName(genusName, speciesName);
@@ -67,6 +67,7 @@ const CustCloudinaryImage = (props: CloudinaryCustomImageType) => {
                 cloudName={CLOUD_NAME}
                 publicId={cloudImageId}
                 defaultImage={'yvr-street-trees:no_image_leaf.png'}
+                alt={`Image of a ${cloudImageId.split("/")[1]} leaf`}
             >
                 {color
                     ? (<Transformation
@@ -111,4 +112,4 @@ const CustCloudinaryImage = (props: CloudinaryCustomImageType) => {
 //   );
 };
 
-export default CustCloudinaryImage;
+export default CustomCloudinaryImage;

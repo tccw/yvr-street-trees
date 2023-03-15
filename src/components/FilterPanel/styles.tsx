@@ -94,7 +94,7 @@ const OpenCloseButton = styled.button`
   width: -moz-fit-content;
   width: fit-content;
   opacity: 0.6;
-  margin: -8px -20px -20px 0px;
+  margin: -8px -20px -20px -8px;
 
   &:hover {
     opacity: 1;

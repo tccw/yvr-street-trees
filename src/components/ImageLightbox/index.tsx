@@ -1,13 +1,13 @@
 import { Image, Transformation } from "cloudinary-react";
 import * as React from "react";
 import { CLOUD_NAME } from "../../../env";
-import CustCloudinaryImage from "../custom-cloudinary-image";
+import CustomCloudinaryImage from "../custom-cloudinary-image";
 import { CentralImage, FadedBackground } from "./styles";
 
 const ImageLightbox = () => {
     return (
         <FadedBackground>
-            <CustCloudinaryImage cloudImageId="yvr-user-photos/49.262825-123.20135"/>
+            <CustomCloudinaryImage cloudImageId="yvr-user-photos/49.262825-123.20135"/>
         </FadedBackground>
         // <CentralImage>
         // <Image

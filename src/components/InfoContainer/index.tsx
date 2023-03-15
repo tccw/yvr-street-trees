@@ -10,7 +10,7 @@ import {
 } from "../../utils/utils";
 import styled from "styled-components";
 import { Copy, Check } from "../../svg-icons";
-import CustCloudinaryImage from "../custom-cloudinary-image";
+import CustomCloudinaryImage from "../custom-cloudinary-image";
 import {
   StyledTreeInfo,
   StyledSubText,
@@ -156,7 +156,7 @@ export const TreeInfoComponent = (props: any) => {
         {`${totalPrevalance}% of Vancouver trees.`}
       </StyledSubText>
       {/* <AttributesContainer> */}
-        <CustCloudinaryImage
+        <CustomCloudinaryImage
             cloudImageId={cloudinaryImageNameCultivar(genus_name, species_name)}
             // cloudImageId={cloudinaryImageNameCultivar(genus_name, species_name, cultivar_name)}
             color={color}

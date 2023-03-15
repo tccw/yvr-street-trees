@@ -9,6 +9,7 @@ import Map, {
   NavigationControl,
   AttributionControl,
   GeolocateControl,
+  MarkerDragEvent,
 } from "react-map-gl";
 import mapboxgl, { EventData, MapLayerMouseEvent } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -70,6 +71,14 @@ import BoundaryStats from "../BoundaryStats";
 import UserImageGrid from "../UserPhotoGrid";
 import MapStyleToggle from "../MapStyleToggle";
 import GeocoderControl from "../../geocoder-control";
+import ImageUploader from "../ImageUploader";
+import { Client } from "../../api-client/client";
+import SelfLocatePin from "../SelfLocatePin";
+import { UploadImageFile } from "../../handlers/map-handlers";
+import LocationDialog from "../LocationDialog";
+import LocationSelectSenderButton from "../LocationSelectSenderBotton";
+import LocationSelectMarker from "../LocationSelectMarker";
+import { padding } from "@mui/system";
 
 const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
 export const DEFAULT_TITLE = `Vancouver Street Trees`;
@@ -99,6 +108,8 @@ const BOUNDS = [
   [-122.821261, 49.35818],
 ];
 
+const apiClient = new Client();
+
 function MapComponent() {
   const mapRef = useRef<MapRef>(null);
   const [boundaries, setBoundaries] = useState<FeatureCollection>({
@@ -119,6 +130,7 @@ function MapComponent() {
   const [title, setTitle] = useState(DEFAULT_TITLE);
   const [interactiveLayers, setInteractiveLayers] = useState<string[]>([]);
 
+  const [userInputPosVisible, setUserInputPosVisible] = useState<boolean>(false);
   const [allData, setAllData] = useState<any>();
   const [hoverInfo, setHoverInfo] = useState<any>();
   const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
@@ -137,65 +149,22 @@ function MapComponent() {
     pitch: 0,
     padding: { left: 0, top: 0, right: 0, bottom: 0 },
   });
+  const [marker, setMarker] = useState({
+    latitude: GEOCODER_PROXIMITY.latitude,
+    longitude: GEOCODER_PROXIMITY.longitude
+  });
+  const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
+    setMarker({
+      longitude: event.lngLat.lng,
+      latitude: event.lngLat.lat
+    });
+  }, []);
 
-  // fabricate test data
-  const lat_lons = [
-    [-123.2031083, 49.2614389],
-    [-123.2015639, 49.2619222],
-    [-123.2004083, 49.2619611],
-    [-123.1799556, 49.262375],
-    [-123.180675, 49.2624583],
-    [-123.20135, 49.262825],
-    [-123.2060917, 49.2632417],
-    [-123.2035528, 49.2632722],
-    [-123.2041, 49.2632833],
-    [-123.2041417, 49.263425],
-    [-123.2041611, 49.2635583],
-    [-123.2031528, 49.2638917],
-    [-123.2028361, 49.2652667],
-    [-123.1873472, 49.2652889],
-    [-123.1857444, 49.2678583],
-    [-123.2138889, 49.2728917],
-  ];
-
-  const urls = [
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620539/yvr-user-photos/49.2614389-123.2031083.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620539/yvr-user-photos/49.2619222-123.2015639.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2619611-123.2004083.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620541/yvr-user-photos/49.262375-123.1799556.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620539/yvr-user-photos/49.2624583-123.180675.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620541/yvr-user-photos/49.262825-123.20135.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620539/yvr-user-photos/49.2632417-123.2060917.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620539/yvr-user-photos/49.2632722-123.2035528.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2632833-123.2041.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620539/yvr-user-photos/49.263425-123.2041417.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2635583-123.2041611.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2638917-123.2031528.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2652667-123.2028361.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2652889-123.1873472.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2678583-123.1857444.jpg",
-    "https://res.cloudinary.com/syvr-street-trees/image/upload/v1674620540/yvr-user-photos/49.2728917-123.2138889.jpg",
-  ];
-
-  function makePhotoFeature(
-    coordinates: Position,
-    url: string,
-    id: number
-  ): Feature {
-    return {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: coordinates,
-      },
-      properties: {
-        id: id,
-        message: "Foo",
-        size: 6,
-        image: url,
-        date: "2022-06-03",
-      },
-    };
+  const handleNoPositionUpload = (userFile: Blob) => {
+    setUserInputPosVisible(true);
+    setMarker({ latitude: viewState.latitude, longitude: viewState.longitude });
+    setIsInfoPanelExpanded(false);
+    setViewState({ ...viewState, padding: { left: 0, top: 0, right: 0, bottom: 0 } } )
   }
 
   // fetch data
@@ -241,56 +210,24 @@ function MapComponent() {
 
   // state
   const [userPhotoList, setUserPhotoList] = useState<
-    FeatureCollection<Geometry | GeometryCollection, Properties>
+    FeatureCollection<Geometry | GeometryCollection, Properties> | Array<any>
   >({
     type: "FeatureCollection",
     features: [],
   });
 
-//   useEffect(() => {
-//     setUserPhotoList({
-//       type: "FeatureCollection",
-//       features: lat_lons.map((current, index) => {
-//         return makePhotoFeature(current, urls[index], index);
-//       }),
-//     });
-//   }, []);
-
-//   useEffect(() => {
-//     fetch("http://127.0.0.1:8000/photo/user-photo")
-//         .then((response) => response.json())
-//         .then(json => setUserPhotoList(json));
-//   }, []);
-
-  /* As a second example, an API call inside an useEffect with fetch: */
-
+/* As a second example, an API call inside an useEffect with fetch: */
 useEffect(() => {
-    const abortController = new AbortController();
-
     const fetchUserPhotos = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/photo/user-photo", {
-          signal: abortController.signal,
-        });
-        const json = await res.json();
-        // console.log(json)
-        setUserPhotoList(json.data)
-      } catch (error: any) {
-        if (error.name !== "AbortError") {
-          /* Logic for non-aborted error handling goes here. */
-        }
-      }
+        apiClient.userphotos.getUserPhotos()
+            .then(response => setUserPhotoList(response.data))
+            .catch(error => console.log(error));
     };
 
     fetchUserPhotos();
 
-    /*
-      Abort the request as it isn't needed anymore, the component being
-      unmounted. It helps avoid, among other things, the well-known "can't
-      perform a React state update on an unmounted component" warning.
-    */
-    return () => abortController.abort();
-  }, []);
+    // return () => new AbortController().abort();
+}, []);
 
   // window geometry related hooks
   const isNarrow = useWindowSize(600);
@@ -388,12 +325,18 @@ useEffect(() => {
         trees: [],
       });
     }
-    if (infoPanelRef && infoPanelRef.current)
-      infoPanelRef.current.scrollTo(0, 0);
+    infoPanelRef.current?.scrollTo(0,0);
+    // if (infoPanelRef && infoPanelRef.current)
+    //   infoPanelRef.current.scrollTo(0, 0);
   };
 
   const handleToggleInfoPanel = useCallback(
-    () => setIsInfoPanelExpanded(!isInfoPanelExpanded),
+    () => {
+        if (!isInfoPanelExpanded)
+            infoPanelRef.current?.scrollTo(0,0);
+        setIsInfoPanelExpanded(!isInfoPanelExpanded)
+
+    },
     [isInfoPanelExpanded]
   );
 
@@ -512,19 +455,17 @@ useEffect(() => {
         minZoom={MIN_ZOOM}
         maxZoom={MAX_ZOOM}
         maxBounds={BOUNDS}
-        // pitch={0}
         pitchWithRotate={false}
         dragRotate={false}
       >
-        {/* <Geocoder
-          mapRef={mapRef}
-          mapboxApiAccessToken={MAPBOX_TOKEN}
-          position="top-right"
-          onViewportChange={handleGeocoderViewportChange}
-          placeholder="Search Address"
-          proximity={GEOCODER_PROXIMITY}
-          country="CANADA"
-        /> */}
+
+        {userInputPosVisible &&
+            <>
+                <LocationDialog />
+                <LocationSelectSenderButton marker={marker} handleClick={() => console.log("Not implemented.")}/>
+                <LocationSelectMarker marker={marker} onMarkerDrag={onMarkerDrag}/>
+            </>
+        }
         <GeocoderControl
           mapboxAccessToken={MAPBOX_TOKEN}
           position="top-right"
@@ -679,6 +620,7 @@ useEffect(() => {
             />
           </>
         )}
+        <ImageUploader handleUploadFile={UploadImageFile} handleNoPositionUpload={handleNoPositionUpload}/>
       </InfoPanel>
       <FilterPanel
         //   @ts-ignore
