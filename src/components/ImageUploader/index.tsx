@@ -5,10 +5,13 @@ import { UploadFile, CameraAlt } from "@mui/icons-material";
 import UserPhotoFeature from "../../api-client/types";
 import { point } from "@turf/turf";
 import { MakeUserPhotoFeature } from "../../handlers/map-handlers";
+import { TreemapResponse, TreemapResponseError } from "../../api-client/client";
 
 interface ImageUploaderProps {
     handleUploadFile: CallableFunction,
-    handleNoPositionUpload: CallableFunction
+    handleNoPositionUpload: CallableFunction,
+    onCompleteCallback: (response: TreemapResponse | TreemapResponseError) => void
+    // setFile: (event: any) => void
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) => {
@@ -22,34 +25,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) 
         hiddenFileInput.current?.click();
       };
 
-    const handleCameraUploadClick = () => {
-        hiddenCameraInput.current?.click();
-    };
-
     const handleFileChange = event => {
         const userFile = event.target.files[0];
-        let coordinates: Array<number>;
         tryGetUserLocation()
             .then((result: GeolocationPosition) => {
-                // coordinates = [result.coords.longitude, result.coords.latitude]
-                // const userEntry: UserPhotoFeature = point(coordinates);
                 const userEntry: UserPhotoFeature = MakeUserPhotoFeature(
-                    result.coords.latitude,
-                    result.coords.longitude
+                    result.coords
                 )
-                props.handleUploadFile(userEntry, userFile);
+                props.handleUploadFile(userEntry, userFile, props.onCompleteCallback);
             }
             ).catch(error => {
                 if (error instanceof(GeolocationPositionError))
                     props.handleNoPositionUpload(userFile);
 
                 console.log(error);
-            });
-
-        // const coordinates = [-123.153057, 49.240019]; // [long, lat] order
-        // const userEntry: UserPhotoFeature = point(coordinates);
-
-        // props.handleUploadFile(userEntry, fileUploaded);
+            }
+        );
     };
 
     return (
@@ -59,9 +50,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) 
                 color="success"
                 startIcon={<CameraAlt/>}
                 onClick={handleImageUploadClick}
+                style={{'marginBottom': '3rem'}}
             >
                 Add Photo
-            </Button>
+            </Button >
             <input
                 type="file"
                 accept="image/*"

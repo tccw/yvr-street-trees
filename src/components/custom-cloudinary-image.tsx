@@ -7,7 +7,9 @@ import styled from "styled-components";
 //   placeholder,
 // } from "@cloudinary/react";
 // import { Cloudinary } from "@cloudinary/url-gen";
+// @ts-ignore
 import { Image, Transformation } from "cloudinary-react";
+// @ts-ignore
 import { CLOUD_NAME } from "../../env";
 
 const NoTreeImage = styled.img`

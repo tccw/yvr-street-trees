@@ -8,7 +8,8 @@ import {
   OpenFlagContainer,
 } from "./styles";
 import { ChevronRight, ChevronLeft } from "../../svg-icons";
-import Logo from "../../assets/road.png";
+// import Logo from "../../assets/road.png";
+import Logo from "../../assets/Spring 100x100.png";
 
 interface InfoPanelProps {
   color: string;
@@ -34,8 +35,9 @@ const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
               {ChevronLeft}
             </OpenCloseButton>
             <img src={Logo} style={{
-                'maxHeight': '40px',
-                'marginRight': '1rem'
+                'maxHeight': '2.5rem',
+                'marginRight': '0.2rem',
+                'padding': '0.1rem'
             }} />
           </PanelHeader>
           <Title>

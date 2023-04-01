@@ -10,6 +10,7 @@ import Map, {
   AttributionControl,
   GeolocateControl,
   MarkerDragEvent,
+  useMap,
 } from "react-map-gl";
 import mapboxgl, { EventData, MapLayerMouseEvent } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -38,11 +39,12 @@ import {
   MAP_STYLE_SATELLITE,
   STATS,
   WELCOME_MSG,
-  CLOUD_NAME
+  CLOUD_NAME,
 } from "../../../env";
 import {
   circle,
   Feature,
+  featureCollection,
   FeatureCollection,
   Geometry,
   GeometryCollection,
@@ -66,21 +68,28 @@ import {
   userPhotoHeatmapLayer,
   userPhotoHighlights,
 } from "../../styles/map-styles";
-import { TreeFilter } from "../Types";
+import { TreeFilter } from "../../types/component_types";
 import BoundaryStats from "../BoundaryStats";
 import UserImageGrid from "../UserPhotoGrid";
 import MapStyleToggle from "../MapStyleToggle";
 import GeocoderControl from "../../geocoder-control";
 import ImageUploader from "../ImageUploader";
-import { Client } from "../../api-client/client";
+import { Client, TreemapResponse, TreemapResponseError } from "../../api-client/client";
 import SelfLocatePin from "../SelfLocatePin";
-import { UploadImageFile } from "../../handlers/map-handlers";
+import { MakeUserPhotoFeature, tryGetUserLocation, UploadImageFile } from "../../handlers/map-handlers";
 import LocationDialog from "../LocationDialog";
 import LocationSelectSenderButton from "../LocationSelectSenderBotton";
 import LocationSelectMarker from "../LocationSelectMarker";
 import { padding } from "@mui/system";
+import { useNavigate, useParams } from "react-router-dom";
+import UserPhotoFeature from "../../api-client/types";
+import { AlertColor } from "@mui/material";
+import HttpStatusCode from "../../api-client/http-status-codes";
+import AlertBox from "../AlertBox";
+import { AlertDetailsProps } from "../../types/component_types";
 
-const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
+
+// const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
 export const DEFAULT_TITLE = `Vancouver Street Trees`;
 const MAX_ZOOM = 18.5;
 const MIN_ZOOM = 11;
@@ -111,61 +120,77 @@ const BOUNDS = [
 const apiClient = new Client();
 
 function MapComponent() {
-  const mapRef = useRef<MapRef>(null);
-  const [boundaries, setBoundaries] = useState<FeatureCollection>({
-    type: "FeatureCollection",
-    features: [],
-  });
-  const [centroids, setCentroids] = useState<FeatureCollection>({
-    type: "FeatureCollection",
-    features: [],
-  });
-  const [blurbs, setBlurbs] = useState<object>({});
-  const [stats, setStats] = useState<object>({});
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [userPhotoId, setUserPhotoId] = useState<number>(0);
-  const [defaultValue, setDefaultValue] = useState<any[]>([]); // lifted state from filter-panel. Allows for synchronization between
-  const [filterPanelSelected, setFilterPanelSelected] = useState(false);
-  const [style, setStyle] = useState(MAP_STYLE_CONTRAST);
-  const [title, setTitle] = useState(DEFAULT_TITLE);
-  const [interactiveLayers, setInteractiveLayers] = useState<string[]>([]);
+    // routing
+    // const navigate = useNavigate();
+    // const {treeId} = useParams();
 
-  const [userInputPosVisible, setUserInputPosVisible] = useState<boolean>(false);
-  const [allData, setAllData] = useState<any>();
-  const [hoverInfo, setHoverInfo] = useState<any>();
-  const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
-  const [selected, setSelected] = useState<any>();
-  const [cursor, setCursor] = useState<string>("grab");
-  const [treeFilterObject, setTreeFilterObject] = useState<TreeFilter>({
-    trees: [],
-    diameters: [0, 42],
-    height_ids: [0,1,2,3,4,5,6,7,8,9,10],
-  });
-  const [viewState, setViewState] = useState<ViewState>({
-    latitude: GEOCODER_PROXIMITY.latitude,
-    longitude: GEOCODER_PROXIMITY.longitude,
-    zoom: 11.5,
-    bearing: 0,
-    pitch: 0,
-    padding: { left: 0, top: 0, right: 0, bottom: 0 },
-  });
-  const [marker, setMarker] = useState({
-    latitude: GEOCODER_PROXIMITY.latitude,
-    longitude: GEOCODER_PROXIMITY.longitude
-  });
-  const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
+    const [userFile, setUserFile] = useState<Blob | undefined>(undefined);
+    const [alertDetails, setAlertDetails] = useState<AlertDetailsProps>({
+        isAlertVisible: false,
+        alertMessage: "",
+        alertSeverity: undefined
+    })
+
+    const mapRef = useRef<MapRef>(null);
+    const [boundaries, setBoundaries] = useState<FeatureCollection>({
+        type: "FeatureCollection",
+        features: [],
+    });
+    const [centroids, setCentroids] = useState<FeatureCollection>({
+        type: "FeatureCollection",
+        features: [],
+    });
+    const [blurbs, setBlurbs] = useState<object>({});
+    const [stats, setStats] = useState<object>({});
+    const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [userPhotoId, setUserPhotoId] = useState<number>(0);
+    const [defaultValue, setDefaultValue] = useState<any[]>([]); // lifted state from filter-panel. Allows for synchronization between
+    const [filterPanelSelected, setFilterPanelSelected] = useState(false);
+    const [style, setStyle] = useState(MAP_STYLE_CONTRAST);
+    const [title, setTitle] = useState(DEFAULT_TITLE);
+    const [interactiveLayers, setInteractiveLayers] = useState<string[]>([]);
+
+    const [userInputPosVisible, setUserInputPosVisible] =
+        useState<boolean>(false);
+    const [allData, setAllData] = useState<any>();
+    const [hoverInfo, setHoverInfo] = useState<any>();
+    const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
+    const [selected, setSelected] = useState<any>();
+    const [cursor, setCursor] = useState<string>("grab");
+    const [treeFilterObject, setTreeFilterObject] = useState<TreeFilter>({
+        trees: [],
+        diameters: [0, 42],
+        height_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    });
+    const [viewState, setViewState] = useState<ViewState>({
+        latitude: GEOCODER_PROXIMITY.latitude,
+        longitude: GEOCODER_PROXIMITY.longitude,
+        zoom: 11.5,
+        bearing: 0,
+        pitch: 0,
+        padding: { left: 0, top: 0, right: 0, bottom: 0 },
+    });
+    const [marker, setMarker] = useState({
+        latitude: GEOCODER_PROXIMITY.latitude,
+        longitude: GEOCODER_PROXIMITY.longitude,
+    });
+    const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
     setMarker({
       longitude: event.lngLat.lng,
-      latitude: event.lngLat.lat
+      latitude: event.lngLat.lat,
     });
   }, []);
 
   const handleNoPositionUpload = (userFile: Blob) => {
+    setUserFile(userFile);
     setUserInputPosVisible(true);
     setMarker({ latitude: viewState.latitude, longitude: viewState.longitude });
     setIsInfoPanelExpanded(false);
-    setViewState({ ...viewState, padding: { left: 0, top: 0, right: 0, bottom: 0 } } )
-  }
+    setViewState({
+      ...viewState,
+      padding: { left: 0, top: 0, right: 0, bottom: 0 },
+    });
+  };
 
   // fetch data
   /* fetch Vancouver tree related data */
@@ -209,25 +234,98 @@ function MapComponent() {
   }, []);
 
   // state
-  const [userPhotoList, setUserPhotoList] = useState<
+  const [userPhotoFeatureCollection, setUserPhotoFeatureCollection] = useState<
     FeatureCollection<Geometry | GeometryCollection, Properties> | Array<any>
   >({
     type: "FeatureCollection",
     features: [],
   });
 
-/* As a second example, an API call inside an useEffect with fetch: */
-useEffect(() => {
+  /* As a second example, an API call inside an useEffect with fetch: */
+  useEffect(() => {
     const fetchUserPhotos = async () => {
-        apiClient.userphotos.getUserPhotos()
-            .then(response => setUserPhotoList(response.data))
-            .catch(error => console.log(error));
+      apiClient.userphotos
+        .getUserPhotos()
+        .then((response) => setUserPhotoFeatureCollection(response.data))
+        .catch((error) => console.log(error));
     };
 
     fetchUserPhotos();
 
     // return () => new AbortController().abort();
-}, []);
+  }, []);
+
+  function showAlertTimeout(severity: AlertColor, msg: string, timeout: number = 5000): void {
+    setAlertDetails(
+        {
+            isAlertVisible: true,
+            alertSeverity: severity,
+            alertMessage: msg
+        }
+    );
+    setTimeout(() => {
+        setAlertDetails(prev => ({...prev, isAlertVisible: false}));
+    }, timeout);
+  }
+
+  const onCompleteCallback = (response: TreemapResponse | TreemapResponseError) => {
+    if ((response as TreemapResponse).type !== undefined) {
+        setUserPhotoFeatureCollection(() => {
+            const resp = response as TreemapResponse;
+            if (resp.type === "object" && resp.data.type === "Feature") {
+                delete resp.data.properties._id;
+                const tmpPhotoFeatures = [...userPhotoFeatureCollection.features, response.data];
+                const collection = featureCollection(tmpPhotoFeatures);
+                const animationRequestId = window.requestAnimationFrame(() =>
+                    setUserPhotoFeatureCollection(collection)
+                );
+            }
+            // clear the userFile
+            setUserFile(undefined);
+        })
+        showAlertTimeout("success", "Successfully uploaded image!")
+
+    } else if (response instanceof TreemapResponseError) {
+        switch(response.status) {
+            case(HttpStatusCode.BAD_REQUEST):
+                showAlertTimeout(
+                    "warning",
+                    "Oops! Something unexpected happened and your photo was not uploaded :("
+                    );
+                break;
+            case(HttpStatusCode.UNPROCESSABLE_ENTITY):
+                showAlertTimeout(
+                    "warning",
+                    "Could not upload image."
+                    );
+                break;
+            case(HttpStatusCode.INTERNAL_SERVER_ERROR):
+                showAlertTimeout(
+                    "error",
+                    "It's not you, it's me! Please try again in a few minutes."
+                    );
+                break;
+            case(HttpStatusCode.LOCKED):
+                    showAlertTimeout(
+                        "info",
+                        "User-added photos are temporarily disabled."
+                    );
+                    break;
+            default:
+                showAlertTimeout(
+                    "error",
+                    "Yikes! Something funny happened and your photo likely was not uploaded."
+                    );
+                break;
+        }
+    }
+    else {
+        showAlertTimeout(
+            "error",
+            "Unsuccessful upload"
+        );
+    }
+  }
 
   // window geometry related hooks
   const isNarrow = useWindowSize(600);
@@ -287,11 +385,11 @@ useEffect(() => {
 
         // update the viewport
         setViewState({
-            ...viewState,
-            longitude,
-            latitude,
-            zoom,
-            });
+          ...viewState,
+          longitude,
+          latitude,
+          zoom,
+        });
 
         if (!isInfoPanelExpanded) {
           setIsInfoPanelExpanded(true);
@@ -301,12 +399,15 @@ useEffect(() => {
         switch (feature.layer.id) {
           case TREE_LAYER_NAME:
             title = feature.properties.common_name;
+            // navigate(`/tree/${feature.properties.tree_id}`)
             break;
           case "userphotos-data":
             title = "User Photos!";
+            // navigate(`/user-photo/${feature.properties.public_id.split("/")[1]}`)
             break;
           case "boundaries":
             title = feature.properties.name;
+            // navigate(`/neighbourhood/${feature.properties.mapid}`)
             break;
           default:
             title = DEFAULT_TITLE;
@@ -317,7 +418,13 @@ useEffect(() => {
       setTitle(DEFAULT_TITLE);
     }
 
-    setSelected(feature || null);
+    // setTimeout(() => {
+    //     setSelected(feature || null)
+    //     if (!isInfoPanelExpanded) {
+    //         setIsInfoPanelExpanded(true);
+    //     }
+    // }, 650);
+    setSelected(feature || null)
     setFilterPanelSelected(Boolean(feature));
     if (!feature) {
       setTreeFilterObject({
@@ -325,20 +432,13 @@ useEffect(() => {
         trees: [],
       });
     }
-    infoPanelRef.current?.scrollTo(0,0);
-    // if (infoPanelRef && infoPanelRef.current)
-    //   infoPanelRef.current.scrollTo(0, 0);
+    infoPanelRef.current?.scrollTo(0, 0);
   };
 
-  const handleToggleInfoPanel = useCallback(
-    () => {
-        if (!isInfoPanelExpanded)
-            infoPanelRef.current?.scrollTo(0,0);
-        setIsInfoPanelExpanded(!isInfoPanelExpanded)
-
-    },
-    [isInfoPanelExpanded]
-  );
+  const handleToggleInfoPanel = useCallback(() => {
+    if (!isInfoPanelExpanded) infoPanelRef.current?.scrollTo(0, 0);
+    setIsInfoPanelExpanded(!isInfoPanelExpanded);
+  }, [isInfoPanelExpanded]);
 
   useEffect(() => {
     /**
@@ -353,13 +453,13 @@ useEffect(() => {
             padding: isNarrow
               ? { left: 100, top: 100, right: 100, bottom: measurements.height }
               : { left: measurements.width, top: 100, right: 100, bottom: 100 },
-            essential: true
+            essential: true,
           })
         : mapRef.current.getMap().easeTo({
             padding: isNarrow
               ? { left: 100, top: 100, right: 100, bottom: 0 }
               : { left: 0, top: 100, right: 100, bottom: 100 },
-              essential: true
+            essential: true,
           });
   }, [measurements?.width, handleToggleInfoPanel]);
 
@@ -384,12 +484,12 @@ useEffect(() => {
   };
 
   const onClickZoom = () => {
+    const DURATION = 650;
     mapRef.current?.getMap().easeTo({
-        zoom: 14.5,
-        duration: 650
-    })
+      zoom: 14.5,
+      duration: DURATION,
+    });
     setTimeout(() => setViewState({ ...viewState, zoom: 14.5 }), 650);
-
   };
 
   var selection = "";
@@ -400,11 +500,16 @@ useEffect(() => {
     selection = selected.properties.tree_id;
   } else if (selected && selected.layer.id == "userphotos-data") {
     const center = selected.geometry.coordinates;
-    const radius = 200;
+    const radius = 500;
     const options: { units: Units } = { units: "meters" };
     const circ = circle(center, radius, options);
     // @ts-ignore
-    featuresSelection = pointsWithinPolygon(userPhotoList, circ).features;
+    if (userPhotoFeatureCollection){
+        featuresSelection = pointsWithinPolygon(userPhotoFeatureCollection, circ).features
+        .sort((a, b) => {
+            return new Date(b.properties?.created_at_utc).getTime() - new Date(a.properties?.created_at_utc).getTime()
+        });
+    }
   }
 
   // memoized filters
@@ -431,9 +536,25 @@ useEffect(() => {
 
   const onLoad = () => {
     mapRef.current?.getMap().moveLayer(TREE_LAYER_NAME, "boundaries-focus");
-    setInteractiveLayers([LAYER_NAME, "boundaries", "userphotos-data"])
+    setInteractiveLayers([TREE_LAYER_NAME, "boundaries", "userphotos-data"]);
     setIsLoaded(true);
+    let f: mapboxgl.MapLayerEventType
+    let feat = mapRef.current?.querySourceFeatures("van-trees-tiles", {sourceLayer: TREE_LAYER_NAME});
+    console.log(feat);
+
   };
+//   useEffect(() => {
+//     if (treeId !== undefined && treeId !== null && interactiveLayers.length !== 0) {
+//         let features = mapRef.current?.querySourceFeatures(
+//             TREE_LAYER_NAME,
+//             {
+//                 sourceLayer: TREE_LAYER_NAME,
+//                 filter: ["==", "tree_id", parseInt(treeId)]
+//             }
+//         );
+//         console.log(features);
+//     }
+//   }, [interactiveLayers]);
 
   return (
     <>
@@ -458,14 +579,19 @@ useEffect(() => {
         pitchWithRotate={false}
         dragRotate={false}
       >
-
-        {userInputPosVisible &&
-            <>
-                <LocationDialog />
-                <LocationSelectSenderButton marker={marker} handleClick={() => console.log("Not implemented.")}/>
-                <LocationSelectMarker marker={marker} onMarkerDrag={onMarkerDrag}/>
-            </>
-        }
+        {userInputPosVisible && (
+          <>
+            <LocationDialog />
+            <LocationSelectSenderButton
+              marker={marker}
+              userFile={userFile}
+              onCompleteCallback={onCompleteCallback}
+              onClickHide={() => setUserInputPosVisible(false)}
+            />
+            <LocationSelectMarker marker={marker} onMarkerDrag={onMarkerDrag} />
+          </>
+        )}
+        <AlertBox {...alertDetails} />
         <GeocoderControl
           mapboxAccessToken={MAPBOX_TOKEN}
           position="top-right"
@@ -475,7 +601,7 @@ useEffect(() => {
           marker={false}
         />
         {/* @ts-ignore */}
-        <Source type="geojson" data={boundaries}>
+        <Source id="city-boundaries" type="geojson" data={boundaries}>
           {/* @ts-ignore */}
           <Layer
             {...(filterValidForWideZoom(treeFilterObject)
@@ -492,7 +618,7 @@ useEffect(() => {
         </Source>
         {/* {userPhotos} */}
         {/* @ts-ignore */}
-        <Source type="geojson" data={centroids}>
+        <Source id="city-boundary-centroids" type="geojson" data={centroids}>
           {/* @ts-ignore */}
           <Layer
             {...(filterValidForWideZoom(treeFilterObject)
@@ -503,12 +629,12 @@ useEffect(() => {
         </Source>
         {/* // https://github.com/mapbox/mapbox-gl-js/issues/9112 */}
         {/* @ts-ignore */}
-        <Source type="geojson" data={userPhotoList}>
+        <Source id="user-photos" type="geojson" data={userPhotoFeatureCollection}>
           <Layer {...userPhotoHeatmapLayer} />
           <Layer {...userPhotoCircleLayer} />
           <Layer {...userPhotoHighlights} filter={userPhotoHighlightFilter} />
         </Source>
-        <Source type="vector" url={VAN_ALL_TREES_TILES}>
+        <Source id="van-trees-tiles" type="vector" url={VAN_ALL_TREES_TILES}>
           {/* @ts-ignore */}
           <Layer
             {...(filterValidForWideZoom(treeFilterObject)
@@ -548,11 +674,11 @@ useEffect(() => {
             }}
           >
             <UserPhotoMarker
-            //   size={featuresSelection[userPhotoId].properties.size}
+              //   size={featuresSelection[userPhotoId].properties.size}
               size={6}
-              url={
-                cloudinaryIdToCircleImage(featuresSelection[userPhotoId].properties.public_id)
-              }
+              url={cloudinaryIdToCircleImage(
+                featuresSelection[userPhotoId].properties.public_id
+              )}
             />
           </Marker>
         )}
@@ -576,16 +702,16 @@ useEffect(() => {
       >
         {!selected && stats.tree_stats && (
           <>
-                <BoundaryStats
-                    currentState={treeFilterObject}
-                    updateParent={(props: any) => setTreeFilterObject({ ...props })}
-                    heading="Citywide"
-                    name="Vancouer"
-                    stats={stats}
-                    type="city"
-                    description={WELCOME_MSG}
-                />
-                <a href=""></a>
+            <BoundaryStats
+              currentState={treeFilterObject}
+              updateParent={(props: any) => setTreeFilterObject({ ...props })}
+              heading="Citywide"
+              name="Vancouer"
+              stats={stats}
+              type="city"
+              description={WELCOME_MSG}
+            />
+            <a href=""></a>
           </>
         )}
         {selected && selected.layer.id == "boundaries" && (
@@ -620,7 +746,11 @@ useEffect(() => {
             />
           </>
         )}
-        <ImageUploader handleUploadFile={UploadImageFile} handleNoPositionUpload={handleNoPositionUpload}/>
+        <ImageUploader
+          handleUploadFile={UploadImageFile}
+          handleNoPositionUpload={handleNoPositionUpload}
+          onCompleteCallback={onCompleteCallback}
+        />
       </InfoPanel>
       <FilterPanel
         //   @ts-ignore
@@ -641,9 +771,9 @@ useEffect(() => {
 }
 
 function cloudinaryIdToCircleImage(publicId: string): string {
-    let base: string = "https://res.cloudinary.com"
-    let circle_url: string = `${base}/${CLOUD_NAME}/image/upload/h_150,ar_1.0,c_fill,q_auto/r_max/${publicId}`
-    return circle_url
+  let base: string = "https://res.cloudinary.com";
+  let circle_url: string = `${base}/${CLOUD_NAME}/image/upload/h_150,ar_1.0,c_fill,q_auto/r_max/${publicId}`;
+  return circle_url;
 }
 
 export default MapComponent;

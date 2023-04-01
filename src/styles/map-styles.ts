@@ -1,6 +1,7 @@
 // For more information on data-driven styles, see https://www.mapbox.com/help/gl-dds-ref/
 import { CircleLayer, FillLayer, HeatmapLayer, LineLayer, SymbolLayer } from 'react-map-gl';
-import { LAYER_NAME } from '../../env'
+// @ts-ignore
+import { LAYER_NAME } from '../../env';
 
 
 export const boundaryTrasitionZoomLevel = 13.5;

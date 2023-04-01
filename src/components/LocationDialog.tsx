@@ -34,22 +34,17 @@ export default function LocationDialog() {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          {"Use Google's location service?"}
+          {"Use your current location?"}
         </DialogTitle>
-        <DialogContent>
+        {/* <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            You've chosen not to share your location or we cannot get an accurate
-            reading of your position. You can manually set the photo location by dragging
-            the orange pin to the correct location.
-
-            Would you like to use this method for future photos?
+            Your location will only be used for photo location and no identifying information is collected.
           </DialogContentText>
-        </DialogContent>
+        </DialogContent> */}
         <DialogActions>
-          <Button onClick={handleClose}>Disagree</Button>
-          <Button onClick={handleClose} autoFocus>
-            Do this for every
-          </Button>
+          <Button onClick={handleClose} variant="outlined">My Location</Button>
+          <Button onClick={handleClose} autoFocus>Set Manually</Button>
+          {/* <Button onClick={handleClose}>Always use my location</Button> */}
         </DialogActions>
       </Dialog>
   );

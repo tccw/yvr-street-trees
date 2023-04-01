@@ -92,6 +92,9 @@ const BoundaryStats = ({
 
   const mostCommonSubtitle = () => {
     let result;
+    if (displayStats === null)
+        return
+
     if (type === "neighborhood") {
       result = ` ${Math.round(
         (displayStats.mostCommonSpecies.count /

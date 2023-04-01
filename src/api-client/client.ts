@@ -1,4 +1,4 @@
-import { FeatureCollection, Geometry, GeometryCollection, Properties } from "@turf/turf";
+import { Feature, FeatureCollection, Geometry, GeometryCollection, Properties } from "@turf/turf";
 
 interface RequestOptions {
     endpoint: string;
@@ -12,7 +12,7 @@ interface RequestOptions {
 
 interface TreemapResponse {
     type: "object" | "list" | string;
-    data: FeatureCollection<Geometry | GeometryCollection, Properties> | Array<any>;
+    data: FeatureCollection<Geometry | GeometryCollection, Properties> | Array<any> | Feature;
 }
 
 export class Client {
@@ -81,7 +81,8 @@ async function request({
     request_body,
     method,
     max_retries,
-    base_url = "http://127.0.0.1:8000",
+    // base_url = "https://treemap-api.azurewebsites.net",
+    base_url= "http://127.0.0.1:8000",
     headers,
     ...options
   }: RequestOptions): Promise<Response> {
@@ -101,6 +102,7 @@ async function request({
     const response = await fetchWithRetries(
       url.toString(),
       {
+        // @ts-ignore
         headers: {
           ...((includeBody && !isFormData)
             ? { "Content-Type": "application/json; charset=utf-8" }
@@ -163,3 +165,5 @@ async function request({
       this.error = error;
     }
   }
+
+  export { type TreemapResponse, TreemapResponseError }
