@@ -1,14 +1,12 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   heightStringFromID,
   titleCase,
   toPrettyDateString,
   sentenceCase,
-  cloudinaryImageName,
   cloudinaryImageNameCultivar,
 } from "../../utils/utils";
-import styled from "styled-components";
 import { Copy, Check } from "../../svg-icons";
 import CustomCloudinaryImage from "../custom-cloudinary-image";
 import {
@@ -21,8 +19,8 @@ import {
   TreeDetailValue,
   CopyButton,
   Blurb,
-  AttributesContainer,
 } from "./styles";
+import Feedback from "../Feedback";
 
 /**
  * This container should reviece the properties of the selected tree

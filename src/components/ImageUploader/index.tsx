@@ -1,17 +1,12 @@
 import * as React from "react";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import { UploadFile, CameraAlt } from "@mui/icons-material";
-import UserPhotoFeature from "../../api-client/types";
-import { point } from "@turf/turf";
-import { MakeUserPhotoFeature } from "../../handlers/map-handlers";
-import { TreemapResponse, TreemapResponseError } from "../../api-client/client";
+import { CameraAlt } from "@mui/icons-material";
+import HideUserPhotosCheckbox from "../HideUserPhotosCheckbox";
 
 interface ImageUploaderProps {
-    handleUploadFile: CallableFunction,
-    handleNoPositionUpload: CallableFunction,
-    onCompleteCallback: (response: TreemapResponse | TreemapResponseError) => void
-    // setFile: (event: any) => void
+    setFile: (file: Blob) => void
+    toggleImageHeatmap: () => void
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) => {
@@ -25,36 +20,30 @@ const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) 
         hiddenFileInput.current?.click();
       };
 
-    const handleFileChange = event => {
+    const handleFileChange = (event) => {
         const userFile = event.target.files[0];
-        tryGetUserLocation()
-            .then((result: GeolocationPosition) => {
-                const userEntry: UserPhotoFeature = MakeUserPhotoFeature(
-                    result.coords
-                )
-                props.handleUploadFile(userEntry, userFile, props.onCompleteCallback);
-            }
-            ).catch(error => {
-                if (error instanceof(GeolocationPositionError))
-                    props.handleNoPositionUpload(userFile);
-
-                console.log(error);
-            }
-        );
-    };
+        if (userFile)
+            props.setFile(userFile);
+    }
 
     return (
-        <Stack direction="row" spacing={2} justifyContent="center">
+        <Stack direction="row"
+               spacing={2}
+               justifyContent="center"
+               alignItems="center"
+               style={{'marginBottom': '3rem'}}
+        >
             <Button
                 variant="contained"
                 color="success"
                 startIcon={<CameraAlt/>}
                 onClick={handleImageUploadClick}
-                style={{'marginBottom': '3rem'}}
             >
                 Add Photo
             </Button >
+            <HideUserPhotosCheckbox onChange={props.toggleImageHeatmap}/>
             <input
+                hidden
                 type="file"
                 accept="image/*"
                 // capture="environment"
@@ -66,10 +55,5 @@ const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) 
     )
 }
 
-function tryGetUserLocation(): Promise<GeolocationPosition> {
-    return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-    });
-}
 
 export default ImageUploader;

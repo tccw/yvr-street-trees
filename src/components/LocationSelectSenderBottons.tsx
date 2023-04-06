@@ -13,13 +13,14 @@ interface LocationSelectProps {
     marker: {
         latitude: number,
         longitude: number
-    },
-    onCompleteCallback: (response: TreemapResponse | TreemapResponseError) => void,
-    onClickHide: () => void
-    userFile: Blob | undefined
+    };
+    onCompleteCallback: (response: TreemapResponse | TreemapResponseError) => void;
+    onClickHide: () => void;
+    onCancel: () => void;
+    userFile: Blob | undefined;
 }
 
-const LocationSelectSenderButton = (props: LocationSelectProps) => {
+const LocationSelectSenderButtons = (props: LocationSelectProps) => {
     const { marker, onCompleteCallback, userFile } = props;
     const handleOnClick = () => {
         const userEntry = MakeUserPhotoFeature(marker);
@@ -45,7 +46,7 @@ const LocationSelectSenderButton = (props: LocationSelectProps) => {
                 {/* {`(${marker.latitude.toFixed(DISP_ACCURACY)},
                   ${marker.longitude.toFixed(DISP_ACCURACY)})`} */}
             </Fab>
-            <Fab variant="extended" color="error" aria-label="cancel" onClick={handleOnClick}>
+            <Fab variant="extended" color="error" aria-label="cancel" onClick={props.onCancel}>
                 <CancelIcon sx={{ mr: 1 }} />
                     Cancel
             </Fab>
@@ -54,4 +55,4 @@ const LocationSelectSenderButton = (props: LocationSelectProps) => {
     )
 }
 
-export default LocationSelectSenderButton;
+export default LocationSelectSenderButtons;

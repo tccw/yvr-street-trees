@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {useState} from 'react';
 import {useControl, Marker, MarkerProps, ControlPosition} from 'react-map-gl';
 import MapboxGeocoder, {GeocoderOptions} from '@mapbox/mapbox-gl-geocoder';
@@ -44,6 +43,9 @@ export default function GeocoderControl(props: GeocoderControlProps) {
         } else {
           setMarker(null);
         }
+      });
+      ctrl.on('clear', evt => {
+        setMarker(null);
       });
     //   @ts-ignore
       ctrl.on('error', props.onError);

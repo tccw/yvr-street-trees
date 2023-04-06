@@ -78,7 +78,7 @@ import { Client, TreemapResponse, TreemapResponseError } from "../../api-client/
 import SelfLocatePin from "../SelfLocatePin";
 import { MakeUserPhotoFeature, tryGetUserLocation, UploadImageFile } from "../../handlers/map-handlers";
 import LocationDialog from "../LocationDialog";
-import LocationSelectSenderButton from "../LocationSelectSenderBotton";
+import LocationSelectSenderButtons from "../LocationSelectSenderBottons";
 import LocationSelectMarker from "../LocationSelectMarker";
 import { padding } from "@mui/system";
 import { useNavigate, useParams } from "react-router-dom";
@@ -87,10 +87,12 @@ import { AlertColor } from "@mui/material";
 import HttpStatusCode from "../../api-client/http-status-codes";
 import AlertBox from "../AlertBox";
 import { AlertDetailsProps } from "../../types/component_types";
+import HideUserPhotosCheckbox from "../HideUserPhotosCheckbox";
+import Feedback from "../Feedback";
 
 
 // const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
-export const DEFAULT_TITLE = `Vancouver Street Trees`;
+export const DEFAULT_TITLE = `Vancouver Tree Map`;
 const MAX_ZOOM = 18.5;
 const MIN_ZOOM = 11;
 const GEOLOCATE_POS_OPTIONS = { enableHighAccuracy: true };
@@ -174,6 +176,9 @@ function MapComponent() {
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
     });
+    const [isLocationDialogOpen, setIsLocationDialogOpen] = useState<boolean>(false);
+    const [userPhotosVisible, setUserPhotosVisible] = useState<boolean>(true);
+
     const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
     setMarker({
       longitude: event.lngLat.lng,
@@ -181,8 +186,7 @@ function MapComponent() {
     });
   }, []);
 
-  const handleNoPositionUpload = (userFile: Blob) => {
-    setUserFile(userFile);
+  const handleNoLocationUpload = () => {
     setUserInputPosVisible(true);
     setMarker({ latitude: viewState.latitude, longitude: viewState.longitude });
     setIsInfoPanelExpanded(false);
@@ -191,6 +195,12 @@ function MapComponent() {
       padding: { left: 0, top: 0, right: 0, bottom: 0 },
     });
   };
+
+  useEffect(() => {
+    if (userFile) {
+        setIsLocationDialogOpen(true);
+    }
+  }, [userFile]);
 
   // fetch data
   /* fetch Vancouver tree related data */
@@ -280,11 +290,9 @@ function MapComponent() {
                     setUserPhotoFeatureCollection(collection)
                 );
             }
-            // clear the userFile
-            setUserFile(undefined);
+
         })
         showAlertTimeout("success", "Successfully uploaded image!")
-
     } else if (response instanceof TreemapResponseError) {
         switch(response.status) {
             case(HttpStatusCode.BAD_REQUEST):
@@ -325,6 +333,27 @@ function MapComponent() {
             "Unsuccessful upload"
         );
     }
+
+    // clear the userFile
+    setUserFile(undefined);
+  }
+
+  const toggleUserPhotos = () => {
+    const animationRequestId = window.requestAnimationFrame(
+        () => {
+            setUserPhotosVisible(!userPhotosVisible)
+            if (interactiveLayers.length == 3) {
+                setInteractiveLayers([TREE_LAYER_NAME, "boundaries"]);
+            } else {
+                setInteractiveLayers([TREE_LAYER_NAME, "boundaries", "userphotos-data"]);
+            }
+
+            if (selected && selected.layer.id == "userphotos-data") {
+                setSelected(undefined);
+                setTitle(DEFAULT_TITLE);
+            }
+        }
+    );
   }
 
   // window geometry related hooks
@@ -419,12 +448,12 @@ function MapComponent() {
     }
 
     // setTimeout(() => {
-    //     setSelected(feature || null)
-    //     if (!isInfoPanelExpanded) {
-    //         setIsInfoPanelExpanded(true);
-    //     }
+    //     setSelected(feature || undefined)
+    if (!isInfoPanelExpanded) {
+        setIsInfoPanelExpanded(true);
+    }
     // }, 650);
-    setSelected(feature || null)
+    setSelected(feature || undefined)
     setFilterPanelSelected(Boolean(feature));
     if (!feature) {
       setTreeFilterObject({
@@ -538,9 +567,8 @@ function MapComponent() {
     mapRef.current?.getMap().moveLayer(TREE_LAYER_NAME, "boundaries-focus");
     setInteractiveLayers([TREE_LAYER_NAME, "boundaries", "userphotos-data"]);
     setIsLoaded(true);
-    let f: mapboxgl.MapLayerEventType
-    let feat = mapRef.current?.querySourceFeatures("van-trees-tiles", {sourceLayer: TREE_LAYER_NAME});
-    console.log(feat);
+    // let feat = mapRef.current?.querySourceFeatures("van-trees-tiles", {sourceLayer: TREE_LAYER_NAME});
+    // console.log(feat);
 
   };
 //   useEffect(() => {
@@ -555,6 +583,35 @@ function MapComponent() {
 //         console.log(features);
 //     }
 //   }, [interactiveLayers]);
+
+const handleUserLocationUpload = () => {
+    if (!userFile)
+        return
+    tryGetUserLocation()
+        .then((result: GeolocationPosition) => {
+            const userEntry: UserPhotoFeature = MakeUserPhotoFeature(
+                result.coords
+            )
+            UploadImageFile(userEntry, userFile, onCompleteCallback);
+        }
+        ).catch(error => {
+            if (error instanceof(GeolocationPositionError))
+                handleNoLocationUpload();
+
+            console.log(error);
+        }
+    );
+};
+
+const handleUserLocationClose = () => {
+    setIsLocationDialogOpen(false);
+    handleUserLocationUpload();
+  }
+
+  const handleManualLocationClose = () => {
+    setIsLocationDialogOpen(false);
+    handleNoLocationUpload();
+  }
 
   return (
     <>
@@ -579,14 +636,19 @@ function MapComponent() {
         pitchWithRotate={false}
         dragRotate={false}
       >
+        <LocationDialog
+            onUserLocation={handleUserLocationClose}
+            onManualLocation={handleManualLocationClose}
+            isOpen={isLocationDialogOpen}
+        />
         {userInputPosVisible && (
           <>
-            <LocationDialog />
-            <LocationSelectSenderButton
+            <LocationSelectSenderButtons
               marker={marker}
               userFile={userFile}
               onCompleteCallback={onCompleteCallback}
               onClickHide={() => setUserInputPosVisible(false)}
+              onCancel={() => { setUserInputPosVisible(false); setUserFile(undefined);}}
             />
             <LocationSelectMarker marker={marker} onMarkerDrag={onMarkerDrag} />
           </>
@@ -598,7 +660,7 @@ function MapComponent() {
           countries="CA"
           placeholder="SearchAddress"
           proximity={GEOCODER_PROXIMITY}
-          marker={false}
+          marker={true}
         />
         {/* @ts-ignore */}
         <Source id="city-boundaries" type="geojson" data={boundaries}>
@@ -629,11 +691,13 @@ function MapComponent() {
         </Source>
         {/* // https://github.com/mapbox/mapbox-gl-js/issues/9112 */}
         {/* @ts-ignore */}
-        <Source id="user-photos" type="geojson" data={userPhotoFeatureCollection}>
-          <Layer {...userPhotoHeatmapLayer} />
-          <Layer {...userPhotoCircleLayer} />
-          <Layer {...userPhotoHighlights} filter={userPhotoHighlightFilter} />
-        </Source>
+        {userPhotosVisible &&
+            <Source id="user-photos" type="geojson" data={userPhotoFeatureCollection}>
+                <Layer {...userPhotoHeatmapLayer} />
+                <Layer {...userPhotoCircleLayer} />
+                <Layer {...userPhotoHighlights} filter={userPhotoHighlightFilter} />
+            </Source>
+        }
         <Source id="van-trees-tiles" type="vector" url={VAN_ALL_TREES_TILES}>
           {/* @ts-ignore */}
           <Layer
@@ -747,10 +811,10 @@ function MapComponent() {
           </>
         )}
         <ImageUploader
-          handleUploadFile={UploadImageFile}
-          handleNoPositionUpload={handleNoPositionUpload}
-          onCompleteCallback={onCompleteCallback}
+          setFile={(blob) => setUserFile(blob)}
+          toggleImageHeatmap={toggleUserPhotos}
         />
+        <Feedback />
       </InfoPanel>
       <FilterPanel
         //   @ts-ignore

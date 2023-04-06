@@ -10,40 +10,27 @@ import Typography from '@mui/material/Typography';
 import { DialogContentText } from '@mui/material';
 
 
-export interface DialogTitleProps {
-  id: string;
-  children?: React.ReactNode;
-  onClose: () => void;
+export interface LocationDialogProps {
+  onUserLocation: () => void;
+  onManualLocation: () => void;
+  isOpen: boolean;
 }
 
-export default function LocationDialog() {
-  const [open, setOpen] = React.useState(true);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
+export default function LocationDialog(props: LocationDialogProps) {
 
   return (
     <Dialog
-        open={open}
-        onClose={handleClose}
+        open={props.isOpen}
+        onClose={() => console.log("Boom, baby!")}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
           {"Use your current location?"}
         </DialogTitle>
-        {/* <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Your location will only be used for photo location and no identifying information is collected.
-          </DialogContentText>
-        </DialogContent> */}
         <DialogActions>
-          <Button onClick={handleClose} variant="outlined">My Location</Button>
-          <Button onClick={handleClose} autoFocus>Set Manually</Button>
+          <Button onClick={props.onUserLocation} variant="outlined">My Location</Button>
+          <Button onClick={props.onManualLocation} autoFocus>Set Manually</Button>
           {/* <Button onClick={handleClose}>Always use my location</Button> */}
         </DialogActions>
       </Dialog>
