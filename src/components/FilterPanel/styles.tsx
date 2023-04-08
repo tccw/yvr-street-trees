@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 const StyledFilterPanel = styled.div<{ open: boolean }>`
-  z-index: 4;
+  z-index: 2;
   position: absolute;
   top: 45px;
   right: 0;

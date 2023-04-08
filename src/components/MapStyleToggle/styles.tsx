@@ -1,12 +1,6 @@
 import { makeStyles, Radio, RadioGroup, withStyles } from "@mui/material";
 import { green } from "@mui/material/colors";
 import styled from "styled-components";
-// import RadioGroup from '@material-ui/core/RadioGroup';
-// import FormControlLabel from '@material-ui/core/FormControlLabel';
-// import FormControl from '@material-ui/core/FormControl';
-// import { makeStyles, withStyles } from '@material-ui/core/styles';
-// import { green } from '@material-ui/core/colors';
-// import { Typography } from '@material-ui/core'
 import { useWindowSize } from "../../hooks/useWindowSize";
 
 // right: 100px;

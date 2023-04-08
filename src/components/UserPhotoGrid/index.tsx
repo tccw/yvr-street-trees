@@ -6,7 +6,7 @@ import { Image, Transformation } from "cloudinary-react";
 
 interface UserImageGridProperties {
   photoFeatures: Feature[];
-  onClickDo: any;
+  selectPhoto: any;
 }
 
 const ImageContainer = styled.section`
@@ -24,14 +24,14 @@ const ImageContainer = styled.section`
 // https://docs.mapbox.com/mapbox-gl-js/api/map/#map#queryrenderedfeatures
 const UserImageGrid = ({
   photoFeatures,
-  onClickDo: changeSelectedMarkerHandler,
+  selectPhoto,
 }: UserImageGridProperties) => {
   const handleClick = (event: Event) => {
     // onClickDo(arr.indexOf(parseInt(feature.properties.id))
     // indexOf(parseInt(feature.properties.id)
     if (event.target) {
       //@ts-ignore
-      changeSelectedMarkerHandler(parseInt(event.target.id));
+      selectPhoto(parseInt(event.target.id));
     }
   };
 
@@ -43,8 +43,9 @@ const UserImageGrid = ({
                 <Image
                     cloudName={CLOUD_NAME}
                     publicId={feature.properties.public_id}
-                    onMouseEnter={() => changeSelectedMarkerHandler(index)}
-                    onClick={() => changeSelectedMarkerHandler(index)}
+                    id={feature.properties.public_id}
+                    onMouseEnter={() => selectPhoto(index)}
+                    onClick={() => selectPhoto(index)}
                     style={{
                         minWidth: '100%',
                         minHeight: '100%',
@@ -68,9 +69,9 @@ const UserImageGrid = ({
   );
 };
 
-function makePublicIdFromFeature(feature: Feature<Point>) {
-  return `yvr-user-photos/${feature.geometry.coordinates[1]}${feature.geometry.coordinates[0]}`;
-}
+// function makePublicIdFromFeature(feature: Feature<Point>) {
+//   return `yvr-user-photos/${feature.geometry.coordinates[1]}${feature.geometry.coordinates[0]}`;
+// }
 
 function formatDaysAgoLabel(feature: Feature<Point>): string {
     console.log("Not implmented")

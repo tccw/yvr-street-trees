@@ -41,7 +41,6 @@ const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
             }} />
           </PanelHeader>
           <Title>
-
             {title}
             {color && <Dot color={color}></Dot>}
           </Title>

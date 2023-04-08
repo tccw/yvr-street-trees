@@ -1,15 +1,14 @@
-import * as React from "react";
-import styled from "styled-components";
-import ParkMapIcon from "../../public/parkmap.svg";
-import ContrastMapIcon from "../../public/contrastmap.svg";
-import SatelliteMapIcon from "../../public/satellitemap.svg";
-import MapLayersIcon from "../../public/layers.svg";
+import { useEffect, useState } from "react";
+import ParkMapIcon from "../../assets/parkmap.svg";
+import ContrastMapIcon from "../../assets/contrastmap.svg";
+import SatelliteMapIcon from "../../assets/satellitemap.svg";
+import MapLayersIcon from "../../assets/layers.svg";
 import { useComponentVisible } from "../../hooks/useOutsideClick";
 import { MapFigure, MapLayerIcon, MapStyleGrid } from "./styles";
 
 export const MobileMapStyleToggle = (props: any) => {
   const { setStyle, styles } = props;
-  const [mapList, setMapList] = React.useState<JSX.Element[]>([]);
+  const [mapList, setMapList] = useState<JSX.Element[]>([]);
 
   const { ref, isComponentVisible, setIsComponentVisible } =
     useComponentVisible(false);
@@ -20,15 +19,16 @@ export const MobileMapStyleToggle = (props: any) => {
 
   const handleClickMap = (event: any) => {
     setStyle(event.target.value);
+    setIsComponentVisible(false);
   };
 
   const iconMap = {
-    parks: { icon: ParkMapIcon, url: styles[1] },
     contrast: { icon: ContrastMapIcon, url: styles[0] },
+    parks: { icon: ParkMapIcon, url: styles[1] },
     satellite: { icon: SatelliteMapIcon, url: styles[2] },
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     let items = [];
     for (const [key, value] of Object.entries(iconMap)) {
       items.push(
