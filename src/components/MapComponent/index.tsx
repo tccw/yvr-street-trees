@@ -393,9 +393,9 @@ function MapComponent() {
       // calculate the bounding box of the feature
       const [minLng, minLat, maxLng, maxLat] = bbox(feature);
       const easeToDuration = 650;
-
       var options = {
-        padding: { left: 10, top: 10, right: 10, bottom: 10 },
+        // padding: { left: 10, top: 10, right: 10, bottom: 10 },
+        offset: isNarrow ? [0, -measurements?.height / 5] : [100, 0],
         maxZoom: feature.layer.id === TREE_LAYER_NAME ? 17 : 14.5,
         linear: true,
         duration: easeToDuration,
@@ -464,33 +464,75 @@ function MapComponent() {
     infoPanelRef.current?.scrollTo(0, 0);
   };
 
+  // set the marker to be on the photo the user clicked on
+  useEffect(() => {
+    if (selected && selected.layer.id === "userphotos-data") {
+        setUserPhotoId(getIndexFromPublicId(selected.properties.public_id));
+    }
+  }, [selected]);
+
+  function getIndexFromPublicId(public_id: string): number {
+    const index: number = featuresSelection.findIndex(entry => entry.properties.public_id === public_id);
+    return (index < 0) ? 0 : index;
+  }
+
   const handleToggleInfoPanel = useCallback(() => {
     if (!isInfoPanelExpanded) infoPanelRef.current?.scrollTo(0, 0);
     setIsInfoPanelExpanded(!isInfoPanelExpanded);
   }, [isInfoPanelExpanded]);
 
-  useEffect(() => {
-    /**
-     * Padding in fitBounds and padding here do not appear to be the same.
-     * Directly accessing the Map within the DOM and using easeTo seems to be the
-     * only way I can utilize padding to center viewport from the user's perspective
-     * as described here: https://github.com/mapbox/mapbox-gl-js/pull/8638
-     */
+  // ! depending on both measurements and handgleToggleInfoPanel can result in
+  // ! multiple calls to eastTo b/c
+  /**
+   * ! Depending on both measurements and handleToggleInfoPanel can results in
+   * ! multiple calls easeTo. This happens b/c the screen can slightly resize
+   * ! during fitToBounds (b/c measures is based on the infoPanelRef and the infoPanel is changing width).
+   * ! The rapid second call interrupts the fitToBounds and the previous easeTo.
+   * TODO: Fix (could use offset in fitBoundsTo)
+   */
+//   useEffect(() => {
+//     /**
+//      * Padding in fitBounds and padding here do not appear to be the same.
+//      * Directly accessing the Map within the DOM and using easeTo seems to be the
+//      * only way I can utilize padding to center viewport from the user's perspective
+//      * as described here: https://github.com/mapbox/mapbox-gl-js/pull/8638
+//      */
+//     condionallySetPadding();
+//   }, [isLoaded]); // measurements?.width handleToggleInfoPanel # isLoaded, isInfoPanelExpanded
+
+//   useEffect(() => {
+//     condionallySetPadding();
+//   }, [isNarrow]);
+
+//   function offsetVanishingPoint() : void {
+//     if (mapRef && mapRef.current && measurements)
+//         mapRef.current.getMap().easeTo({
+//             padding: isNarrow
+//             ? { bottom: measurements.height }
+//             : { left: measurements.width },
+//             essential: false,
+//         })
+//   }
+//! this can work either with no offset vanishing but correct postitiong with offset
+//! or edits need to be made to the case when isInfoPanelExpanded == false
+  function condionallySetPadding(): void {
     if (mapRef && mapRef.current && measurements)
       isInfoPanelExpanded
         ? mapRef.current.getMap().easeTo({
             padding: isNarrow
               ? { left: 100, top: 100, right: 100, bottom: measurements.height }
               : { left: measurements.width, top: 100, right: 100, bottom: 100 },
-            essential: true,
+            essential: false,
           })
         : mapRef.current.getMap().easeTo({
             padding: isNarrow
               ? { left: 100, top: 100, right: 100, bottom: 0 }
               : { left: 0, top: 100, right: 100, bottom: 100 },
-            essential: true,
+            essential: false,
           });
-  }, [measurements?.width, handleToggleInfoPanel]);
+  }
+
+//   console.log(`height: ${measurements?.height}, widht: ${measurements?.width}`)
 
   const onMouseEnter = useCallback(() => setCursor("pointer"), []);
   const onMouseLeave = useCallback(() => setCursor("grab"), []);
@@ -806,7 +848,7 @@ const handleUserLocationClose = () => {
               //@ts-ignore
               className="photo-container"
               photoFeatures={featuresSelection}
-              onClickDo={setUserPhotoId}
+              selectPhoto={setUserPhotoId}
             />
           </>
         )}
