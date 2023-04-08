@@ -7,17 +7,15 @@ import Map, {
   ViewState,
   Marker,
   NavigationControl,
-  AttributionControl,
   GeolocateControl,
   MarkerDragEvent,
-  useMap,
+  AttributionControl,
 } from "react-map-gl";
-import mapboxgl, { EventData, MapLayerMouseEvent } from "mapbox-gl";
+import { EventData, MapLayerMouseEvent } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import bbox from "@turf/bbox";
 import { InfoContainer } from "../InfoContainer";
-import { ToolTip, layerStyle, highlightStyle, FilterToTree } from "./styles";
-import { Blurb } from "../InfoContainer/styles";
+import { ToolTip, FilterToTree } from "./styles";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { useMeasure } from "@react-hookz/web";
 import FilterPanel from "../FilterPanel";
@@ -43,13 +41,11 @@ import {
 } from "../../../env";
 import {
   circle,
-  Feature,
   featureCollection,
   FeatureCollection,
   Geometry,
   GeometryCollection,
   pointsWithinPolygon,
-  Position,
   Properties,
   Units,
 } from "@turf/turf";
@@ -75,20 +71,19 @@ import MapStyleToggle from "../MapStyleToggle";
 import GeocoderControl from "../../geocoder-control";
 import ImageUploader from "../ImageUploader";
 import { Client, TreemapResponse, TreemapResponseError } from "../../api-client/client";
-import SelfLocatePin from "../SelfLocatePin";
 import { MakeUserPhotoFeature, tryGetUserLocation, UploadImageFile } from "../../handlers/map-handlers";
 import LocationDialog from "../LocationDialog";
 import LocationSelectSenderButtons from "../LocationSelectSenderBottons";
 import LocationSelectMarker from "../LocationSelectMarker";
-import { padding } from "@mui/system";
 import { useNavigate, useParams } from "react-router-dom";
 import UserPhotoFeature from "../../api-client/types";
 import { AlertColor } from "@mui/material";
 import HttpStatusCode from "../../api-client/http-status-codes";
 import AlertBox from "../AlertBox";
 import { AlertDetailsProps } from "../../types/component_types";
-import HideUserPhotosCheckbox from "../HideUserPhotosCheckbox";
 import Feedback from "../Feedback";
+import Footer from "../Footer";
+import TreeAttributionControl from "../TreeAttributionControl";
 
 
 // const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
@@ -677,6 +672,7 @@ const handleUserLocationClose = () => {
         maxBounds={BOUNDS}
         pitchWithRotate={false}
         dragRotate={false}
+        attributionControl={false}
       >
         <LocationDialog
             onUserLocation={handleUserLocationClose}
@@ -768,7 +764,7 @@ const handleUserLocationClose = () => {
           position="bottom-right"
         />
         <NavigationControl showCompass={false} position="bottom-right" />
-        {/* <AttributionControl /> */}
+        <TreeAttributionControl />
         {featuresSelection[userPhotoId] && (
           <Marker
             key={`marker-${featuresSelection[userPhotoId].properties.public_id}`}
@@ -856,7 +852,7 @@ const handleUserLocationClose = () => {
           setFile={(blob) => setUserFile(blob)}
           toggleImageHeatmap={toggleUserPhotos}
         />
-        <Feedback />
+        {/* <Feedback /> */}
       </InfoPanel>
       <FilterPanel
         //   @ts-ignore

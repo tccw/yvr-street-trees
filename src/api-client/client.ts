@@ -81,8 +81,7 @@ async function request({
     request_body,
     method,
     max_retries,
-    // base_url = "https://treemap-api.azurewebsites.net",
-    base_url= "http://127.0.0.1:8000",
+    base_url = "https://treemap-api.azurewebsites.net",
     headers,
     ...options
   }: RequestOptions): Promise<Response> {
