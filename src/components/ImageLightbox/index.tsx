@@ -1,32 +1,42 @@
-import { Image, Transformation } from "cloudinary-react";
-import * as React from "react";
-import { CLOUD_NAME } from "../../../env";
 import CustomCloudinaryImage from "../custom-cloudinary-image";
-import { CentralImage, FadedBackground } from "./styles";
+import { CenteredResponsiveContainer, FadedBackground, ImageBorder } from "./styles";
+import { Transformation } from "cloudinary-react";
 
-const ImageLightbox = () => {
+
+interface ImageLightboxProps {
+    publicId: string | undefined;
+    onClick?: () => void;
+    setVisible?: () => void;
+    setInvisible: () => void;
+    isVisible: boolean
+}
+
+const ImageLightbox = (props: ImageLightboxProps) => {
     return (
-        <FadedBackground>
-            <CustomCloudinaryImage cloudImageId="yvr-user-photos/49.262825-123.20135"/>
-        </FadedBackground>
-        // <CentralImage>
-        // <Image
-        //     cloudName={CLOUD_NAME}
-        //     publicId="yvr-user-photos/49.2635583-123.2041611"
-        //     // style={{
-        //     //     maxWidth: "100%",
-        //     //     maxHeight: "100%",
-        //     //     display: "block",
-        //     //     margin: "auto auto",
-        //     // }}
-        // >
-        //     <Transformation
-        //     fetchFormat="auto"
-        //     quality="auto"
-        //     />
-        // </Image>
-        // </CentralImage>
+        <>
+            <FadedBackground visible={props.isVisible} onClick={props.setInvisible}/>
+            <CenteredResponsiveContainer visible={props.isVisible} onClick={props.setInvisible}>
+                <ImageBorder>
+                    {props.publicId &&
+                    <CustomCloudinaryImage
+                        cloudImageId={props.publicId}
+                        // additionalTransformations={[
+                        //     <Transformation overlay={
+                        //         {fontFamily: "Roboto Mono",
+                        //         fontSize: 60,
+                        //         fontWeight: "bold",
+                        //         text: "2023-01-03",
+                        //         }}
+                        //         color="#f78102"
+                        //     />,
+                        //     <Transformation effect="outline:3" color="white" flags="layer_apply" gravity="south_east" y="10" x="10" />
+                        // ]}
+                    />
+                    }
 
+                </ImageBorder>
+            </CenteredResponsiveContainer>
+        </>
     )
 }
 

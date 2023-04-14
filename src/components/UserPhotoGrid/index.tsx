@@ -1,4 +1,4 @@
-import { Feature, Point } from "@turf/turf";
+import { Feature, Geometry, GeometryCollection, Point, Properties } from "@turf/turf";
 import styled from "styled-components";
 import { CLOUD_NAME } from '../../../env';
 import { ImageGrid } from "./styles";
@@ -7,6 +7,7 @@ import { Image, Transformation } from "cloudinary-react";
 interface UserImageGridProperties {
   photoFeatures: Feature[];
   selectPhoto: any;
+  onClick: () => void;
 }
 
 const ImageContainer = styled.section`
@@ -25,6 +26,7 @@ const ImageContainer = styled.section`
 const UserImageGrid = ({
   photoFeatures,
   selectPhoto,
+  onClick
 }: UserImageGridProperties) => {
   const handleClick = (event: Event) => {
     // onClickDo(arr.indexOf(parseInt(feature.properties.id))
@@ -45,7 +47,10 @@ const UserImageGrid = ({
                     publicId={feature.properties.public_id}
                     id={feature.properties.public_id}
                     onMouseEnter={() => selectPhoto(index)}
-                    onClick={() => selectPhoto(index)}
+                    onClick={() => {
+                        selectPhoto(index);
+                        onClick();
+                    }}
                     style={{
                         minWidth: '100%',
                         minHeight: '100%',
@@ -60,11 +65,28 @@ const UserImageGrid = ({
                         crop="fill"
                         fetchFormat="auto"
                         quality="auto"
-                        />
-
+                    />
+                    <Transformation
+                        overlay={
+                        {fontFamily: "Roboto Mono",
+                        fontSize: 20,
+                        fontWeight: "bold",
+                        text: formatDaysAgoLabel(feature),
+                        }}
+                        color="#f78102"
+                    />
+                    <Transformation
+                        effect="outline:3"
+                        color="white"
+                        flags="layer_apply"
+                        gravity="south_east"
+                        y="10"
+                        x="10"
+                    />
                 </Image>
             </ImageContainer>
-        ))}
+        )
+    )}
     </ImageGrid>
   );
 };
@@ -73,9 +95,8 @@ const UserImageGrid = ({
 //   return `yvr-user-photos/${feature.geometry.coordinates[1]}${feature.geometry.coordinates[0]}`;
 // }
 
-function formatDaysAgoLabel(feature: Feature<Point>): string {
-    console.log("Not implmented")
-    return feature.properties.created_at_utc
+function formatDaysAgoLabel(feature: Feature<Geometry | GeometryCollection, Properties>): string {
+    return feature.properties.created_at_utc.slice(0,10);
 }
 
 export default UserImageGrid;

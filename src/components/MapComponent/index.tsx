@@ -84,6 +84,7 @@ import { AlertDetailsProps } from "../../types/component_types";
 import Feedback from "../Feedback";
 import Footer from "../Footer";
 import TreeAttributionControl from "../TreeAttributionControl";
+import ImageLightbox from "../ImageLightbox";
 
 
 // const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
@@ -173,6 +174,8 @@ function MapComponent() {
     });
     const [isLocationDialogOpen, setIsLocationDialogOpen] = useState<boolean>(false);
     const [userPhotosVisible, setUserPhotosVisible] = useState<boolean>(true);
+    const [clickedPhotoId, setClickedPhotoId] = useState<string | undefined>(undefined);
+    const [isGalleryVisible, setIsGalleryVisible] = useState<boolean>(false);
 
     const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
     setMarker({
@@ -350,6 +353,14 @@ function MapComponent() {
         }
     );
   }
+
+  const ToggleGalleryImage = () => {
+    setClickedPhotoId(featuresSelection[userPhotoId].properties.public_id);
+  };
+  useEffect(() => {
+    if (clickedPhotoId)
+        setIsGalleryVisible(true);
+  }, [clickedPhotoId]);
 
   // window geometry related hooks
   const isNarrow = useWindowSize(600);
@@ -601,7 +612,10 @@ function MapComponent() {
   );
 
   const onLoad = () => {
-    mapRef.current?.getMap().moveLayer(TREE_LAYER_NAME, "boundaries-focus");
+    const map = mapRef.current?.getMap();
+    map?.moveLayer(TREE_LAYER_NAME, "boundaries-focus");
+    map?.dragRotate.disable();
+    map?.touchPitch.disable();
     setInteractiveLayers([TREE_LAYER_NAME, "boundaries", "userphotos-data"]);
     setIsLoaded(true);
     // let feat = mapRef.current?.querySourceFeatures("van-trees-tiles", {sourceLayer: TREE_LAYER_NAME});
@@ -766,24 +780,34 @@ const handleUserLocationClose = () => {
         <NavigationControl showCompass={false} position="bottom-right" />
         <TreeAttributionControl />
         {featuresSelection[userPhotoId] && (
-          <Marker
-            key={`marker-${featuresSelection[userPhotoId].properties.public_id}`}
-            latitude={featuresSelection[userPhotoId].geometry.coordinates[1]}
-            longitude={featuresSelection[userPhotoId].geometry.coordinates[0]}
-            anchor="bottom"
-            style={{
-              pointerEvents: "none",
-            }}
-          >
-            <UserPhotoMarker
-              //   size={featuresSelection[userPhotoId].properties.size}
-              size={6}
-              url={cloudinaryIdToCircleImage(
-                featuresSelection[userPhotoId].properties.public_id
-              )}
-            />
-          </Marker>
+            <>
+                <Marker
+                    key={`marker-${featuresSelection[userPhotoId].properties.public_id}`}
+                    latitude={featuresSelection[userPhotoId].geometry.coordinates[1]}
+                    longitude={featuresSelection[userPhotoId].geometry.coordinates[0]}
+                    anchor="bottom"
+                    style={{
+                    pointerEvents: "none",
+                }}
+                >
+                    <UserPhotoMarker
+                    //   size={featuresSelection[userPhotoId].properties.size}
+                    size={6}
+                    url={cloudinaryIdToCircleImage(
+                        featuresSelection[userPhotoId].properties.public_id
+                    )}
+                    />
+                </Marker>
+            </>
         )}
+            <ImageLightbox
+                publicId={clickedPhotoId}
+                setInvisible={() => {
+                    setIsGalleryVisible(false);
+                    setClickedPhotoId(undefined);
+                }}
+                isVisible={isGalleryVisible}
+            /> // TODO: Enable Gallery View
       </Map>
       <MapStyleToggle
         setStyle={setStyle}
@@ -845,6 +869,7 @@ const handleUserLocationClose = () => {
               className="photo-container"
               photoFeatures={featuresSelection}
               selectPhoto={setUserPhotoId}
+              onClick={ToggleGalleryImage}
             />
           </>
         )}

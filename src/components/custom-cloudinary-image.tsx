@@ -35,6 +35,7 @@ const ImageContainer = styled.section`
 interface CloudinaryCustomImageType {
   cloudImageId: string;
   color?: string;
+  additionalTransformations?: React.ReactElement[]
 }
 
 
@@ -84,6 +85,7 @@ const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
                             />
                     )
                 }
+                {props.additionalTransformations}
             </Image>
         </ImageContainer>
     )
