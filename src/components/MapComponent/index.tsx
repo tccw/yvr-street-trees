@@ -161,12 +161,16 @@ function MapComponent() {
     const [clickedPhotoId, setClickedPhotoId] = useState<string | undefined>(undefined);
     const [isGalleryVisible, setIsGalleryVisible] = useState<boolean>(false);
 
-    const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
-    setMarker({
-      longitude: event.lngLat.lng,
-      latitude: event.lngLat.lat,
-    });
-  }, []);
+    // Remove onMarkerDrag - coordinates now come from map center
+  const onMapMoveForLocationSelect = useCallback((event: any) => {
+    // Only update marker coordinates when in location selection mode
+    if (userInputPosVisible) {
+      setMarker({
+        longitude: event.viewState.longitude,
+        latitude: event.viewState.latitude,
+      });
+    }
+  }, [userInputPosVisible]);
 
   const handleNoLocationUpload = () => {
     setUserInputPosVisible(true);
@@ -663,7 +667,10 @@ const handleUserLocationClose = () => {
         cursor={cursor}
         onLoad={onLoad}
         // https://visgl.github.io/react-map-gl/docs/get-started/state-management
-        onMove={(event: any) => setViewState(event.viewState)}
+        onMove={(event: any) => {
+          setViewState(event.viewState);
+          onMapMoveForLocationSelect(event);
+        }}
         minZoom={MIN_ZOOM}
         maxZoom={MAX_ZOOM}
         maxBounds={BOUNDS}
@@ -685,7 +692,7 @@ const handleUserLocationClose = () => {
               onClickHide={() => setUserInputPosVisible(false)}
               onCancel={() => { setUserInputPosVisible(false); setUserFile(undefined);}}
             />
-            <LocationSelectMarker marker={marker} onMarkerDrag={onMarkerDrag} />
+            <LocationSelectMarker />
           </>
         )}
         <AlertBox {...alertDetails} />

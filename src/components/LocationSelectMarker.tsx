@@ -1,27 +1,20 @@
-import { Marker, MarkerDragEvent } from "react-map-gl"
 import SelfLocatePin from "./SelfLocatePin"
+import styled from "styled-components"
 
-interface LocationSelectMarkerProps {
-    marker: {
-        latitude: number,
-        longitude: number
-    },
-    onMarkerDrag: (e: MarkerDragEvent) => void
-}
+const CenterPinOverlay = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  z-index: 1000;
+`;
 
-const LocationSelectMarker = (props: LocationSelectMarkerProps) => {
-    const {marker, onMarkerDrag} = props;
-
+const LocationSelectMarker = () => {
     return (
-        <Marker
-          longitude={marker.longitude}
-          latitude={marker.latitude}
-          anchor="bottom"
-          draggable
-          onDrag={onMarkerDrag}
-        >
+        <CenterPinOverlay>
           <SelfLocatePin size={50} />
-        </Marker>
+        </CenterPinOverlay>
     )
 }
 
