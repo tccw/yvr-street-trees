@@ -1,20 +1,18 @@
 import styled from "styled-components";
 
 const StyledFilterPanel = styled.div<{ open: boolean }>`
-  z-index: 2;
+  z-index: 1000;
   position: absolute;
   top: 45px;
-  right: 0;
+  right: 120px;
   background: #f2f2f2;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   padding: 12px 24px;
   margin: 20px;
   line-height: 2;
   outline: none;
-  width: -moz-fit-content;
   width: fit-content;
   max-width: 350px;
-  height: -moz-fit-content;
   height: fit-content;
   overflow: hidden;
   display: flex;
@@ -25,6 +23,18 @@ const StyledFilterPanel = styled.div<{ open: boolean }>`
   border-style: ${(props) => (props.open ? "none" : "solid")};
   border-color: ${(props) => (props.open ? "none" : "darkgrey")};
   min-height: ${(props) => (props.open ? "400px" : "none")};
+
+  /* Mobile: Move to left side with proper constraints */
+  @media (max-width: 600px) {
+    right: auto;
+    left: 0;
+    margin: 20px;
+    max-width: calc(100vw - 60px);
+
+    /* Remove scrollbar - should behave like a button/toggle */
+    max-height: none;
+    overflow: visible;
+  }
 `;
 
 const StyledFilterTogglePane = styled.div`
@@ -34,10 +44,14 @@ const StyledFilterTogglePane = styled.div`
   background: inheret;
   line-height: 2;
   outline: none;
-  width: -moz-fit-content;
   width: fit-content;
   display: flex;
   flex-direction: column;
+
+  /* Mobile optimizations */
+  @media (max-width: 600px) {
+    width: 100%;
+  }
 `;
 
 const StyledFilterBoxes = styled.span`
@@ -50,11 +64,17 @@ const StyledFilterBoxes = styled.span`
   outline: none;
   display: flex;
   flex-direction: column;
-  height: -moz-fit-content;
   height: fit-content;
   max-width: 90%;
   border-radius: 4px;
   text-align: left;
+
+  /* Mobile optimizations */
+  @media (max-width: 600px) {
+    max-width: 100%;
+    margin: 5px 0;
+    padding: 8px 16px;
+  }
 `;
 
 // const Dot = styled.div`
@@ -89,15 +109,40 @@ const OpenCloseButton = styled.button`
   position: relative;
   border-radius: 50%;
   justify-content: flex-end;
-  height: -moz-fit-content;
   height: fit-content;
-  width: -moz-fit-content;
   width: fit-content;
   opacity: 0.6;
   margin: -8px -20px -20px -8px;
 
+  /* Prevent text selection and highlighting */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  /* Remove focus outline that might cause highlighting */
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
   &:hover {
     opacity: 1;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  /* Mobile: Left-aligned button and prevent text stacking */
+  @media (max-width: 600px) {
+    justify-content: flex-start;
+    margin: -8px -8px -20px -20px;
+
+    p {
+      white-space: nowrap;
+      font-size: 1rem;
+      user-select: none;
+      -webkit-user-select: none;
+    }
   }
 `;
 

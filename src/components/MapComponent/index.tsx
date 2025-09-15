@@ -16,6 +16,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import bbox from "@turf/bbox";
 import { InfoContainer } from "../InfoContainer";
 import { ToolTip, FilterToTree } from "./styles";
+import { MobileSafeBottom } from "../../styles/global-styles";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { useMeasure } from "@react-hookz/web";
 import FilterPanel from "../FilterPanel";
@@ -82,7 +83,6 @@ import HttpStatusCode from "../../api-client/http-status-codes";
 import AlertBox from "../AlertBox";
 import { AlertDetailsProps } from "../../types/component_types";
 import Feedback from "../Feedback";
-import Footer from "../Footer";
 import TreeAttributionControl from "../TreeAttributionControl";
 import ImageLightbox from "../ImageLightbox";
 
@@ -92,25 +92,9 @@ export const DEFAULT_TITLE = `Vancouver Tree Map`;
 const MAX_ZOOM = 18.5;
 const MIN_ZOOM = 11;
 const GEOLOCATE_POS_OPTIONS = { enableHighAccuracy: true };
-const geolocateStyle = {
-  bottom: 168,
-  right: 0,
-  padding: "10px",
-};
+// Removed hardcoded styles - now using MobileSafeBottom components
 
-const navStyle = {
-  bottom: 72,
-  right: 0,
-  padding: "10px",
-};
-
-const attributionStyle = {
-  position: "absolute",
-  bottom: "30px",
-  right: "50px",
-};
-
-const BOUNDS = [
+const BOUNDS: [[number, number], [number, number]] = [
   [-123.413509, 49.149992],
   [-122.821261, 49.35818],
 ];
@@ -242,9 +226,7 @@ function MapComponent() {
   }, []);
 
   // state
-  const [userPhotoFeatureCollection, setUserPhotoFeatureCollection] = useState<
-    FeatureCollection<Geometry | GeometryCollection, Properties> | Array<any>
-  >({
+  const [userPhotoFeatureCollection, setUserPhotoFeatureCollection] = useState<any>({
     type: "FeatureCollection",
     features: [],
   });
@@ -278,17 +260,18 @@ function MapComponent() {
 
   const onCompleteCallback = (response: TreemapResponse | TreemapResponseError) => {
     if ((response as TreemapResponse).type !== undefined) {
-        setUserPhotoFeatureCollection(() => {
+        setUserPhotoFeatureCollection((prevCollection: any) => {
             const resp = response as TreemapResponse;
-            if (resp.type === "object" && resp.data.type === "Feature") {
-                delete resp.data.properties._id;
-                const tmpPhotoFeatures = [...userPhotoFeatureCollection.features, response.data];
+            if (resp.type === "object" && (resp as any).data && (resp as any).data.type === "Feature") {
+                const responseData = (resp as any).data;
+                if (responseData.properties) {
+                    delete responseData.properties._id;
+                }
+                const tmpPhotoFeatures = [...(prevCollection.features || []), responseData];
                 const collection = featureCollection(tmpPhotoFeatures);
-                const animationRequestId = window.requestAnimationFrame(() =>
-                    setUserPhotoFeatureCollection(collection)
-                );
+                return collection;
             }
-
+            return prevCollection;
         })
         showAlertTimeout("success", "Successfully uploaded image!")
     } else if (response instanceof TreemapResponseError) {
@@ -401,7 +384,7 @@ function MapComponent() {
       const easeToDuration = 650;
       var options = {
         // padding: { left: 10, top: 10, right: 10, bottom: 10 },
-        offset: isNarrow ? [0, -measurements?.height / 5] : [100, 0],
+        offset: (isNarrow ? [0, -(measurements?.height || 0) / 5] : [100, 0]) as [number, number],
         maxZoom: feature.layer.id === TREE_LAYER_NAME ? 17 : 14.5,
         linear: true,
         duration: easeToDuration,
@@ -771,13 +754,16 @@ const handleUserLocationClose = () => {
             <div>{titleCase(hoverInfo.feature.properties.common_name)}</div>
           </ToolTip>
         )}
-        <GeolocateControl
-          positionOptions={GEOLOCATE_POS_OPTIONS}
-          fitBoundsOptions={{ maxZoom: isNarrow ? 17 : 15 }}
-          trackUserLocation
-          position="bottom-right"
-        />
-        <NavigationControl showCompass={false} position="bottom-right" />
+        <MobileSafeBottom offset={isNarrow ? 168 : 220} right={0}>
+          <GeolocateControl
+            positionOptions={GEOLOCATE_POS_OPTIONS}
+            fitBoundsOptions={{ maxZoom: isNarrow ? 17 : 15 }}
+            trackUserLocation
+          />
+        </MobileSafeBottom>
+        <MobileSafeBottom offset={isNarrow ? 72 : 124} right={0}>
+          <NavigationControl showCompass={false} />
+        </MobileSafeBottom>
         <TreeAttributionControl />
         {featuresSelection[userPhotoId] && (
             <>
@@ -826,7 +812,7 @@ const handleUserLocationClose = () => {
             : ""
         }
       >
-        {!selected && stats.tree_stats && (
+        {!selected && (stats as any).tree_stats && (
           <>
             <BoundaryStats
               currentState={treeFilterObject}
@@ -882,12 +868,11 @@ const handleUserLocationClose = () => {
       <FilterPanel
         //   @ts-ignore
         currentFilterObject={treeFilterObject}
-        className="filter-panel"
         updateParent={(props: any) => setTreeFilterObject({ ...props })}
         updateSelected={() => setFilterPanelSelected(true)}
         selected={selected} // so that clicking the map can also deselect the tree from the list
         //  @ts-ignore
-        treeNamesAndColors={stats ? stats.tree_stats : null}
+        treeNamesAndColors={stats ? (stats as any).tree_stats : null}
         defaultValue={defaultValue}
         setDefaultValue={(value: any) => setDefaultValue(value)}
         currentZoom={viewState.zoom}

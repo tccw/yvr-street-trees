@@ -26,11 +26,13 @@ interface FilterPanelProps {
   selected: any;
   currentZoom: number;
   zoomIn: any;
+  defaultValue: any[];
+  setDefaultValue: (value: any) => void;
 }
 
-interface ReactSelectProps {
-    label: JSX.Element
-    value: string
+interface SelectOption {
+    label: JSX.Element;
+    value: string;
 }
 
 const INFO_COLOR = '#a6e9ff';
@@ -51,7 +53,7 @@ function heightIdRange(min: number, max: number): number[] {
 const FilterPanel: React.FC<FilterPanelProps> = (props) => {
   const { updateParent, currentFilterObject, treeNamesAndColors, currentZoom, zoomIn } = props;
   const [isExpanded, setIsExpanded] = useState(false);
-  const [treeCommonNameList, setTreeCommonNameList] = useState<ReactSelectProps[]>([]);
+  const [treeCommonNameList, setTreeCommonNameList] = useState<SelectOption[]>([]);
   const [diameterRange, setDiameterRange] = useState(defaults.diameters);
 const [heightRange, setHeightRange] = useState<number[]>(defaults.height_ids);
 
@@ -59,7 +61,7 @@ const [heightRange, setHeightRange] = useState<number[]>(defaults.height_ids);
     setIsExpanded(!isExpanded);
   };
 
-  const [defaultValues, setDefaultValues] = useState(defaults);
+  const [defaultValues, setDefaultValues] = useState<any>(defaults);
 
   function defaultCheck() {
     return (
@@ -93,13 +95,13 @@ const [heightRange, setHeightRange] = useState<number[]>(defaults.height_ids);
 }
 
   useEffect(() => {
-    let nameList: ReactSelectProps[] = [];
+    let nameList: SelectOption[] = [];
     if (treeNamesAndColors) {
       for (const [key, value] of Object.entries(treeNamesAndColors)) {
         nameList.push({
           label: (
-            <SelectEntry key={value}>
-              <Dot color={value.color}></Dot> {titleCase(key)}
+            <SelectEntry key={key}>
+              <Dot color={(value as any).color}></Dot> {titleCase(key)}
             </SelectEntry>
           ),
           value: key,
@@ -170,12 +172,18 @@ useEffect(() => {
             </GreyBorderBottomTitle>
             <StyledFilterBoxes>
               <LegendLabel> By Species (Common Name) </LegendLabel>
-              <Select
-                key={defaultValues.trees} // using key to force update https://github.com/facebook/react/issues/4101#issuecomment-243625941
+              <Select<SelectOption, true>
+                key={JSON.stringify(defaultValues.trees)} // using key to force update https://github.com/facebook/react/issues/4101#issuecomment-243625941
                 options={treeCommonNameList}
                 isMulti
-                onChange={handleTreeClick}
-                defaultValue={defaultValues.trees}
+                onChange={(newValue) => {
+                  const selection = newValue ? Array.from(newValue).map(item => ({
+                    label: item.value, // Use value as string for label
+                    value: item.value
+                  })) : [];
+                  handleTreeClick(selection);
+                }}
+                defaultValue={defaultValues.trees as SelectOption[]}
                 maxMenuHeight={200}
               />
             </StyledFilterBoxes>
@@ -207,9 +215,7 @@ useEffect(() => {
             </StyledFilterBoxes>
             { (currentZoom <= boundaryTrasitionZoomLevel) &&
                 <StyledFilterBoxes color={INFO_COLOR}>
-                    <div style={{"width": "-moz-fit-content",
-                                    "width": "fit-content",
-                                    "height": "-moz-fit-content",
+                    <div style={{"width": "fit-content",
                                     "height": "fit-content"}}>
                         {Info} <b>Height and Diameter Filtering Disabled</b> Please click to {<ZoomLink onClick={zoomIn} href='#'>zoom in</ZoomLink>} in to use filters.
                     </div>
@@ -217,9 +223,7 @@ useEffect(() => {
                 }
                 {(currentZoom <= boundaryTrasitionZoomLevel) && (currentFilterObject.trees) && (currentFilterObject.trees.length > 4) &&
                     <StyledFilterBoxes color={INFO_COLOR}>
-                    <div style={{"width": "-moz-fit-content",
-                                    "width": "fit-content",
-                                    "height": "-moz-fit-content",
+                    <div style={{"width": "fit-content",
                                     "height": "fit-content"}}>
                         {Info} <b>Trees filter</b> currently supports a <b>max of 4 when zoomed out</b>. {<ZoomLink onClick={zoomIn} href='#'>Zoom</ZoomLink>} or remove trees from the filter.
                     </div>

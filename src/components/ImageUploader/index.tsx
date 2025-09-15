@@ -11,8 +11,8 @@ interface ImageUploaderProps {
 
 const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) => {
 
-    const hiddenFileInput = React.useRef<JSX.IntrinsicElements["input"]>(null);
-    const hiddenCameraInput = React.useRef<JSX.IntrinsicElements["input"]>(null);
+    const hiddenFileInput = React.useRef<HTMLInputElement>(null);
+    const hiddenCameraInput = React.useRef<HTMLInputElement>(null);
     const [isDialogVisible, setIsDialogVisible] = React.useState<boolean>(false);
 
 
@@ -20,8 +20,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) 
         hiddenFileInput.current?.click();
       };
 
-    const handleFileChange = (event) => {
-        const userFile = event.target.files[0];
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const userFile = event.target.files?.[0];
         if (userFile)
             props.setFile(userFile);
     }
@@ -31,7 +31,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = (props: ImageUploaderProps) 
                spacing={2}
                justifyContent="center"
                alignItems="center"
-               style={{'marginBottom': '3rem'}}
+               style={{
+                   'marginBottom': 'max(3rem, env(safe-area-inset-bottom, 3rem))',
+                   'paddingBottom': 'env(safe-area-inset-bottom, 0px)'
+               }}
         >
             <Button
                 variant="contained"

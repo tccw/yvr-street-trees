@@ -90,6 +90,8 @@ const BoundaryStats = ({
     return result;
   };
 
+  const displayStats = React.useMemo(() => getStats(), [name, stats]);
+
   const mostCommonSubtitle = () => {
     let result;
     if (displayStats === null)
@@ -110,8 +112,6 @@ const BoundaryStats = ({
     return result;
   };
 
-  const displayStats = React.useMemo(() => getStats(), [name, stats]);
-
   description = JSON.parse(description);
   let blurb = [];
   for (let i = 0; i < description.length; i++) {
@@ -119,11 +119,13 @@ const BoundaryStats = ({
   }
 
   const handleClick = () => {
-    //@ts-ignore
-    updateParent({
-      ...currentState,
-      trees: [displayStats.mostCommonSpecies.treeName],
-    });
+    if (displayStats) {
+      //@ts-ignore
+      updateParent({
+        ...currentState,
+        trees: [displayStats.mostCommonSpecies.treeName],
+      });
+    }
   };
 
   // this component may be re-rendering too often

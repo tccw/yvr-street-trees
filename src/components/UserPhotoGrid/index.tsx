@@ -44,8 +44,8 @@ const UserImageGrid = ({
             <ImageContainer key={`${index}`}>
                 <Image
                     cloudName={CLOUD_NAME}
-                    publicId={feature.properties.public_id}
-                    id={feature.properties.public_id}
+                    publicId={feature.properties?.public_id || ''}
+                    id={feature.properties?.public_id || ''}
                     onMouseEnter={() => selectPhoto(index)}
                     onClick={() => {
                         selectPhoto(index);
@@ -96,7 +96,7 @@ const UserImageGrid = ({
 // }
 
 function formatDaysAgoLabel(feature: Feature<Geometry | GeometryCollection, Properties>): string {
-    return feature.properties.created_at_utc.slice(0,10);
+    return feature.properties?.created_at_utc?.slice(0,10) || '';
 }
 
 export default UserImageGrid;
