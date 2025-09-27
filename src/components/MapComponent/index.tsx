@@ -794,13 +794,20 @@ const handleUserLocationClose = () => {
             </>
         )}
             <ImageLightbox
-                publicId={clickedPhotoId}
-                setInvisible={() => {
+                images={featuresSelection.map(feature => feature.properties.public_id)}
+                startIndex={getIndexFromPublicId(clickedPhotoId || "")}
+                onClose={() => {
                     setIsGalleryVisible(false);
                     setClickedPhotoId(undefined);
                 }}
                 isVisible={isGalleryVisible}
-            /> // TODO: Enable Gallery View
+                onIndexChange={(index) => {
+                    if (featuresSelection[index]) {
+                        setClickedPhotoId(featuresSelection[index].properties.public_id);
+                        setUserPhotoId(index);
+                    }
+                }}
+            />
       </Map>
       <MapStyleToggle
         setStyle={setStyle}
