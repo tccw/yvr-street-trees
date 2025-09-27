@@ -446,7 +446,7 @@ def count_features_with(json_data: Dict[str, any], feature_map: Dict[str, any]) 
 
     _print_JSON_colors(result_dict)
 
-def first_occurange(json_data: Dict[str, any], feature_map: Dict[str, any]) -> None:
+def first_occurance(json_data: Dict[str, any], feature_map: Dict[str, any]) -> None:
     for entry in json_data['features']:
         count = 0
         for k,v in feature_map.items():
@@ -557,7 +557,7 @@ try:
         if args.count_features_with:
             count_features_with(json_data, args.count_features_with)
         if args.first_occurance:
-            first_occurange(json_data, args.first_occurance)
+            first_occurance(json_data, args.first_occurance)
     elif args.cmd == 'table':
         if args.precision_at_latitude is not None:
             print_precision_table(args.precision_at_latitude)
