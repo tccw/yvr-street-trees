@@ -118,7 +118,7 @@ const ImageLightbox = (props: ImageLightboxProps) => {
             <CenteredResponsiveContainer visible={isVisible}>
                 <CarouselContainer>
                     <CloseButton onClick={onClose} aria-label="Close lightbox">
-                        ×
+                        ✕
                     </CloseButton>
 
                     {showCounter && hasMultipleImages && (
@@ -142,14 +142,14 @@ const ImageLightbox = (props: ImageLightboxProps) => {
                                 onClick={goToPrevious}
                                 aria-label="Previous image"
                             >
-                                ‹
+                                ❮
                             </NavigationButton>
                             <NavigationButton
                                 className="next"
                                 onClick={goToNext}
                                 aria-label="Next image"
                             >
-                                ›
+                                ❯
                             </NavigationButton>
                         </>
                     )}
