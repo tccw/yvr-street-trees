@@ -11,7 +11,7 @@ import Map, {
   MarkerDragEvent,
   AttributionControl,
 } from "react-map-gl";
-import { EventData, MapLayerMouseEvent } from "mapbox-gl";
+import { EventData, MapboxGeoJSONFeature, MapLayerMouseEvent } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import bbox from "@turf/bbox";
 import { InfoContainer } from "../InfoContainer";
@@ -41,6 +41,7 @@ import {
   CLOUD_NAME,
 } from "../../../env";
 import {
+    centroid,
   circle,
   featureCollection,
   FeatureCollection,
@@ -85,6 +86,7 @@ import { AlertDetailsProps } from "../../types/component_types";
 import Feedback from "../Feedback";
 import TreeAttributionControl from "../TreeAttributionControl";
 import ImageLightbox from "../ImageLightbox";
+import StreetView from "../StreetView";
 
 
 // const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
@@ -380,7 +382,7 @@ function MapComponent() {
   //   }, []);
 
   const onSelectZoom = (event: MapLayerMouseEvent) => {
-    const feature = event.features && event.features[0];
+    const feature: MapboxGeoJSONFeature | undefined = event.features && event.features[0];
 
     if (feature && feature.properties) {
       // calculate the bounding box of the feature
@@ -860,6 +862,13 @@ const handleUserLocationClose = () => {
               View all <b>{titleCase(selected.properties.common_name)}</b> trees
               on the map
             </FilterToTree>
+            <StreetView
+              lat={selected.geometry?.coordinates?.[1] || GEOCODER_PROXIMITY.latitude}
+              lng={selected.geometry?.coordinates?.[0] || GEOCODER_PROXIMITY.longitude}
+              heading={210}
+              pitch={10}
+              isPanelExpanded={isInfoPanelExpanded}
+            />
           </InfoContainer>
         )}
         {selected && selected.layer.id == "userphotos-data" && (
