@@ -83,7 +83,6 @@ import { AlertColor } from "@mui/material";
 import HttpStatusCode from "../../api-client/http-status-codes";
 import AlertBox from "../AlertBox";
 import { AlertDetailsProps } from "../../types/component_types";
-import Feedback from "../Feedback";
 import TreeAttributionControl from "../TreeAttributionControl";
 import ImageLightbox from "../ImageLightbox";
 import StreetView from "../StreetView";

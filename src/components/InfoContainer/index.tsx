@@ -20,7 +20,6 @@ import {
   CopyButton,
   Blurb,
 } from "./styles";
-import Feedback from "../Feedback";
 
 /**
  * This container should reviece the properties of the selected tree
