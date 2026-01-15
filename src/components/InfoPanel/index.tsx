@@ -1,4 +1,4 @@
-import React, { forwardRef, MouseEventHandler, Ref } from "react";
+import React, { forwardRef, MouseEventHandler, Ref, useState } from "react";
 import {
   Panel,
   Title,
@@ -6,10 +6,12 @@ import {
   PanelHeader,
   OpenCloseButton,
   OpenFlagContainer,
+  FeedbackButton,
 } from "./styles";
-import { ChevronRight, ChevronLeft } from "../../svg-icons";
+import { ChevronRight, ChevronLeft, MessageSquare } from "../../svg-icons";
 // import Logo from "../../assets/road.png";
 import Logo from "../../assets/Spring 100x100.png";
+import FeedbackModal from "../FeedbackModal";
 
 interface InfoPanelProps {
   color: string;
@@ -25,6 +27,15 @@ interface InfoPanelProps {
 const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
   (props, ref) => {
     const { color, title, handleToggle, isExpanded, className } = props;
+    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
+    const handleOpenFeedback = () => {
+      setIsFeedbackOpen(true);
+    };
+
+    const handleCloseFeedback = () => {
+      setIsFeedbackOpen(false);
+    };
 
     return (
       <>
@@ -45,6 +56,10 @@ const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
             {color && <Dot color={color}></Dot>}
           </Title>
           {props.children}
+          <FeedbackButton onClick={handleOpenFeedback} title="Provide feedback">
+            {MessageSquare}
+            <span>Feedback</span>
+          </FeedbackButton>
         </Panel>
         {!isExpanded && (
           <OpenFlagContainer>
@@ -53,6 +68,7 @@ const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
             </OpenCloseButton>
           </OpenFlagContainer>
         )}
+        <FeedbackModal isOpen={isFeedbackOpen} onClose={handleCloseFeedback} />
       </>
     );
   }

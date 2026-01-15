@@ -127,6 +127,50 @@ const OpenFlagContainer = styled.div`
   }
 `;
 
+const FeedbackButton = styled.button`
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background-color: #63686a;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  justify-content: center;
+
+  &:hover {
+    background-color: #4a4f51;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  &:focus {
+    outline: 2px solid palegreen;
+    outline-offset: 2px;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 600px) {
+    margin: 16px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+`;
+
 export {
   Panel,
   Title,
@@ -135,4 +179,5 @@ export {
   OpenCloseButton,
   MiddleStyledText,
   OpenFlagContainer,
+  FeedbackButton,
 };
