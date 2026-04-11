@@ -35,6 +35,13 @@ from random import randint
 from pygments import highlight, lexers, formatters
 import traceback
 
+try:
+    from shapely.geometry import Point, shape
+    from shapely.strtree import STRtree
+    _SHAPELY_AVAILABLE = True
+except ImportError:
+    _SHAPELY_AVAILABLE = False
+
 
 # Example usage
 """
@@ -240,6 +247,12 @@ def process_trees(args: object):
         data = exlude_keys(data, args.exclude)
     if args.rename_properties:
         data = rename_prop_keys(data, args.rename_properties)
+    if args.assign_neighbourhoods:
+        if args.name != 'van-tree':
+            logging.warning('--assign-neighbourhoods is only supported for van-tree; skipping.')
+        else:
+            boundaries = loadjson(file_paths['van-bound'])
+            data = assign_neighbourhoods(data, boundaries)
     if args.generate_colors:
         hex_color_list: List[str] = loadjson(args.generate_colors)
         generate_genus_list(data, hex_color_list)
@@ -729,6 +742,99 @@ def plot_lab_colors_from_file(
         max_cultivars_per_genus=max_cultivars_per_genus,
     )
 
+def assign_neighbourhoods(trees_data: Dict[str, any], boundaries_data: Dict[str, any]) -> Dict[str, any]:
+    """
+    Spatially assign neighbourhood_name to each tree feature using a point-in-polygon
+    test against the provided boundary FeatureCollection.
+
+    Uses a shapely STRtree spatial index for efficient lookup (O(log n) per tree).
+    Points exactly on a boundary ring are treated as inside via polygon.covers(point).
+
+    Requires shapely >= 2.0. If shapely is unavailable the step is skipped with a warning.
+    """
+    if not _SHAPELY_AVAILABLE:
+        logging.warning('shapely is not installed; skipping --assign-neighbourhoods. Install shapely>=2.0 to use this feature.')
+        return trees_data
+
+    # Pre-process boundaries: build shapely geometries and STRtree index
+    boundary_polygons = []
+    boundary_names = []
+    for feature in boundaries_data[GeoJsonKey.FEATURES]:
+        geom_data = feature.get(GeoJsonKey.GEOMETRY)
+        if geom_data is None:
+            logging.warning(
+                'Boundary feature "%s" has null geometry; skipping.',
+                feature.get(GeoJsonKey.PROPERTIES, {}).get(BoundaryPropKey.NAME, '<unknown>')
+            )
+            continue
+        try:
+            polygon = shape(geom_data)
+        except Exception as exc:
+            logging.warning(
+                'Boundary feature "%s" has invalid geometry (%s); skipping.',
+                feature.get(GeoJsonKey.PROPERTIES, {}).get(BoundaryPropKey.NAME, '<unknown>'),
+                exc
+            )
+            continue
+        boundary_polygons.append(polygon)
+        boundary_names.append(feature[GeoJsonKey.PROPERTIES][BoundaryPropKey.NAME])
+
+    if not boundary_polygons:
+        logging.warning('No valid boundary polygons found; all trees will have neighbourhood_name = null.')
+        for feature in trees_data[GeoJsonKey.FEATURES]:
+            feature[GeoJsonKey.PROPERTIES][TreePropKey.NEIGHBOURHOOD_NAME] = None
+        return trees_data
+
+    index = STRtree(boundary_polygons)
+
+    matched = 0
+    unmatched = 0
+    neighbourhood_counts: Dict[str, int] = {}
+
+    for feature in trees_data[GeoJsonKey.FEATURES]:
+        geometry = feature.get(GeoJsonKey.GEOMETRY)
+        if geometry is None:
+            feature[GeoJsonKey.PROPERTIES][TreePropKey.NEIGHBOURHOOD_NAME] = None
+            unmatched += 1
+            continue
+
+        coords = geometry.get(GeoJsonKey.COORDINATES)
+        if not coords:
+            feature[GeoJsonKey.PROPERTIES][TreePropKey.NEIGHBOURHOOD_NAME] = None
+            unmatched += 1
+            continue
+
+        point = Point(coords[0], coords[1])  # (longitude, latitude)
+
+        # STRtree.query returns indices of candidates whose bounding boxes intersect
+        candidate_indices = index.query(point)
+        hits = [i for i in candidate_indices if boundary_polygons[i].covers(point)]
+
+        if len(hits) == 1:
+            name = boundary_names[hits[0]]
+        elif len(hits) == 0:
+            name = None
+        else:
+            name = boundary_names[hits[0]]
+            logging.debug(
+                'Tree at (%s, %s) matched %d boundaries; using first match "%s".',
+                coords[0], coords[1], len(hits), name
+            )
+
+        feature[GeoJsonKey.PROPERTIES][TreePropKey.NEIGHBOURHOOD_NAME] = name
+        if name is not None:
+            matched += 1
+            neighbourhood_counts[name] = neighbourhood_counts.get(name, 0) + 1
+        else:
+            unmatched += 1
+
+    logging.info('Assigned neighbourhoods: %d trees matched, %d trees unassigned (null).', matched, unmatched)
+    for name, count in sorted(neighbourhood_counts.items()):
+        logging.debug('  %-40s %d trees', name, count)
+
+    return trees_data
+
+
 # --- End Helpers ---
 
 try:
@@ -755,6 +861,7 @@ try:
     parser_create.add_argument('-nk', '--new-key', help='add a new key with either a constant value or a value derived from other keys')  # TODO: big time TODO
     parser_create.add_argument('-s', '--stats', action='store_true', help='generate stats JSON next to the output; for trees this can also drive color assignment')
     parser_create.add_argument('-cmap', help='matplotlib colormap name for boundary shading (used with -s): https://matplotlib.org/stable/gallery/color/colormap_reference.html')
+    parser_create.add_argument('-an', '--assign-neighbourhoods', action='store_true', help='spatially assign neighbourhood_name to each tree feature using the van-bound boundaries file (van-tree only)')
 
     # 'info' command
     parser_info = subparsers.add_parser('info', help='get information about a dataset')
