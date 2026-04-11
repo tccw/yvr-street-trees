@@ -253,17 +253,27 @@ def process_trees(args: object):
         else:
             boundaries = loadjson(file_paths['van-bound'])
             data = assign_neighbourhoods(data, boundaries)
+    color_dict = None
+
+    # Step 1: Get colors (either generate or load from file)
     if args.generate_colors:
+        if args.assign_colors:
+            logging.warning('-gc and -ac were both provided; ignoring -ac and using the generated color map.')
         hex_color_list: List[str] = loadjson(args.generate_colors)
-        generate_genus_list(data, hex_color_list)
-    if args.stats and args.assign_colors:
-        stats: Dict[str, any] = calc_stats(data, args.outfile, loadjson(args.assign_colors))
-        data = assign_colors_all_trees(data, stats[StatsKey.TREE_STATS])
+        color_dict = generate_genus_list(data, hex_color_list)
     elif args.assign_colors:
-        data = assign_colors_all_trees(
-            data,
-            loadjson('../opendata/processed/vancouver-all-trees-processed-stats.json')[StatsKey.TREE_STATS]
-        )
+        color_dict = loadjson(args.assign_colors)
+
+    # Step 2: Assign colors if we have them
+    if color_dict:
+        if args.stats:
+            # Full stats calculation (also saves stats file)
+            stats: Dict[str, any] = calc_stats(data, args.outfile, color_dict)
+            data = assign_colors_all_trees(data, stats[StatsKey.TREE_STATS])
+        else:
+            # Calculate just enough stats to assign colors (no stats file written)
+            tree_stats = _calc_tree_stats(data, color_dict)
+            data = assign_colors_all_trees(data, tree_stats)
 
     savejson(args.outfile, data)
 
@@ -458,7 +468,7 @@ def exlude_keys(json_data: Dict[str, any], exlude_keys: List[str]):
     return json_data
 
 
-def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: List[str]) -> None:
+def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: List[str]) -> Dict[str, any]:
     species_delta_e = 18
     cultivar_delta_e = 7
     output_dict = {}
@@ -496,6 +506,7 @@ def generate_genus_list(json_data: Dict[str, Dict[str, str]], hex_color_list: Li
                 )
 
     savejson('../opendata/processed/assigned-tree-colors-seed5.json', output_dict)
+    return output_dict
 
 
 # reduce precision without expanding if already below
