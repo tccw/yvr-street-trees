@@ -40,7 +40,7 @@ const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
       <Image
         cloudName={CLOUD_NAME}
         publicId={cloudImageId}
-        defaultImage={'yvr-street-trees:no_image_leaf.png'}
+        defaultImage={'yvr-street-trees:no-image-yet-leaf.png'}
         alt={`Image of a ${cloudImageId.split("/")[1]} leaf`}
       >
         {color
