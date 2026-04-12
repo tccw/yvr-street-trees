@@ -31,40 +31,35 @@ export function cloudinaryImageNameCultivar(genus: string, species: string, cult
     return result;
 }
 
-/**
- *
- * @param {number} height_range_id
- * @returns {string} the calucalted height range from the id, ex. id 2 returns "10 - 20 ft"
- */
-export function heightStringFromID(height_range_id: number) {
-  return `${height_range_id * 10} - ${(height_range_id + 1) * 10} feet`
-}
-
 
 /**
  * Generates a properly formatted filter object to pass to a MapGL <Layer/> component
  *
  * @param {number[]} diameters An array of the min and max diameter to filter to
- * @param {number[]} height_ids A list of height ids to filter by
+ * @param {number[]} heights An array of the min and max height (in meters) to filter to
  * @param {string[]} trees A list of tree common names to filter by
  * @returns {any[]} the formatted filter list ready to be passed to a MapGL <Layer/> component
  */
  export function treeFilterCompositor(filterObject: any, selected?: any) {
-  const {diameters, height_ids, trees} = filterObject;
+  const {diameters, heights, trees} = filterObject;
 
   let filter: any[] = ['all'];
 
   if (diameters) {
     //TODO: change this so that the max diameter notch is not hardcoded
-    if (diameters[1] == 42) {
-      filter.push(['all', ['>=', ['get', 'diameter'], diameters[0]]]); // add the case expression to the filter
+    if (diameters[1] == 100) {
+      filter.push(['all', ['>=', ['get', 'diameter_cm'], diameters[0]]]); // add the case expression to the filter
     } else {
-      filter.push(['all', ['>=', ['get', 'diameter'], diameters[0]], ['<=', ['get', 'diameter'], diameters[1]]]); // add the case expression to the filter
+      filter.push(['all', ['>=', ['get', 'diameter_cm'], diameters[0]], ['<=', ['get', 'diameter_cm'], diameters[1]]]); // add the case expression to the filter
     }
   }
 
-  if (height_ids) {
-    filter.push(['match', ['get','height_range_id'], height_ids, true, false]);
+  if (heights) {
+    if (heights[1] == 40) {
+      filter.push(['all', ['>=', ['get', 'height_m'], heights[0]]]);
+    } else {
+      filter.push(['all', ['>=', ['get', 'height_m'], heights[0]], ['<=', ['get', 'height_m'], heights[1]]]);
+    }
   }
 
   if (trees && trees.length > 0) {
@@ -72,7 +67,7 @@ export function heightStringFromID(height_range_id: number) {
   }
 
   if (selected && selected.layer.id == LAYER_NAME) {
-    filter.push(['!=', ['get', 'tree_id'], selected.properties.tree_id]);
+    filter.push(['!=', ['get', 'asset_id'], selected.properties.tree_id]);
   }
 
   return filter;
@@ -113,7 +108,7 @@ export function toPrettyDateString(yyyymmdd: string) {
  export function filterValidForWideZoom(filterObject: any) {
   return validTreesFilter(filterObject.trees) ||
          validDiameterFilter(filterObject.diameters) ||
-         validHeightsFilter(filterObject.height_ids);
+         validHeightsFilter(filterObject.heights);
 }
 
 function validTreesFilter(trees: string[]) {
@@ -124,8 +119,7 @@ function validDiameterFilter(diameters: number[]) {
   return diameters && ((diameters[1] - diameters[0]) <= 6);
 }
 
-function validHeightsFilter(height_ids: number[]) {
-  return (height_ids && (height_ids.length == 1)) ||
-         (height_ids && ((height_ids[height_ids.length - 1] - height_ids[0]) == 1))
+function validHeightsFilter(heights: number[]) {
+  return heights && ((heights[1] - heights[0]) <= 4);
 }
 

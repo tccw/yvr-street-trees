@@ -44,7 +44,7 @@
   "thuja_plicata": [
     "Thuja plicata, commonly called western red cedar or Pacific red cedar, giant arborvitae or western arborvitae, or just cedar, giant cedar, or shinglewood, is a species of Thuja, an evergreen coniferous tree in the cypress family Cupressaceae, native to western North America. It is not a true cedar of the genus Cedrus."
   ],
-  "acer_x_freemani": [
+  "acer_x_freemanii": [
     "Acer \u00d7 freemanii, commonly called Freeman maple, is a hybrid of red and silver maples taking the best qualities of both trees including solid structure and form and fantastic fall color.  It prefers well-drained moist, acidic soil in the full sun to partial shade.  It makes an excellent shade, lawn, or street tree that can tolerate heavy clay soils and even occasionally wet soils. Once trees are established they can tolerate some drought."
   ],
   "malus_pumila": [
@@ -84,7 +84,7 @@
     "Betula pendula, commonly known as silver birch, warty birch, European white birch, or East Asian white birch, is a species of tree in the family Betulaceae, native to Europe and parts of Asia, though in southern Europe, it is only found at higher altitudes. Its range extends into Siberia, China, and southwest Asia in the mountains of northern Turkey, the Caucasus, and northern Iran. It has been introduced into North America, where it is known as the European white birch, and is considered invasive in some states in the United States and parts of Canada. The tree can also be found in more temperate regions of Australia."
   ],
   "tilia_x_euchlora": [
-    "Tilia \u00d7 euchlora, commonly called Caucasian linden or Crimean linden, is a medium size to a large deciduous tree that is thought to be a hybrid of Tilia cordata and Tilia dasystyla. The two species are native to Ukraine Crimea, but they do not share the same habitats. The parentage of the Crimean Linden remains unclear. It is a member of the Malvaceae family. The tree grows from 40-60 feet tall and 20-30 feet wide, and it has a pyramidal shape. The tree's crown is dense, and the branches are somewhat pendulous. The tree is also known as Caucasian Linden and Causcasina Lime.", 
+    "Tilia \u00d7 euchlora, commonly called Caucasian linden or Crimean linden, is a medium size to a large deciduous tree that is thought to be a hybrid of Tilia cordata and Tilia dasystyla. The two species are native to Ukraine Crimea, but they do not share the same habitats. The parentage of the Crimean Linden remains unclear. It is a member of the Malvaceae family. The tree grows from 40-60 feet tall and 20-30 feet wide, and it has a pyramidal shape. The tree's crown is dense, and the branches are somewhat pendulous. The tree is also known as Caucasian Linden and Causcasina Lime.",
     "This hybrid tree originated in Ukraine Crimea. The tree is sterile, and there are no similar hybrids found in the wild. The German botanist, Karl Koch, described the tree in 1866. His description is based on a young specimen that was found in Berlin. It was thought that the tree originated from a seed collected in Crimea. Since the tree is sterile, the trees in cultivation may be the result of a single clone."
   ],
   "liquidambar_species": [null],
@@ -138,7 +138,9 @@
   "acer_truncatum": [
     "Acer truncatum, the Shantung maple, Shandong maple, or purpleblow maple, is a maple native to northern China, in the provinces of Gansu, Hebei, Henan, Jiangsu, Jilin, Liaoning, Inner Mongolia, Shaanxi, Shandong, Shanxi, and to Korea."
   ],
-  "magnolia_xx": [null],
+  "magnolia_xx": [
+    "Magnolias are evergreen or deciduous trees or shrubs known for their large, fragrant, bowl or star-shaped flowers with numerous spirally arranged reproductive parts, producing cone-like fruits in autumn that open to reveal seeds. The genus Magnolia was first named in 1703 by Charles Plumier, honoring Pierre Magnol, with early taxonomy refined by Linnaeus in the 18th century based on American and later Asian species. Magnolia is an ancient genus that dates back to the Cretaceous. Fossilized specimens of M. acuminata have been found dating to 20 million years ago , and fossils of plants identifiably belonging to the Magnoliaceae date to 95 mya. They are theorized to have evolved to encourage pollination by beetles as they existed prior to the evolution of bees."
+  ],
   "cercis_canadensis": [
     "Cercis canadensis, the eastern redbud, is a large deciduous shrub or small tree, native to eastern North America from southern Michigan south to central Mexico, east to New Jersey. Species thrive as far west as California and as far north as southern Ontario, roughly corresponding to USDA hardiness zone 6b. It is the state tree of Oklahoma."
   ],
@@ -244,8 +246,12 @@
   "chamaecyparis_lawsoniana": [
     "Chamaecyparis lawsoniana, known as Port Orford cedar or Lawson cypress, is a species of conifer in the genus Chamaecyparis, family Cupressaceae. It is native to Oregon and northwestern California, and grows from sea level up to 1,500\u00a0m (4,900\u00a0ft) in the valleys of the Klamath Mountains, often along streams."
   ],
-  "malus_species": [null],
-  "malus_xx": [null],
+  "malus_species": [
+    "Malus is a genus of about 32–57 species of small deciduous trees or shrubs in the family Rosaceae, including the domesticated orchard apple, crab apples (sometimes known in North America as crabapples) and wild apples. Apple trees are typically 4–12 metres tall at maturity, with a dense, twiggy crown. The leaves are 3–10 centimetres long, alternate, simple, with a serrated margin. The flowers are borne in corymbs, and have five petals, which may be white, pink, or red, and they are perfect, with usually red stamens that produce copious pollen, and a half-inferior ovary."
+  ],
+  "malus_xx": [
+    "Malus is a genus of about 32–57 species of small deciduous trees or shrubs in the family Rosaceae, including the domesticated orchard apple, crab apples (sometimes known in North America as crabapples) and wild apples. Apple trees are typically 4–12 metres tall at maturity, with a dense, twiggy crown. The leaves are 3–10 centimetres long, alternate, simple, with a serrated margin. The flowers are borne in corymbs, and have five petals, which may be white, pink, or red, and they are perfect, with usually red stamens that produce copious pollen, and a half-inferior ovary."
+  ],
   "rhus_typhina": [
     "Rhus typhina, the staghorn sumac, is a species of flowering plant in the family Anacardiaceae, native to eastern North America. It is primarily found in southeastern Canada, the northeastern and midwestern United States, and the Appalachian Mountains, but it is widely cultivated as an ornamental throughout the temperate world."
   ],
@@ -363,7 +369,9 @@
   "acer_davidii": [
     "Acer davidii, or P\u00e8re David's maple, is a species of maple in the snakebark maple group. It is native to China, from Jiangsu south to Fujian and Guangdong, and west to southeastern Gansu and Yunnan."
   ],
-  "crataegus_xx": [null],
+  "crataegus_xx": [
+    "Crataegus, commonly called hawthorn, quickthorn, thornapple, May-tree, whitethorn, Mayflower or hawberry, is a genus of several hundred species of shrubs and trees in the family Rosaceae, native to temperate regions of the Northern Hemisphere in Europe, Asia, North Africa and North America. "
+  ],
   "laburnum_anagyroides": [
     "Laburnum anagyroides, the common laburnum, golden chain or golden rain, is a species in the subfamily Faboideae, and genus Laburnum. Laburnum alpinum is closely related. It is native to Central and Southern Europe."
   ],
@@ -604,7 +612,10 @@
   "abies_species": [
     "Firs (Abies) are a genus of 48\u201356 species of evergreen coniferous trees in the family Pinaceae. They are found through much of North and Central America, Europe, Asia, and North Africa, occurring in mountains over most of the range. Firs are most closely related to the genus Cedrus (cedar). Douglas firs are not true firs, being of the genus Pseudotsuga."
   ],
-  "syringa_species": [null],
+  "syringa_species": [
+    "Syringa is a genus of 12 currently recognized species of flowering woody plants in the olive family called lilacs. They are native to woodland and scrub from southeastern Europe to eastern Asia, and widely and commonly cultivated in temperate areas elsewhere.",
+    "Lilacs are popular shrubs in parks and gardens throughout the temperate zone, and several hybrids and numerous cultivars have been developed. The term French lilac is often used to refer to modern double-flowered cultivars, thanks to the work of prolific breeder Victor Lemoine. Lilacs grow most successfully in well-drained soils, particularly those based on chalk."
+  ],
   "malus_yunnanensis": [
     "Malus yunnanensis is a species in the genus Malus, family Rosaceae, with the common name Yunnan crabapple. In Mandarin Chinese, it is called \u201c\u6ec7\u6c60\u6d77\u68e0\u201d."
   ],

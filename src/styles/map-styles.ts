@@ -8,13 +8,13 @@ export const boundaryTrasitionZoomLevel = 13.5;
 const highlightColor = '#f75a2f';
 const DIAMETER_STOPS = [
   [{zoom: 12, value: 0}, 4],
-  [{zoom: 12, value: 40}, 6],
+  [{zoom: 12, value: 100}, 6],
   [{zoom: 14, value: 0}, 6],
-  [{zoom: 14, value: 60}, 8],
+  [{zoom: 14, value: 150}, 8],
   [{zoom: 16, value: 0}, 5],
-  [{zoom: 16, value: 60}, 10],
+  [{zoom: 16, value: 150}, 10],
   [{zoom: 19, value: 0}, 7],
-  [{zoom: 19, value: 60}, 25]
+  [{zoom: 19, value: 150}, 25]
 ];
 
 export const boundariesLayer: FillLayer = {
@@ -37,21 +37,25 @@ export const centroidLayer: SymbolLayer = {
   maxzoom: boundaryTrasitionZoomLevel,
   layout: {
     'text-field': ['format',
-                      ['get', 'name'],
+                      ['coalesce', ['get', 'name'], ''],
                       { 'font-scale': 0.8 },
                       '\n',
                       {},
-                      ["number-format", ['get', 'tree_count'], {'local': 'string'}],
-                      {
-                          'font-scale': 0.75,
-                      }
+                      ["number-format", ['coalesce', ['get', 'tree_count'], 0], {}],
+                      { 'font-scale': 0.75 },
+                      '\n',
+                      {},
+                      ["number-format", ['round', ['coalesce', ['get', 'tree_density_sqkm'], 0]], {}],
+                      { 'font-scale': 0.7 },
+                      ' /km²',
+                      { 'font-scale': 0.7 }
                   ],
     'text-font': ['Open Sans Bold']
   },
     paint: {
       'text-color': '#ffffff',
       'text-halo-color': 'grey',
-      'text-halo-width': 1
+      'text-halo-width': 2
   }
 };
 
@@ -70,10 +74,10 @@ export const treesLayer: CircleLayer = {
     'circle-stroke-color': '#FAF9F6',
     'circle-stroke-width': 1,
     'circle-radius': {
-        property: 'diameter',
+        property: 'diameter_cm',
         stops: DIAMETER_STOPS
     },
-    'circle-opacity': 0.75
+    'circle-opacity': 0.80
   }
 };
 
@@ -95,14 +99,14 @@ export const treesHighlightLayer: CircleLayer = {
   id: 'tree-focus',
   type: 'circle',
   minzoom: boundaryTrasitionZoomLevel,
-  source: LAYER_NAME,
+  source: 'van-trees-tiles',
   'source-layer': LAYER_NAME,
   paint: {
       'circle-opacity': 0.75,
       'circle-stroke-width': 10,
       'circle-stroke-color': highlightColor,
       'circle-radius': {
-        property: 'diameter',
+        property: 'diameter_cm',
         stops: DIAMETER_STOPS
       },
       'circle-color': {

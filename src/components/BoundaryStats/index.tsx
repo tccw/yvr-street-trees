@@ -32,7 +32,7 @@ const BoundaryStats = ({
   stats,
   type,
 }: BoundaryStatsProps) => {
-  name = name && name.toUpperCase();
+  name = name;
   const getStats = () => {
     let displayStats = null;
     if (stats) {
@@ -51,6 +51,8 @@ const BoundaryStats = ({
       mostCommonSpecies: { treeName: "", count: -1 },
       numSpecies: 0,
       total_trees: stats.neighborhood_stats[name].total_count,
+      area_sqkm: stats.neighborhood_stats[name]?.area_sqkm as number | undefined,
+      tree_density_sqkm: stats.neighborhood_stats[name]?.tree_density_sqkm as number | undefined,
     };
     for (const [key, value] of Object.entries(stats.tree_stats)) {
       //@ts-ignore
@@ -146,6 +148,18 @@ const BoundaryStats = ({
               <StyledStat>{displayStats.numSpecies}</StyledStat>
               <StatsSubtitle>Total Species</StatsSubtitle>
             </StatsGridItem>
+            {(displayStats as any).area_sqkm != null && (
+              <StatsGridItem>
+                <StyledStat>{((displayStats as any).area_sqkm as number).toFixed(2)} km²</StyledStat>
+                <StatsSubtitle>Area</StatsSubtitle>
+              </StatsGridItem>
+            )}
+            {(displayStats as any).tree_density_sqkm != null && (
+              <StatsGridItem>
+                <StyledStat>{((displayStats as any).tree_density_sqkm as number).toFixed(1)}</StyledStat>
+                <StatsSubtitle>Trees per km²</StatsSubtitle>
+              </StatsGridItem>
+            )}
             <StatsGridItem style={{ gridColumn: "span 2" }}>
               <StyledStat onClick={handleClick} style={{ cursor: "pointer" }}>
                 {titleCase(displayStats.mostCommonSpecies.treeName)}

@@ -9,5 +9,5 @@ export interface AlertDetailsProps {
 export interface TreeFilter {
     trees?: string[];
     diameters?: number[];
-    height_ids?: number[];
+    heights?: number[];
   }

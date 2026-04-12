@@ -34,11 +34,10 @@ export const TreeInfoComponent = (props: any) => {
   const {
     genus_name,
     species_name,
-    tree_id,
-    diameter,
-    civic_number,
-    on_street,
-    height_range_id,
+    asset_id,
+    diameter_cm,
+    address,
+    height_m,
     date_planted,
     common_name,
     neighbourhood_name,
@@ -47,10 +46,10 @@ export const TreeInfoComponent = (props: any) => {
   } = props;
 
   var listValues = {
-    "Tree ID": tree_id,
-    Height: `${heightStringFromID(height_range_id)}`,
-    Diameter: `${diameter} inches`,
-    Address: `${civic_number} ${on_street}`,
+    "ID": asset_id,
+    Height: `${height_m} m`,
+    Diameter: `${diameter_cm} cm`,
+    Address: `${address}`,
     "Date Planted": date_planted
       ? `${toPrettyDateString(date_planted)}`
       : "Before 1989",
@@ -87,6 +86,14 @@ export const TreeInfoComponent = (props: any) => {
     return formatPrevalanceResult(parseInt(percentage));
   };
   const neighborhoodPrevalance = (stats: any) => {
+    if (
+      !stats.tree_stats[common_name] ||
+      !stats.tree_stats[common_name].neighborhood_counts ||
+      !stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] ||
+      !stats.neighborhood_stats[neighbourhood_name]
+    ) {
+      return undefined;
+    }
     let percentage = Math.round(
       (stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] /
         stats.neighborhood_stats[neighbourhood_name].total_count) *
@@ -133,22 +140,24 @@ export const TreeInfoComponent = (props: any) => {
   let cult = cultivar_name ? ` (${titleCase(cultivar_name)})` : "";
   let neighPrevalance = React.useMemo(
     () => neighborhoodPrevalance(props.stats),
-    [tree_id]
+    [asset_id, neighbourhood_name]
   );
   let totalPrevalance = React.useMemo(
     () => citywidePrevalence(props.stats),
-    [tree_id]
+    [asset_id]
   );
-  let blurb = React.useMemo(() => getBlurb(props.blurbs), [tree_id]);
+  let blurb = React.useMemo(() => getBlurb(props.blurbs), [asset_id]);
 
   return (
     <StyledTreeInfo className="tree-attrs">
       <StyledSubText font_size="1.5rem" font_style="italic">
         {`${formatSciName()} ` + cult}
       </StyledSubText>
-      <StyledSubText font_size="0.9rem" font_style="none">
-        {`${neighPrevalance}% of ${titleCase(neighbourhood_name)} trees.`}
-      </StyledSubText>
+      {neighPrevalance && (
+        <StyledSubText font_size="0.9rem" font_style="none">
+          {`${neighPrevalance}% of ${titleCase(neighbourhood_name)} trees.`}
+        </StyledSubText>
+      )}
       <StyledSubText font_size="0.9rem" font_style="none">
         {`${totalPrevalance}% of Vancouver trees.`}
       </StyledSubText>

@@ -36,26 +36,21 @@ interface SelectOption {
 }
 
 const INFO_COLOR = '#a6e9ff';
-const STEP_FACTOR = 10;
-const [diamMIN, heightMIN] = [0, 0] ;
-const [diamMAX, heightMAX] = [42, 100];
+const [diamMIN, heightMIN] = [0, 0];
+const [diamMAX, heightMAX] = [115, 40];
 
 const defaults = {
   trees: [],
   diameters: [diamMIN, diamMAX],
-  height_ids: [heightMIN, heightMAX],
+  heights: [heightMIN, heightMAX],
 };
-
-function heightIdRange(min: number, max: number): number[] {
-    return Array(Math.round((max - min) / STEP_FACTOR) + 1).fill(0).map((_, i) => i + (min / STEP_FACTOR));
-}
 
 const FilterPanel: React.FC<FilterPanelProps> = (props) => {
   const { updateParent, currentFilterObject, treeNamesAndColors, currentZoom, zoomIn } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const [treeCommonNameList, setTreeCommonNameList] = useState<SelectOption[]>([]);
   const [diameterRange, setDiameterRange] = useState(defaults.diameters);
-const [heightRange, setHeightRange] = useState<number[]>(defaults.height_ids);
+  const [heightRange, setHeightRange] = useState<number[]>(defaults.heights);
 
   const handleToggle = () => {
     setIsExpanded(!isExpanded);
@@ -67,9 +62,7 @@ const [heightRange, setHeightRange] = useState<number[]>(defaults.height_ids);
     return (
         arrsEqualInOrder(defaultValues.trees, defaults.trees) &&
         arrsEqualInOrder(defaultValues.diameters, defaults.diameters) &&
-        defaultValues.height_ids[0] === defaults.height_ids[0] &&
-        defaultValues.height_ids[defaultValues.height_ids.length - 1] === (defaults.height_ids[1] / STEP_FACTOR)
-        // arrsEqualInOrder(defaultValues.height_ids, defaults.height_ids)
+        arrsEqualInOrder(defaultValues.heights, defaults.heights)
     );
   };
 
@@ -109,7 +102,7 @@ const [heightRange, setHeightRange] = useState<number[]>(defaults.height_ids);
       }
     }
     setTreeCommonNameList(nameList);
-  }, [treeNamesAndColors]); //, currentState]);
+  }, [treeNamesAndColors]);
 
   const handleChangeDiameter = (
     event: Event,
@@ -131,24 +124,6 @@ const [heightRange, setHeightRange] = useState<number[]>(defaults.height_ids);
       });
   }
 
-  const setFilterState = () => {
-    var heightArray = Array(Math.round((heightRange[1] - heightRange[0]) / STEP_FACTOR) + 1).fill(0).map((_, i) => i + (heightRange[0] / STEP_FACTOR));
-    updateParent({...currentFilterObject, diameters: diameterRange, height_ids: heightArray});
-}
-
-useEffect(() => {
-    setFilterState();
-}, [diameterRange, heightRange]);
-
-useEffect(() => {
-    setDefaultValues({
-        ...currentFilterObject,
-        trees: treeCommonNameList.filter((value) => currentFilterObject.trees.includes(value.value)),
-        // diameters: currentFilterObject.diameters,
-        // height_ids: [currentFilterObject.height_ids[0], currentFilterObject.height_ids[currentFilterObject.height_ids.length - 1]]
-    })
-}, [currentFilterObject]);
-
   const handleChangeHeight = (
     event: Event,
     newValue: number | number[],
@@ -159,8 +134,22 @@ useEffect(() => {
     }
 
     setHeightRange(newValue);
-
+    updateParent({
+        ...currentFilterObject,
+        heights: newValue
+      });
+    setDefaultValues({
+        ...defaultValues,
+        heights: newValue
+      });
   }
+
+useEffect(() => {
+    setDefaultValues({
+        ...currentFilterObject,
+        trees: treeCommonNameList.filter((value) => currentFilterObject.trees.includes(value.value)),
+    })
+}, [currentFilterObject]);
 
   return (
     <StyledFilterPanel open={isExpanded} className="filter-panel">
@@ -188,7 +177,7 @@ useEffect(() => {
               />
             </StyledFilterBoxes>
             <StyledFilterBoxes>
-                <LegendLabel> By Diameter Range (inches)</LegendLabel>
+                <LegendLabel> By Diameter Range (cm)</LegendLabel>
                 <Slider
                     getAriaLabel={() => "Diameter Slider"}
                     value={diameterRange}
@@ -200,13 +189,13 @@ useEffect(() => {
                     max={diamMAX}
                     disabled={(currentZoom <= boundaryTrasitionZoomLevel)}
                 />
-                <LegendLabel>  By Height Range (feet) </LegendLabel>
+                <LegendLabel>  By Height Range (m) </LegendLabel>
                 <Slider
                     getAriaLabel={() => "Height Slider"}
                     value={heightRange}
                     onChange={handleChangeHeight}
                     valueLabelDisplay="auto"
-                    step={STEP_FACTOR}
+                    step={2}
                     marks
                     min={heightMIN}
                     max={heightMAX}

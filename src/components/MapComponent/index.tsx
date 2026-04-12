@@ -88,7 +88,6 @@ import ImageLightbox from "../ImageLightbox";
 import StreetView from "../StreetView";
 
 
-// const LAYER_NAME = "vancouver-all-trees-processed-5ovmz9";
 export const DEFAULT_TITLE = `Vancouver Tree Map`;
 const MAX_ZOOM = 18.5;
 const MIN_ZOOM = 11;
@@ -142,8 +141,8 @@ function MapComponent() {
     const [cursor, setCursor] = useState<string>("grab");
     const [treeFilterObject, setTreeFilterObject] = useState<TreeFilter>({
         trees: [],
-        diameters: [0, 42],
-        height_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        diameters: [0, 115],
+        heights: [0, 40],
     });
     const [viewState, setViewState] = useState<ViewState>({
         latitude: GEOCODER_PROXIMITY.latitude,
@@ -210,6 +209,7 @@ function MapComponent() {
             properties: {
               name: json.features[i].properties.name,
               tree_count: json.features[i].properties.tree_count,
+              tree_density_sqkm: json.features[i].properties.tree_density_sqkm,
             },
           });
         }
@@ -562,7 +562,7 @@ function MapComponent() {
   if (selected && selected.layer.id == "boundaries") {
     selection = selected.properties.name;
   } else if (selected && selected.layer.id == TREE_LAYER_NAME) {
-    selection = selected.properties.tree_id;
+    selection = selected.properties.asset_id;
   } else if (selected && selected.layer.id == "userphotos-data") {
     const center = selected.geometry.coordinates;
     const radius = 500;
@@ -583,7 +583,7 @@ function MapComponent() {
     [selection]
   );
   const treeHighlightFilter = useMemo(
-    () => ["==", ["get", "tree_id"], selection],
+    () => ["==", ["get", "asset_id"], selection],
     [selection]
   );
   const treeFilter = useMemo(
