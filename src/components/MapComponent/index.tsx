@@ -30,7 +30,6 @@ import {
   MAPBOX_TOKEN,
   VAN_BOUNDARIES_URL,
   VAN_ALL_TREES_TILES,
-  VAN_TREES_ID_TO_LOCATION_MAP,
   LAYER_NAME as TREE_LAYER_NAME,
   GEOCODER_PROXIMITY,
   TREE_BLURB_URL,
@@ -41,6 +40,7 @@ import {
   WELCOME_MSG,
   CLOUD_NAME,
 } from "../../../env";
+import { getTreeCoordinates } from "../../utils/tree-db";
 import {
     centroid,
   circle,
@@ -115,6 +115,9 @@ function MapComponent() {
     })
 
     const mapRef = useRef<MapRef>(null);
+    // Set to true when treeId is changed by an in-app map click so the
+    // deep-link effect knows it can skip the DB lookup (fitBounds already moved the map).
+    const treeIdSetByClickRef = useRef(false);
     const [boundaries, setBoundaries] = useState<FeatureCollection>({
         type: "FeatureCollection",
         features: [],
@@ -160,7 +163,6 @@ function MapComponent() {
     const [userPhotosVisible, setUserPhotosVisible] = useState<boolean>(true);
     const [clickedPhotoId, setClickedPhotoId] = useState<string | undefined>(undefined);
     const [isGalleryVisible, setIsGalleryVisible] = useState<boolean>(false);
-    const [idToLocationMap, setIdToLocationMap] = useState<Record<string, [number, number]>>({});
 
     // Remove onMarkerDrag - coordinates now come from map center
   const onMapMoveForLocationSelect = useCallback((event: any) => {
@@ -229,15 +231,6 @@ function MapComponent() {
     fetch(STATS).then((response) =>
       response.json().then((json) => setStats(json))
     );
-  }, []);
-
-  // Fetch the tree ID → [lng, lat] map for deep-link URL support.
-  // Fetching at runtime as it is large. TODO just make an API for this.
-  useEffect(() => {
-    fetch(VAN_TREES_ID_TO_LOCATION_MAP)
-      .then((response) => response.json())
-      .then((json) => setIdToLocationMap(json))
-      .catch((err) => console.error("Failed to load ID-to-location map", err));
   }, []);
 
   // state
@@ -432,6 +425,7 @@ function MapComponent() {
         switch (feature.layer.id) {
           case TREE_LAYER_NAME:
             title = feature.properties.common_name;
+            treeIdSetByClickRef.current = true; // map click already moved the map; skip DB in deep-link effect
             navigate(`/tree/${feature.properties.asset_id}`);
             break;
           case "userphotos-data":
@@ -604,42 +598,72 @@ function MapComponent() {
     [featuresSelection]
   );
 
-  // Deep-link effect: when the URL contains a treeId, fly to the tree and select it.
-  // Depends on isLoaded (map is ready) and idToLocationMap (coordinates are fetched).
-  // Uses `queryRenderedFeatures` after the `idle` event so tiles are fully rendered.
+  // Deep-link effect: when the URL contains a treeId, fetch its coordinates from
+  // the SQLite DB (lazy-loaded via sql.js), fly to the tree, then select it.
+  // The DB is only fetched when a deep-link URL is actually visited.
+  // Uses `queryRenderedFeatures` after the map `idle` event so tiles are fully rendered.
   useEffect(() => {
-    if (!treeId || !isLoaded || Object.keys(idToLocationMap).length === 0) return;
+    if (!treeId || !isLoaded) return;
 
-    const coords = idToLocationMap[treeId];
-    if (!coords) {
-      showAlertTimeout("warning", `Tree ID ${treeId} was not found.`);
+    // If treeId was just set by an in-app map click, fitBounds already moved
+    // the map and setSelected already has the feature — no DB lookup needed.
+    if (treeIdSetByClickRef.current) {
+      treeIdSetByClickRef.current = false;
       return;
     }
 
-    const [lng, lat] = coords;
-    const map = mapRef.current?.getMap();
-    if (!map) return;
+    let cancelled = false;
 
-    // Register the idle listener before flyTo so it fires once tiles are ready.
-    map.once("idle", () => {
-      const pixel = map.project([lng, lat]);
-      // Cast asset_id to number because vector tile properties are stored as numbers.
-      const assetIdNum = Number(treeId);
-      const features = map.queryRenderedFeatures([pixel.x, pixel.y], {
-        layers: [TREE_LAYER_NAME],
-        filter: ["==", ["get", "asset_id"], assetIdNum],
+    getTreeCoordinates(treeId)
+      .then((coords) => {
+        if (cancelled) return;
+
+        if (!coords) {
+          showAlertTimeout("warning", `Tree ID ${treeId} was not found.`);
+          return;
+        }
+
+        const [lng, lat] = coords;
+        const map = mapRef.current?.getMap();
+        if (!map) return;
+
+        // Register the idle listener before flyTo so it fires once tiles are ready.
+        map.once("idle", () => {
+          const pixel = map.project([lng, lat]);
+          // Cast asset_id to number because vector tile properties are stored as numbers.
+          const assetIdNum = Number(treeId);
+          // Use a bounding box instead of a single pixel so the query is reliable
+          // regardless of sub-pixel precision or slight rendering-timing variance
+          // after flyTo. The asset_id filter ensures only the correct tree is returned
+          // even if other trees fall within the 20×20 px box.
+          const features = map.queryRenderedFeatures(
+            [[pixel.x - 10, pixel.y - 10], [pixel.x + 10, pixel.y + 10]],
+            {
+            layers: [TREE_LAYER_NAME],
+            filter: ["==", ["get", "asset_id"], assetIdNum],
+          });
+
+          if (features && features.length > 0) {
+            setSelected(features[0]);
+            setIsInfoPanelExpanded(true);
+            setTitle(titleCase(features[0].properties?.common_name ?? ""));
+            infoPanelRef.current?.scrollTo(0, 0);
+          }
+        });
+
+        map.flyTo({ center: [lng, lat], zoom: 17, duration: 1200 });
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Failed to load tree coordinates from DB", err);
+          showAlertTimeout("error", "Could not load tree location.");
+        }
       });
 
-      if (features && features.length > 0) {
-        setSelected(features[0]);
-        setIsInfoPanelExpanded(true);
-        setTitle(titleCase(features[0].properties?.common_name ?? ""));
-        infoPanelRef.current?.scrollTo(0, 0);
-      }
-    });
-
-    map.flyTo({ center: [lng, lat], zoom: 17, duration: 1200 });
-  }, [treeId, isLoaded, idToLocationMap]);
+    return () => {
+      cancelled = true;
+    };
+  }, [treeId, isLoaded]);
 
   const onLoad = () => {
     const map = mapRef.current?.getMap();
@@ -893,7 +917,7 @@ const handleUserLocationClose = () => {
             type="neighborhood"
           />
         )}
-        {selected && selected.layer.id == TREE_LAYER_NAME && (
+        {selected && selected.layer.id == TREE_LAYER_NAME && (stats as any).tree_stats && (
           <InfoContainer {...selected.properties} stats={stats} blurbs={blurbs}>
             <FilterToTree
               onClick={onClickFilter}

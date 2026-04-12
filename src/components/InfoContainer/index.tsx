@@ -80,6 +80,9 @@ export const TreeInfoComponent = (props: any) => {
   }
 
   const citywidePrevalence = (stats: any) => {
+    if (!stats?.tree_stats || !stats.tree_stats[common_name]) {
+      return formatPrevalanceResult(0);
+    }
     let percentage = Math.round(
       (stats.tree_stats[common_name].total_count / stats.city_tree_count) * 100
     ).toFixed(2);
@@ -87,6 +90,7 @@ export const TreeInfoComponent = (props: any) => {
   };
   const neighborhoodPrevalance = (stats: any) => {
     if (
+      !stats?.tree_stats ||
       !stats.tree_stats[common_name] ||
       !stats.tree_stats[common_name].neighborhood_counts ||
       !stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] ||
@@ -140,13 +144,13 @@ export const TreeInfoComponent = (props: any) => {
   let cult = cultivar_name && cultivar_name.toLowerCase() !== "(none)" && cultivar_name.toLowerCase() !== "none" ? ` (${titleCase(cultivar_name)})` : "";
   let neighPrevalance = React.useMemo(
     () => neighborhoodPrevalance(props.stats),
-    [asset_id, neighbourhood_name]
+    [asset_id, neighbourhood_name, props.stats]
   );
   let totalPrevalance = React.useMemo(
     () => citywidePrevalence(props.stats),
-    [asset_id]
+    [asset_id, props.stats]
   );
-  let blurb = React.useMemo(() => getBlurb(props.blurbs), [asset_id]);
+  let blurb = React.useMemo(() => getBlurb(props.blurbs), [asset_id, props.blurbs]);
 
   return (
     <StyledTreeInfo className="tree-attrs">
