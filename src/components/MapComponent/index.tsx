@@ -340,6 +340,7 @@ function MapComponent() {
             if (selected && selected.layer.id == "userphotos-data") {
                 setSelected(undefined);
                 setTitle(DEFAULT_TITLE);
+                navigate("/");
             }
         }
     );
@@ -443,6 +444,7 @@ function MapComponent() {
       }
     } else {
       setTitle(DEFAULT_TITLE);
+      navigate("/");
     }
 
     // setTimeout(() => {
@@ -651,7 +653,20 @@ function MapComponent() {
           }
         });
 
-        map.flyTo({ center: [lng, lat], zoom: 17, duration: 1200 });
+        // Use fitBounds (with a degenerate bbox) instead of flyTo so that the
+        // same offset applied by onSelectZoom is respected, keeping the tree
+        // visible in the viewport that isn't covered by the InfoPanel.
+        map.fitBounds(
+          [[lng, lat], [lng, lat]],
+          {
+            offset: (isNarrow
+              ? [0, -(measurements?.height || 0) / 5]
+              : [100, 0]) as [number, number],
+            maxZoom: 17,
+            linear: false,
+            duration: 1200,
+          }
+        );
       })
       .catch((err) => {
         if (!cancelled) {
