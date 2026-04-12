@@ -35,12 +35,10 @@ from random import randint
 from pygments import highlight, lexers, formatters
 import traceback
 
-try:
-    from shapely.geometry import Point, shape
-    from shapely.strtree import STRtree
-    _SHAPELY_AVAILABLE = True
-except ImportError:
-    _SHAPELY_AVAILABLE = False
+from shapely.geometry import Polygon, Point, shape
+from shapely.ops import transform
+from shapely.strtree import STRtree
+from pyproj import Transformer
 
 
 # Example usage
@@ -232,6 +230,17 @@ def choose_color(count: int, bands: List[float], colors: Dict[str, str]) -> str:
     return retcol
 
 
+def polygon_area_sqkm(coordinates) -> float:
+    """
+    Compute area of a GeoJSON polygon ring in square kilometres.
+    Reprojects from WGS84 (EPSG:4326) to BC Albers (EPSG:3005) for accuracy.
+    """
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
+    polygon = Polygon(coordinates[0])  # outer ring only
+    projected = transform(transformer.transform, polygon)
+    return projected.area / 1_000_000  # m² → km²
+
+
 def process_trees(args: object):
     data: Dict[str, any] = loadjson(file_paths[args.name])
 
@@ -283,7 +292,7 @@ def process_boundaries(args: object):
     if args.reduce_precision:
         data = reduce_precision(data, args.reduce_precision)
     if args.stats:
-        data = color_by_tree_count(data, args)
+        data = color_by_tree_density(data, args)
 
     savejson(args.outfile, data)
 
@@ -304,6 +313,98 @@ def color_by_tree_count(data: Dict[str, any], args: object) -> Dict[str, any]:
                 boundary[GeoJsonKey.PROPERTIES][BoundaryPropKey.TREE_COUNT] = stats[place][StatsKey.TOTAL_COUNT]
                 boundary[GeoJsonKey.PROPERTIES][BoundaryPropKey.COLOR] = choose_color(stats[place][StatsKey.TOTAL_COUNT], lower_bounds, color_bands)
                 boundary[GeoJsonKey.PROPERTIES][BoundaryPropKey.DESCRIPTION] = descriptions[place]
+
+    return data
+
+
+def color_by_tree_density(data: Dict[str, any], args: object) -> Dict[str, any]:
+    """
+    Assign fill colors to boundary features based on tree density (trees/km²)
+    rather than raw tree count. color_by_tree_count() is left intact.
+
+    Also updates the neighborhood_stats in both stats JSON files to include
+    area_sqkm and tree_density_sqkm for each neighbourhood.
+    """
+    color_bands: List[str] = get_boundary_colors(10, args.cmap)
+
+    # Paths to both stats files (seed5 is the authoritative one read by the app)
+    stats_paths = [
+        '../opendata/processed/vancouver-all-trees-processed-seed5-stats.json',
+        '../opendata/processed/vancouver-all-trees-processed-stats.json',
+    ]
+    seed5_full = loadjson(stats_paths[0])
+    neighborhood_stats: Dict[str, any] = seed5_full[StatsKey.NEIGHBORHOOD_STATS]
+
+    # Build a case-insensitive lookup: uppercase key → original mixed-case key
+    stats_upper_lookup: Dict[str, str] = {k.upper(): k for k in neighborhood_stats.keys()}
+
+    # Load descriptions from the existing processed boundaries file (keyed by name, uppercased)
+    descriptions: Dict[str, List[str]] = {}
+    try:
+        existing_processed = loadjson(args.outfile)
+        for feat in existing_processed[GeoJsonKey.FEATURES]:
+            feat_name = feat[GeoJsonKey.PROPERTIES].get(BoundaryPropKey.NAME, '')
+            feat_desc = feat[GeoJsonKey.PROPERTIES].get(BoundaryPropKey.DESCRIPTION, [])
+            if feat_name:
+                descriptions[feat_name.upper()] = feat_desc
+    except (FileNotFoundError, KeyError):
+        logging.warning('Could not load descriptions from existing processed boundaries; descriptions will be empty.')
+
+    # First pass: compute area and density for every boundary feature
+    area_by_name: Dict[str, float] = {}
+    density_by_name: Dict[str, float] = {}
+
+    for boundary in data[GeoJsonKey.FEATURES]:
+        props = boundary[GeoJsonKey.PROPERTIES]
+        name_upper = props[BoundaryPropKey.NAME].upper()
+
+        if name_upper == 'NULL' or name_upper not in stats_upper_lookup:
+            continue
+
+        stats_key = stats_upper_lookup[name_upper]  # original mixed-case key
+        coords = boundary[GeoJsonKey.GEOMETRY][GeoJsonKey.COORDINATES]
+        area_sqkm = round(polygon_area_sqkm(coords), 2)
+        total_count = neighborhood_stats[stats_key][StatsKey.TOTAL_COUNT]
+        density = round(total_count / area_sqkm, 1) if area_sqkm > 0 else 0.0
+
+        area_by_name[name_upper] = area_sqkm
+        density_by_name[name_upper] = density
+
+        # Store on boundary feature properties
+        props[BoundaryPropKey.TREE_COUNT] = total_count
+        props['area_sqkm'] = area_sqkm
+        props['tree_density_sqkm'] = density
+        props[BoundaryPropKey.DESCRIPTION] = descriptions.get(name_upper, [])
+
+    # Build color bands from density distribution (skip "null" neighbourhood)
+    densities = sorted(density_by_name.values())
+    if densities:
+        d_min, d_max = densities[0], densities[-1]
+        lower_bounds = [d_min + ((d_max - d_min) / len(color_bands)) * i for i in range(len(color_bands))]
+    else:
+        lower_bounds = [0] * len(color_bands)
+
+    # Second pass: assign color based on density
+    for boundary in data[GeoJsonKey.FEATURES]:
+        props = boundary[GeoJsonKey.PROPERTIES]
+        name_upper = props[BoundaryPropKey.NAME].upper()
+        if name_upper in density_by_name:
+            props[BoundaryPropKey.COLOR] = choose_color(density_by_name[name_upper], lower_bounds, color_bands)
+
+    # Persist area/density back into both stats files
+    for stats_path in stats_paths:
+        try:
+            full_stats = loadjson(stats_path)
+            file_upper_lookup = {k.upper(): k for k in full_stats[StatsKey.NEIGHBORHOOD_STATS].keys()}
+            for name_upper, area_sqkm in area_by_name.items():
+                orig_key = file_upper_lookup.get(name_upper)
+                if orig_key is not None:
+                    full_stats[StatsKey.NEIGHBORHOOD_STATS][orig_key]['area_sqkm'] = area_sqkm
+                    full_stats[StatsKey.NEIGHBORHOOD_STATS][orig_key]['tree_density_sqkm'] = density_by_name[name_upper]
+            savejson(stats_path, full_stats)
+            logging.info('Updated stats with area/density: %s', stats_path)
+        except FileNotFoundError:
+            logging.warning('Stats file not found, skipping update: %s', stats_path)
 
     return data
 
@@ -606,7 +707,7 @@ def _print_JSON_colors(pydict: Dict[str, any], style: str = 'emacs'):
 
 def get_boundary_colors(num: int, cmap_name: str) -> Dict[int, str]:
     # creates a dictionary of discrete colors from a continuous colormap
-    cmap = cm.get_cmap(cmap_name, num)
+    cmap = matplotlib.colormaps[cmap_name].resampled(num)
     return {i: matplotlib.colors.rgb2hex(cmap(i)) for i in range(cmap.N)}
 
 
@@ -761,11 +862,8 @@ def assign_neighbourhoods(trees_data: Dict[str, any], boundaries_data: Dict[str,
     Uses a shapely STRtree spatial index for efficient lookup (O(log n) per tree).
     Points exactly on a boundary ring are treated as inside via polygon.covers(point).
 
-    Requires shapely >= 2.0. If shapely is unavailable the step is skipped with a warning.
+    Requires shapely >= 2.0.
     """
-    if not _SHAPELY_AVAILABLE:
-        logging.warning('shapely is not installed; skipping --assign-neighbourhoods. Install shapely>=2.0 to use this feature.')
-        return trees_data
 
     # Pre-process boundaries: build shapely geometries and STRtree index
     boundary_polygons = []
