@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import { boundaryTrasitionZoomLevel } from "../../styles/map-styles.js";
 import { ChevronCollapse, Filtered, Info } from "../../svg-icons.js";
@@ -19,15 +19,13 @@ import {
 
 
 interface FilterPanelProps {
-  updateParent: any;
+  updateParent: (filterObject: any) => void;
   currentFilterObject: any;
   treeNamesAndColors: object;
   updateSelected: any;
   selected: any;
   currentZoom: number;
   zoomIn: any;
-  defaultValue: any[];
-  setDefaultValue: (value: any) => void;
 }
 
 interface SelectOption {
@@ -40,7 +38,7 @@ const [diamMIN, heightMIN] = [0, 0];
 const [diamMAX, heightMAX] = [115, 40];
 
 const defaults = {
-  trees: [],
+  trees: [] as string[],
   diameters: [diamMIN, diamMAX],
   heights: [heightMIN, heightMAX],
 };
@@ -56,37 +54,7 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
     setIsExpanded(!isExpanded);
   };
 
-  const [defaultValues, setDefaultValues] = useState<any>(defaults);
-
-  function defaultCheck() {
-    return (
-        arrsEqualInOrder(defaultValues.trees, defaults.trees) &&
-        arrsEqualInOrder(defaultValues.diameters, defaults.diameters) &&
-        arrsEqualInOrder(defaultValues.heights, defaults.heights)
-    );
-  };
-
-  function arrsEqualInOrder(arr1: any[], arr2: any[]): boolean {
-        if (arr1.length !== arr2.length) {
-            return false;
-        }
-
-        for (const [idx, val] of arr1.entries()) {
-            if (val !== arr2[idx])
-                return false
-        }
-
-        return true;
-  }
-
-  const handleTreeClick = (selection: {label: string, value: string}[]) => {
-    updateParent({...currentFilterObject, trees: selection.length ? selection.map((entry: any) => (entry.value)) : []})
-    setDefaultValues({
-        ...defaultValues,
-        trees: selection
-      });
-}
-
+  // Build the full list of options from the treeNamesAndColors prop
   useEffect(() => {
     let nameList: SelectOption[] = [];
     if (treeNamesAndColors) {
@@ -104,52 +72,60 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
     setTreeCommonNameList(nameList);
   }, [treeNamesAndColors]);
 
-  const handleChangeDiameter = (
-    event: Event,
-    newValue: number | number[],
-    activeThumb: number
-  ) => {
-    if (!Array.isArray(newValue)) {
-        return;
+  // Sync local slider state when the filter is changed externally
+  // (e.g. clicking "Filter to this tree" from the InfoPanel resets trees
+  //  but should also keep whatever diameter/height was already set)
+  useEffect(() => {
+    if (currentFilterObject.diameters) {
+      setDiameterRange(currentFilterObject.diameters);
     }
+    if (currentFilterObject.heights) {
+      setHeightRange(currentFilterObject.heights);
+    }
+  }, [currentFilterObject]);
 
-    setDiameterRange(newValue);
-    updateParent({
-        ...currentFilterObject,
-        diameters: newValue
-      });
-      setDefaultValues({
-        ...defaultValues,
-        diameters: newValue
-      });
+  // Derive the controlled value for the Select from the parent filter object.
+  // This is the single source of truth – no local tree-selection state needed.
+  const selectedTreeOptions = useMemo<SelectOption[]>(() => {
+    const activeTrees: string[] = currentFilterObject.trees ?? [];
+    return treeCommonNameList.filter((opt) => activeTrees.includes(opt.value));
+  }, [treeCommonNameList, currentFilterObject.trees]);
+
+  function isAtDefaults(): boolean {
+    const trees: string[] = currentFilterObject.trees ?? [];
+    const diameters: number[] = currentFilterObject.diameters ?? defaults.diameters;
+    const heights: number[] = currentFilterObject.heights ?? defaults.heights;
+    return (
+      trees.length === 0 &&
+      diameters[0] === diamMIN && diameters[1] === diamMAX &&
+      heights[0] === heightMIN && heights[1] === heightMAX
+    );
   }
+
+  const handleTreeClick = (newValue: readonly SelectOption[]) => {
+    const treeNames = newValue ? newValue.map((opt) => opt.value) : [];
+    updateParent({ ...currentFilterObject, trees: treeNames });
+  };
+
+  const handleChangeDiameter = (
+    _event: Event,
+    newValue: number | number[],
+    _activeThumb: number
+  ) => {
+    if (!Array.isArray(newValue)) return;
+    setDiameterRange(newValue);
+    updateParent({ ...currentFilterObject, diameters: newValue });
+  };
 
   const handleChangeHeight = (
-    event: Event,
+    _event: Event,
     newValue: number | number[],
-    activeThumb: number
+    _activeThumb: number
   ) => {
-    if (!Array.isArray(newValue)) {
-        return;
-    }
-
+    if (!Array.isArray(newValue)) return;
     setHeightRange(newValue);
-    updateParent({
-        ...currentFilterObject,
-        heights: newValue
-      });
-    setDefaultValues({
-        ...defaultValues,
-        heights: newValue
-      });
-  }
-
-useEffect(() => {
-    setDefaultValues({
-        ...currentFilterObject,
-        trees: treeCommonNameList.filter((value) => currentFilterObject.trees.includes(value.value)),
-    })
-}, [currentFilterObject]);
+    updateParent({ ...currentFilterObject, heights: newValue });
+  };
 
   return (
     <StyledFilterPanel open={isExpanded} className="filter-panel">
@@ -162,17 +138,10 @@ useEffect(() => {
             <StyledFilterBoxes>
               <LegendLabel> By Species (Common Name) </LegendLabel>
               <Select<SelectOption, true>
-                key={JSON.stringify(defaultValues.trees)} // using key to force update https://github.com/facebook/react/issues/4101#issuecomment-243625941
                 options={treeCommonNameList}
                 isMulti
-                onChange={(newValue) => {
-                  const selection = newValue ? Array.from(newValue).map(item => ({
-                    label: item.value, // Use value as string for label
-                    value: item.value
-                  })) : [];
-                  handleTreeClick(selection);
-                }}
-                defaultValue={defaultValues.trees as SelectOption[]}
+                onChange={handleTreeClick}
+                value={selectedTreeOptions}
                 maxMenuHeight={200}
               />
             </StyledFilterBoxes>
@@ -232,7 +201,7 @@ useEffect(() => {
         )}
         {isExpanded
           ? ChevronCollapse
-          : defaultCheck()
+          : isAtDefaults()
           ? Filter({ height: 24, width: 24 })
           : Filtered({ height: 24, width: 24 })}
       </OpenCloseButton>

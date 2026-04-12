@@ -67,7 +67,7 @@ export function cloudinaryImageNameCultivar(genus: string, species: string, cult
   }
 
   if (selected && selected.layer.id == LAYER_NAME) {
-    filter.push(['!=', ['get', 'asset_id'], selected.properties.tree_id]);
+    filter.push(['!=', ['get', 'asset_id'], selected.properties.asset_id ?? null]);
   }
 
   return filter;

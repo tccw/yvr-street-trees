@@ -126,7 +126,6 @@ function MapComponent() {
     const [stats, setStats] = useState<object>({});
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [userPhotoId, setUserPhotoId] = useState<number>(0);
-    const [defaultValue, setDefaultValue] = useState<any[]>([]); // lifted state from filter-panel. Allows for synchronization between
     const [filterPanelSelected, setFilterPanelSelected] = useState(false);
     const [style, setStyle] = useState(MAP_STYLE_CONTRAST);
     const [title, setTitle] = useState(DEFAULT_TITLE);
@@ -536,11 +535,6 @@ function MapComponent() {
   );
 
   const onClickFilter = () => {
-    setDefaultValue(
-      defaultValue.filter(
-        (entry) => entry.value === selected.properties.common_name
-      )
-    );
     setTreeFilterObject(
       selected
         ? { ...treeFilterObject, trees: [selected.properties.common_name] } // only replace the trees object
@@ -888,15 +882,11 @@ const handleUserLocationClose = () => {
         {/* <Feedback /> */}
       </InfoPanel>
       <FilterPanel
-        //   @ts-ignore
         currentFilterObject={treeFilterObject}
         updateParent={(props: any) => setTreeFilterObject({ ...props })}
         updateSelected={() => setFilterPanelSelected(true)}
-        selected={selected} // so that clicking the map can also deselect the tree from the list
-        //  @ts-ignore
+        selected={selected}
         treeNamesAndColors={stats ? (stats as any).tree_stats : null}
-        defaultValue={defaultValue}
-        setDefaultValue={(value: any) => setDefaultValue(value)}
         currentZoom={viewState.zoom}
         zoomIn={onClickZoom}
       />
