@@ -163,6 +163,7 @@ export const TreeInfoComponent = (props: any) => {
       </StyledSubText>
       {/* <AttributesContainer> */}
         <CustomCloudinaryImage
+            key={cloudinaryImageNameCultivar(genus_name, species_name)}
             cloudImageId={cloudinaryImageNameCultivar(genus_name, species_name)}
             // cloudImageId={cloudinaryImageNameCultivar(genus_name, species_name, cultivar_name)}
             color={color}
