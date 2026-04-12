@@ -137,7 +137,7 @@ export const TreeInfoComponent = (props: any) => {
     return sentenceCase(`${genus_name} ${tmp_species_name}`);
   };
 
-  let cult = cultivar_name ? ` (${titleCase(cultivar_name)})` : "";
+  let cult = cultivar_name && cultivar_name.toLowerCase() !== "(none)" && cultivar_name.toLowerCase() !== "none" ? ` (${titleCase(cultivar_name)})` : "";
   let neighPrevalance = React.useMemo(
     () => neighborhoodPrevalance(props.stats),
     [asset_id, neighbourhood_name]
