@@ -46,14 +46,14 @@ const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
         {color
           ? (
             <Transformation
-              fetchFormat="auto"
+              fetchFormat="webp"
               quality="auto"
               border={`4px_solid_rgb:${color.split("#")[1]}`}
             />
           )
           : (
             <Transformation
-              fetchFormat="auto"
+              fetchFormat="webp"
               quality="auto"
             />
           )
