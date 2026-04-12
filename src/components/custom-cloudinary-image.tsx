@@ -1,12 +1,4 @@
 import styled from "styled-components";
-// import {
-//   AdvancedImage,
-//   accessibility,
-//   responsive,
-//   lazyload,
-//   placeholder,
-// } from "@cloudinary/react";
-// import { Cloudinary } from "@cloudinary/url-gen";
 // @ts-ignore
 import { Image, Transformation } from "cloudinary-react";
 // @ts-ignore
@@ -19,18 +11,20 @@ const NoTreeImage = styled.img`
 
 const ImageContainer = styled.section`
   position: relative;
-  width: inheret;
-  margin: 3%;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin: 3% 0;
   display: flex;
   flex-direction: column;
+  background-color: #f0f0f0;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: white;
+  }
 `;
-
-// const ImageContainer = styled.section`
-// display: flex;
-//   width: 50%;
-//   height: 50%;
-//   margin: 3%;
-// `;
 
 interface CloudinaryCustomImageType {
   cloudImageId: string;
@@ -38,57 +32,36 @@ interface CloudinaryCustomImageType {
   additionalTransformations?: React.ReactElement[]
 }
 
-
 const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
   const { cloudImageId, color } = props;
 
-//   let publicId = cloudinaryImageName(genusName, speciesName);
-    // const cld = new Cloudinary({
-    //   cloud: {
-    //     cloudName: CLOUD_NAME,
-    //   },
-    // });
-  //   let img = cld.image(publicId);
-
-  //   return VALID_IMAGE_LIST.has(publicId.split("/")[1]) ? (
-  //     <ImageContainer>
-  //       <AdvancedImage
-  //         cldImg={img}
-  //         plugins={[lazyload(), responsive(), accessibility(), placeholder()]}
-  //       />
-  //     </ImageContainer>
-  //   ) : (
-  //     <NoTreeImage src={FALLBACK_IMAGE} />
-  //   );
-
-//   let cloudinary_url = Cloudinary.utils.cloudinary_url(cloudImageId, {});
-//   console.log(cloudinary_url);
-
-    return (
-        <ImageContainer>
-            <Image
-                cloudName={CLOUD_NAME}
-                publicId={cloudImageId}
-                defaultImage={'yvr-street-trees:no_image_leaf.png'}
-                alt={`Image of a ${cloudImageId.split("/")[1]} leaf`}
-            >
-                {color
-                    ? (<Transformation
-                            fetchFormat="auto"
-                            quality="auto"
-                            border={`4px_solid_rgb:${color.split("#")[1]}`}
-                    />)
-                    : (
-                        <Transformation
-                            fetchFormat="auto"
-                            quality="auto"
-                            />
-                    )
-                }
-                {props.additionalTransformations}
-            </Image>
-        </ImageContainer>
-    )
+  return (
+    <ImageContainer>
+      <Image
+        cloudName={CLOUD_NAME}
+        publicId={cloudImageId}
+        defaultImage={'yvr-street-trees:no_image_leaf.png'}
+        alt={`Image of a ${cloudImageId.split("/")[1]} leaf`}
+      >
+        {color
+          ? (
+            <Transformation
+              fetchFormat="auto"
+              quality="auto"
+              border={`4px_solid_rgb:${color.split("#")[1]}`}
+            />
+          )
+          : (
+            <Transformation
+              fetchFormat="auto"
+              quality="auto"
+            />
+          )
+        }
+        {props.additionalTransformations}
+      </Image>
+    </ImageContainer>
+  );
 
 //   return VALID_IMAGE_LIST.has(cloudImageId.split("/")[1]) ? (
 //     <ImageContainer>
