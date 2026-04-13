@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
 import {
-  heightStringFromID,
   titleCase,
   toPrettyDateString,
   sentenceCase,

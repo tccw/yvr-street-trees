@@ -131,7 +131,7 @@ function MapComponent() {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [userPhotoId, setUserPhotoId] = useState<number>(0);
     const [filterPanelSelected, setFilterPanelSelected] = useState(false);
-    const [style, setStyle] = useState(MAP_STYLE_CONTRAST);
+    const [style, setStyle] = useState(MAP_STYLE_PARKS);
     const [title, setTitle] = useState(DEFAULT_TITLE);
     const [interactiveLayers, setInteractiveLayers] = useState<string[]>([]);
 
