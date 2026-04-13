@@ -22,6 +22,7 @@ import argparse
 import logging
 import sys
 import json
+import sqlite3
 import subprocess
 import math
 import re
@@ -94,6 +95,20 @@ from pyproj import Transformer
 ./process-data.py plot-lab -i ../opendata/processed/genus_species_cultivar_colors.json \
     --title 'Vancouver Tree Color Distribution (LAB)' \
     --max-cultivars-per-genus 16
+
+# Standalone: generate SQLite asset_id→coordinates database from a processed GeoJSON
+./process-data.py sqlite \
+    -i ../opendata/processed/vancouver-all-trees-processed-seed5.json \
+    -o ../data/vancouver-all-trees-id-to-location-map.db
+
+# Combined: process + emit SQLite in one step (output .db is derived from --outfile path)
+./process-data.py create \
+    -n van-tree \
+    -o ../opendata/processed/vancouver-all-trees-processed-seed5.json \
+    -x std_street root_barrier street_side_name plant_area curb \
+    -s -ss 5 \
+    -ac ../opendata/processed/assigned-tree-colors-seed5.json \
+    --generate-sqlite
 """
 
 # ---- Constants ----
@@ -944,6 +959,63 @@ def assign_neighbourhoods(trees_data: Dict[str, any], boundaries_data: Dict[str,
     return trees_data
 
 
+def generate_sqlite_db(input_file: str, output_db: str) -> None:
+    """
+    Generate a SQLite database containing an asset_id → coordinates mapping
+    from a processed tree GeoJSON file.
+
+    Schema:
+        trees(asset_id INTEGER PRIMARY KEY, longitude REAL NOT NULL, latitude REAL NOT NULL)
+
+    Features with null geometry or a missing asset_id are skipped with a warning.
+    """
+    data = loadjson(input_file)
+    features = data.get(GeoJsonKey.FEATURES, [])
+
+    rows: List[Tuple] = []
+    skipped = 0
+
+    for feature in features:
+        props = feature.get(GeoJsonKey.PROPERTIES) or {}
+        asset_id = props.get('asset_id')
+        geometry = feature.get(GeoJsonKey.GEOMETRY)
+
+        if asset_id is None:
+            logging.warning('Skipping feature with missing asset_id.')
+            skipped += 1
+            continue
+        if geometry is None:
+            logging.warning('Skipping asset_id=%s: null geometry.', asset_id)
+            skipped += 1
+            continue
+
+        coords = geometry.get(GeoJsonKey.COORDINATES)
+        if not coords or len(coords) < 2:
+            logging.warning('Skipping asset_id=%s: invalid coordinates %s.', asset_id, coords)
+            skipped += 1
+            continue
+
+        longitude, latitude = coords[0], coords[1]
+        rows.append((asset_id, longitude, latitude))
+
+    with sqlite3.connect(output_db) as conn:
+        conn.execute('DROP TABLE IF EXISTS trees')
+        conn.execute(
+            'CREATE TABLE trees ('
+            '  asset_id  INTEGER PRIMARY KEY,'
+            '  longitude REAL NOT NULL,'
+            '  latitude  REAL NOT NULL'
+            ')'
+        )
+        conn.executemany('INSERT INTO trees VALUES (?, ?, ?)', rows)
+        conn.commit()
+
+    logging.info(
+        'SQLite database written to %s: %d rows inserted, %d features skipped.',
+        output_db, len(rows), skipped
+    )
+
+
 # --- End Helpers ---
 
 try:
@@ -971,6 +1043,7 @@ try:
     parser_create.add_argument('-s', '--stats', action='store_true', help='generate stats JSON next to the output; for trees this can also drive color assignment')
     parser_create.add_argument('-cmap', help='matplotlib colormap name for boundary shading (used with -s): https://matplotlib.org/stable/gallery/color/colormap_reference.html')
     parser_create.add_argument('-an', '--assign-neighbourhoods', action='store_true', help='spatially assign neighbourhood_name to each tree feature using the van-bound boundaries file (van-tree only)')
+    parser_create.add_argument('--generate-sqlite', action='store_true', help='also generate a SQLite asset_id→coordinates database alongside the output GeoJSON (written to the same path with a .db extension; tree datasets only)')
 
     # 'info' command
     parser_info = subparsers.add_parser('info', help='get information about a dataset')
@@ -990,6 +1063,11 @@ try:
     parser_plot_lab.add_argument('--title', default='Genus / Species / Cultivar Colors in LAB Space', help='plot title')
     parser_plot_lab.add_argument('--no-annotate-genus', action='store_true', help='disable genus label annotations')
     parser_plot_lab.add_argument('--max-cultivars-per-genus', type=int, help='optional cap for species/cultivar points per genus')
+
+    # 'sqlite' command
+    parser_sqlite = subparsers.add_parser('sqlite', help='generate a SQLite asset_id→coordinates database from a processed tree GeoJSON')
+    parser_sqlite.add_argument('-i', '--infile', required=True, help='path to a processed tree GeoJSON file')
+    parser_sqlite.add_argument('-o', '--outfile', required=True, help='output path for the SQLite database file (e.g. ../data/trees.db)')
 
     # 'table' command
     parser_table = subparsers.add_parser('table', help='helpful tables and unit reminders')
@@ -1029,6 +1107,14 @@ try:
                             '[van-tree | nw-tree | van-bound | nw-bound]'
                             f'but recieved \"{args.name}\"'))
                             )(args)
+
+        if args.generate_sqlite:
+            if args.name not in ('van-tree', 'nw-tree'):
+                logging.warning('--generate-sqlite is only supported for tree datasets (van-tree, nw-tree); skipping.')
+            else:
+                outfile_base = args.outfile[:args.outfile.rfind('.')] if '.' in args.outfile else args.outfile
+                sqlite_outfile = f'{outfile_base}.db'
+                generate_sqlite_db(args.outfile, sqlite_outfile)
     elif args.cmd == 'info':
         if args.name and args.infile:
             parser.error('requires -n/--name OR -i/--infile but recieved both')
@@ -1048,6 +1134,8 @@ try:
             if not args.color_map:
                 parser.error('--plot-lab-3d requires --color-map')
             plot_lab_colors_from_file(args.color_map)
+    elif args.cmd == 'sqlite':
+        generate_sqlite_db(args.infile, args.outfile)
     elif args.cmd == 'table':
         if args.precision_at_latitude is not None:
             print_precision_table(args.precision_at_latitude)
