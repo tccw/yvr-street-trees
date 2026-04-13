@@ -77,7 +77,7 @@ export const treesLayer: CircleLayer = {
         property: 'diameter_cm',
         stops: DIAMETER_STOPS
     },
-    'circle-opacity': 0.80
+    'circle-opacity': 0.85
   }
 };
 
