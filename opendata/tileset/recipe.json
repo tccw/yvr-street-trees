@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "layers": {
+    "trees": {
+      "source": "mapbox://tileset-source/tcowan/vancouver-trees-src-mar-2026",
+      "minzoom": 7,
+      "maxzoom": 14
+    }
+  }
+}
