@@ -20,6 +20,19 @@
     />
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
     <title>YVR Tree Map</title>
+    <script>
+      // Single Page App redirect restoration for GitHub Pages
+      // https://github.com/rafgraph/spa-github-pages
+      //
+      // If the 404.html page encoded a path into the query string (?p=...),
+      // restore it via history.replaceState so React Router sees the correct URL.
+      (function() {
+        var redirect = new URLSearchParams(window.location.search).get('p');
+        if (redirect) {
+          window.history.replaceState(null, null, redirect);
+        }
+      })();
+    </script>
     <script type="module" crossorigin src="/assets/index-94e205d3.js"></script>
     <link rel="stylesheet" href="/assets/index-827d2b10.css">
   </head>
