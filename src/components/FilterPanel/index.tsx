@@ -30,6 +30,8 @@ import {
   TreeSearchResults,
   SelectedChips,
   SelectedChip,
+  RangeChip,
+  RangeChipRemove,
   MoreChips,
   ChipRemove,
   ClearAllButton,
@@ -293,16 +295,32 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
     return treeCommonNameList.filter((opt) => activeTrees.includes(opt.value));
   }, [treeCommonNameList, currentFilterObject.trees]);
 
+  // A range filter counts as "filtered" when it differs from its default
+  // span — the same comparison isAtDefaults() uses, so the Diameter/Height
+  // chips and the Selected section's visibility can't disagree.
+  const diameters: number[] = currentFilterObject.diameters ?? defaults.diameters;
+  const heights: number[] = currentFilterObject.heights ?? defaults.heights;
+  const isDiameterFiltered =
+    diameters[0] !== diamMIN || diameters[1] !== diamMAX;
+  const isHeightFiltered =
+    heights[0] !== heightMIN || heights[1] !== heightMAX;
+  const rangeFilterCount =
+    (isDiameterFiltered ? 1 : 0) + (isHeightFiltered ? 1 : 0);
+
   function isAtDefaults(): boolean {
     const trees: string[] = currentFilterObject.trees ?? [];
-    const diameters: number[] = currentFilterObject.diameters ?? defaults.diameters;
-    const heights: number[] = currentFilterObject.heights ?? defaults.heights;
-    return (
-      trees.length === 0 &&
-      diameters[0] === diamMIN && diameters[1] === diamMAX &&
-      heights[0] === heightMIN && heights[1] === heightMAX
-    );
+    return trees.length === 0 && !isDiameterFiltered && !isHeightFiltered;
   }
+
+  // Removing a range chip resets just that slider to its default span.
+  const clearDiameter = () => {
+    setDiameterRange([...defaults.diameters]);
+    updateParent({ ...currentFilterObject, diameters: [...defaults.diameters] });
+  };
+  const clearHeight = () => {
+    setHeightRange([...defaults.heights]);
+    updateParent({ ...currentFilterObject, heights: [...defaults.heights] });
+  };
 
   const handleTreeClick = (newValue: readonly SelectOption[]) => {
     const treeNames = newValue ? newValue.map((opt) => opt.value) : [];
@@ -557,11 +575,11 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
             {!isAtDefaults() && (
               <StyledFilterBoxes>
                 <LegendLabel>
-                  Selected ({selectedNodes.length > 0 ? selectedNodes.length : activeTrees.length})
+                  Selected ({selectedNodes.length + rangeFilterCount})
                 </LegendLabel>
-                {selectedNodes.length > 0 ? (
+                {selectedNodes.length > 0 || rangeFilterCount > 0 ? (
                   <SelectedChips>
-                    {(isNarrow && selectedNodes.length > MAX_VISIBLE_CHIPS
+                    {(isNarrow && selectedNodes.length + rangeFilterCount > MAX_VISIBLE_CHIPS
                       ? selectedNodes.slice(0, MAX_VISIBLE_CHIPS)
                       : selectedNodes
                     ).map((node) => (
@@ -570,14 +588,26 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                         <ChipRemove onClick={() => toggleLeaves(node.leaves, false)}>×</ChipRemove>
                       </SelectedChip>
                     ))}
-                    {isNarrow && selectedNodes.length > MAX_VISIBLE_CHIPS && (
+                    {isDiameterFiltered && (
+                      <RangeChip title="Diameter range filter — click × to reset the range">
+                        Diameter
+                        <RangeChipRemove onClick={clearDiameter}>×</RangeChipRemove>
+                      </RangeChip>
+                    )}
+                    {isHeightFiltered && (
+                      <RangeChip title="Height range filter — click × to reset the range">
+                        Height
+                        <RangeChipRemove onClick={clearHeight}>×</RangeChipRemove>
+                      </RangeChip>
+                    )}
+                    {isNarrow && selectedNodes.length + rangeFilterCount > MAX_VISIBLE_CHIPS && (
                       <MoreChips
                         title={selectedNodes
                           .slice(MAX_VISIBLE_CHIPS)
                           .map((n) => n.label)
                           .join(", ")}
                       >
-                        +{selectedNodes.length - MAX_VISIBLE_CHIPS} more
+                        +{selectedNodes.length + rangeFilterCount - MAX_VISIBLE_CHIPS} more
                       </MoreChips>
                     )}
                   </SelectedChips>

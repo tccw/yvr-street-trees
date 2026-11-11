@@ -69,8 +69,13 @@ const StyledFilterPanel = styled.div`
   margin: 20px;
   line-height: 2;
   outline: none;
-  width: fit-content;
-  max-width: 350px;
+  /* Desktop: fixed width (mobile media query below overrides with
+     width: auto) so the panel is usefully wide for the genus tree,
+     search box, and sliders. 440px total = 392px usable content
+     after padding: 24px each side; cards/tree/search fill it, with
+     the 5px card margin + 24px panel padding as the right gutter. */
+  width: 440px;
+  max-width: 440px;
   height: fit-content;
   overflow: hidden;
   display: flex;
@@ -112,7 +117,10 @@ const StyledFilterTogglePane = styled.div`
   background: inheret;
   line-height: 2;
   outline: none;
-  width: fit-content;
+  /* Desktop: fill the panel's content width so interior cards/tree
+     stretch with the fixed 440px panel instead of hugging the left
+     at fit-content size (mobile media query below also sets 100%). */
+  width: 100%;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -131,6 +139,11 @@ const StyledFilterBoxes = styled.span<{ color?: string; grow?: boolean }>`
   background: ${(props) => (props.color ? props.color : "white")};
   box-shadow: 0px -6px 10px rgba(255, 255, 255, 1),
     0px 2px 7px rgba(0, 0, 0, 0.15);
+  /* box-sizing: border-box (like the panel) so max-width: 100% includes
+     padding: 12px 24px. Without it, content-box max-width + 48px
+     padding + 10px margin overflows the pane and the card's right
+     edge bleeds to the panel border (no right buffer). */
+  box-sizing: border-box;
   padding: 12px 24px;
   margin: 5px;
   line-height: 2;
@@ -138,7 +151,10 @@ const StyledFilterBoxes = styled.span<{ color?: string; grow?: boolean }>`
   display: flex;
   flex-direction: column;
   height: ${(props) => (props.grow ? "auto" : "fit-content")};
-  max-width: 90%;
+  /* Desktop: fill the pane width (matching the tree/search width) and
+     let margins provide the side buffer; the mobile override below
+     keeps max-width: 100% + margin: 5px 0. */
+  max-width: 100%;
   border-radius: 4px;
   text-align: left;
   flex: ${(props) => (props.grow ? "1 1 auto" : "0 0 auto")};
@@ -361,6 +377,11 @@ const TaxonomyTree = styled.div`
   max-height: 340px;
   overflow-y: auto;
   padding-right: 4px;
+  /* Keep deep rows (padding-left: depth * 14px) inside the pane's
+     content box on desktop instead of sliding under the right
+     padding; TreeNodeLabel ellipsizes when constrained. */
+  width: 100%;
+  box-sizing: border-box;
 
   /* Mobile: fill whatever height the bounded panel has left, and scroll
      inside. (flex: 1 1 auto + min-height: 0 is the flexbox recipe for a
@@ -462,6 +483,20 @@ const ChipRemove = styled.span`
   }
 `;
 
+/* Range filters (Diameter / Height): same pill as SelectedChip but a
+   slightly darker blue so they read as a different kind of filter. */
+const RangeChip = styled(SelectedChip)`
+  background: #b9d9e8;
+  color: #15435a;
+`;
+
+const RangeChipRemove = styled(ChipRemove)`
+  color: #15435a;
+  &:hover {
+    background: #9cc8dc;
+  }
+`;
+
 const ClearAllButton = styled.button`
   align-self: flex-start;
   margin-top: 8px;
@@ -504,6 +539,8 @@ export {
   TreeNodeCount,
   SelectedChips,
   SelectedChip,
+  RangeChip,
+  RangeChipRemove,
   MoreChips,
   ChipRemove,
   ClearAllButton
