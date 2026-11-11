@@ -64,6 +64,7 @@ const StyledFilterPanel = styled.div`
   right: 120px;
   background: #f2f2f2;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
   padding: 12px 24px;
   margin: 20px;
   line-height: 2;
@@ -87,10 +88,20 @@ const StyledFilterPanel = styled.div`
     width: auto;
 
     /* Definite height so the column flex chain (pane -> grow box
-       -> taxonomy tree) can shrink and the tree scrolls internally. */
-    height: calc(100dvh - 90px);
-    max-height: calc(100dvh - 90px);
-    min-height: min(400px, calc(100dvh - 90px));
+       -> taxonomy tree) can shrink and the tree scrolls internally.
+       90px = 70px effective top offset (top: 50px + margin: 20px)
+       + 20px desired bottom gap, so the bottom buffer matches the
+       side margins. env(safe-area-inset-bottom) adds the notch /
+       home-indicator inset on iPhones. box-sizing: border-box (base
+       rule) makes height include padding, so this math is exact. */
+    height: calc(100vh - 90px - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 90px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100vh - 90px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 90px - env(safe-area-inset-bottom, 0px));
+    min-height: min(
+      400px,
+      calc(100dvh - 90px - env(safe-area-inset-bottom, 0px))
+    );
   }
 `;
 
