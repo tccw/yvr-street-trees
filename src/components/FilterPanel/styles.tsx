@@ -10,7 +10,9 @@ import styled from "styled-components";
 const FilterTrigger = styled.button`
   z-index: 1000;
   position: fixed;
-  top: 45px;
+  /* Geocoder (Mapbox control, top-right) occupies y ~10-60px
+     (10px top margin + 50px input height). Keep this pill below it. */
+  top: calc(70px + env(safe-area-inset-top));
   right: 120px;
   height: 44px;
   padding: 0 18px;
@@ -56,7 +58,9 @@ const TriggerBadge = styled.span`
 const StyledFilterPanel = styled.div`
   z-index: 1000;
   position: absolute;
-  top: 45px;
+  /* Effective top = 50px + 20px margin = 70px, matching FilterTrigger
+     (geocoder bottom is ~60px). Keeps open/close from jumping. */
+  top: 50px;
   right: 120px;
   background: #f2f2f2;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
