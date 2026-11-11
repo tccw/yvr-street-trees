@@ -147,6 +147,17 @@ function MapComponent() {
         diameters: [0, 115],
         heights: [0, 40],
     });
+
+    // The stats file (including the genus/species taxonomy) is bundled
+    // with the build; carry the taxonomy on the filter object so the
+    // filter panel and wide-zoom check can use it without extra fetches.
+    useEffect(() => {
+      const taxonomy = (stats as any)?.tree_taxonomy;
+      if (taxonomy && treeFilterObject.treeTaxonomy !== taxonomy) {
+        setTreeFilterObject((prev) => ({ ...prev, treeTaxonomy: taxonomy }));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [stats]);
     const [viewState, setViewState] = useState<ViewState>({
         latitude: GEOCODER_PROXIMITY.latitude,
         longitude: GEOCODER_PROXIMITY.longitude,
@@ -974,6 +985,7 @@ const handleUserLocationClose = () => {
         updateSelected={() => setFilterPanelSelected(true)}
         selected={selected}
         treeNamesAndColors={stats ? (stats as any).tree_stats : null}
+        treeTaxonomy={stats ? (stats as any).tree_taxonomy : null}
         currentZoom={viewState.zoom}
         zoomIn={onClickZoom}
       />

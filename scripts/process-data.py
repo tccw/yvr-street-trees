@@ -172,6 +172,7 @@ class StatsKey(StrEnum):
     CITY_TREE_COUNT = 'city_tree_count'
     TREE_STATS = 'tree_stats'
     NEIGHBORHOOD_STATS = 'neighborhood_stats'
+    TREE_TAXONOMY = 'tree_taxonomy'
     TOTAL_COUNT = 'total_count'
     AVERAGE_DIAMETER = 'average_diameter'
     AVERAGE_HEIGHT_ID = 'average_height_id'
@@ -453,6 +454,14 @@ def calc_stats(json_data: json, outfile: str, color_dict: Dict[str, str]) -> Dic
                     <...other entries>
                 }
             }
+        "tree_taxonomy": {
+            "genera": [ {"genus": ..., "total_count": int, "species": [
+                {"species": ..., "scientific_name": ..., "total_count": int,
+                 "common_names": [{"common_name": ..., "cultivar_name": ...,
+                                   "total_count": int, "color": hex|None}]} ]} ],
+            "search_index": { <UPPERCASE common name or "GENUS SPECIES">:
+                              [{"genus": ..., "species": ..., "cultivar_name": ...}] }
+        },
         "neighborhood_stats": {
             <neighborhood name> : {
                 "total_count": <total tree count>,
@@ -466,10 +475,12 @@ def calc_stats(json_data: json, outfile: str, color_dict: Dict[str, str]) -> Dic
 
     """
     stats_outfile = f"{outfile[:outfile.rfind('.')]}-stats{outfile[outfile.rfind('.'):]}"
+    tree_stats = _calc_tree_stats(json_data, color_dict)
     stats = {
         StatsKey.CITY_TREE_COUNT: len(json_data[GeoJsonKey.FEATURES]),
-        StatsKey.TREE_STATS: _calc_tree_stats(json_data, color_dict),
-        StatsKey.NEIGHBORHOOD_STATS: _calc_neighborhood_stats(json_data)
+        StatsKey.TREE_STATS: tree_stats,
+        StatsKey.NEIGHBORHOOD_STATS: _calc_neighborhood_stats(json_data),
+        StatsKey.TREE_TAXONOMY: _calc_taxonomy(json_data, tree_stats)
     }
     savejson(stats_outfile, stats)
 
@@ -505,7 +516,13 @@ def _calc_tree_stats(json_data: Dict[str, any], color_dict: Dict[str, str]):
                     else color_dict[genus_name][ColorMapKey.SPECIES][species_name][ColorMapKey.COLOR]
                 )
             except KeyError:
-                tree_color: str = color_dict[genus_name][ColorMapKey.SPECIES][species_name][ColorMapKey.COLOR]
+                try:
+                    tree_color: str = color_dict[genus_name][ColorMapKey.SPECIES][species_name][ColorMapKey.COLOR]
+                except KeyError:
+                    # Unknown (genus, species) in the color dict: fall back to
+                    # genus color, then a neutral grey, instead of crashing.
+                    tree_color = color_dict.get(genus_name, {}).get(ColorMapKey.COLOR, '#b0b0b0')
+                    logging.warning('No color for %s %s; using fallback %s', genus_name, species_name, tree_color)
 
             tree_stats[common_name] = {
                 StatsKey.TOTAL_COUNT: 1,
@@ -522,6 +539,106 @@ def _calc_tree_stats(json_data: Dict[str, any], color_dict: Dict[str, str]):
         tree_stats[k][StatsKey.AVERAGE_HEIGHT_ID] = round(tree_stats[k][StatsKey.AVERAGE_HEIGHT_ID] / tree_stats[k][StatsKey.TOTAL_COUNT])
 
     return tree_stats
+
+
+def _norm_taxon(value, default: str) -> str:
+    """Normalize a genus/species/cultivar value the same way the color
+    pipeline does (see build_tree_colors.py): upper-case, collapse any
+    run of whitespace, and fall back to a sentinel for missing values."""
+    normalized = re.sub(r"\s+", " ", str(value or "")).strip().upper()
+    return normalized or default
+
+
+def _calc_taxonomy(json_data: Dict[str, any], tree_stats: Dict[str, any]):
+    """
+    Builds the hierarchical genus -> species -> common_name taxonomy used
+    by the frontend filter tree.
+
+    Structure:
+      {"genera": [{"genus": "ACER", "total_count": int, "species": [
+          {"species": "PALMATUM", "scientific_name": "Acer palmatum",
+           "total_count": int, "common_names": [
+              {"common_name": ..., "cultivar_name": ...,
+               "total_count": int, "color": hex|None}]}]}],
+       "search_index": {<UPPERCASE common name or "GENUS SPECIES">:
+                        [{"genus": ..., "species": ..., "cultivar_name": ...}]}
+
+    Leaf counts/colors come from tree_stats (keyed by common_name) so the
+    taxonomy cannot disagree with the flat stats. A common name seen under
+    several (genus, species, cultivar) combos is attached to its most
+    frequent combo; every combo is listed in search_index so ambiguous
+    names resolve to multiple selectable nodes. Features with a null
+    common_name are skipped (they have no leaf to attach to). Genera,
+    species and common names are sorted by total_count descending.
+    """
+    # common_name -> {(genus, species, cultivar): count}
+    combos: Dict[str, Dict[tuple, int]] = {}
+    for entry in json_data[GeoJsonKey.FEATURES]:
+        props = entry[GeoJsonKey.PROPERTIES]
+        common_name = props.get(TreePropKey.COMMON_NAME)
+        if not common_name:
+            continue
+        genus = _norm_taxon(props.get(TreePropKey.GENUS_NAME), "UNKNOWN")
+        species = _norm_taxon(props.get(TreePropKey.SPECIES_NAME), "SPECIES")
+        cultivar = _norm_taxon(props.get(TreePropKey.CULTIVAR_NAME), "NONE")
+        bucket = combos.setdefault(common_name, {})
+        bucket[(genus, species, cultivar)] = bucket.get((genus, species, cultivar), 0) + 1
+
+    genera: Dict[str, Dict[str, Dict[str, Dict[str, any]]]] = {}
+    search_index: Dict[str, list] = {}
+    seen_refs: Dict[str, set] = {}
+    for common_name, bucket in combos.items():
+        stats_entry = tree_stats.get(common_name, {})
+        total_count = stats_entry.get(StatsKey.TOTAL_COUNT, 0)
+        color = stats_entry.get(TreePropKey.COLOR)
+        (genus, species, cultivar), _ = max(bucket.items(), key=lambda kv: kv[1])
+        genera.setdefault(genus, {}).setdefault(species, {})[common_name] = {
+            "common_name": common_name,
+            "cultivar_name": cultivar,
+            "total_count": total_count,
+            "color": color,
+        }
+        for g, s, c in bucket:
+            ref = {"genus": g, "species": s, "cultivar_name": c}
+            key_common = common_name.upper()
+            if (g, s, c, common_name) not in seen_refs.setdefault(key_common, set()):
+                seen_refs[key_common].add((g, s, c, common_name))
+                search_index.setdefault(key_common, []).append(ref)
+            key_sci = f"{g} {s}".upper()
+            if (g, s, common_name) not in seen_refs.setdefault(key_sci, set()):
+                seen_refs[key_sci].add((g, s, common_name))
+                search_index.setdefault(key_sci, []).append(
+                    {"genus": g, "species": s, "cultivar_name": c,
+                     "common_name": common_name})
+
+    genera_list = []
+    for genus, species_map in genera.items():
+        species_list = []
+        genus_total = 0
+        for species, leaves in species_map.items():
+            leaf_list = sorted(leaves.values(), key=lambda x: -x["total_count"])
+            species_total = sum(x["total_count"] for x in leaf_list)
+            genus_total += species_total
+            if species == "XX":
+                scientific = f"{genus.title()} \u00d7 hybrid"
+            elif species == "SPECIES":
+                scientific = f"{genus.title()} sp."
+            else:
+                scientific = f"{genus.title()} {species.title()}"
+            species_list.append({
+                "species": species,
+                "scientific_name": scientific,
+                "total_count": species_total,
+                "common_names": leaf_list,
+            })
+        species_list.sort(key=lambda x: -x["total_count"])
+        genera_list.append({
+            "genus": genus,
+            "total_count": genus_total,
+            "species": species_list,
+        })
+    genera_list.sort(key=lambda x: -x["total_count"])
+    return {"genera": genera_list, "search_index": search_index}
 
 
 def _calc_neighborhood_stats(json_data: Dict[str, any]):

@@ -23,6 +23,7 @@ const StyledFilterPanel = styled.div<{ open: boolean }>`
   border-style: ${(props) => (props.open ? "none" : "solid")};
   border-color: ${(props) => (props.open ? "none" : "darkgrey")};
   min-height: ${(props) => (props.open ? "400px" : "none")};
+  max-height: calc(100vh - 90px);
 
   /* Mobile: Move to left side with proper constraints */
   @media (max-width: 600px) {
@@ -31,9 +32,9 @@ const StyledFilterPanel = styled.div<{ open: boolean }>`
     margin: 20px;
     max-width: calc(100vw - 60px);
 
-    /* Remove scrollbar - should behave like a button/toggle */
-    max-height: none;
-    overflow: visible;
+    /* Bounded so the panel can never grow off the bottom of the screen;
+       the taxonomy tree becomes the internal scroll region instead. */
+    max-height: calc(100dvh - 40px);
   }
 `;
 
@@ -47,6 +48,9 @@ const StyledFilterTogglePane = styled.div`
   width: fit-content;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
 
   /* Mobile optimizations */
   @media (max-width: 600px) {
@@ -220,6 +224,167 @@ const ZoomLink = styled.a`
     color: #2193b9;
 `;
 
+const TreeSearchBox = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #c9ced3;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #3a3f42;
+  outline: none;
+  &:focus {
+    border-color: #2193b9;
+  }
+`;
+
+const TreeSearchResults = styled.div`
+  max-height: 140px;
+  overflow-y: auto;
+  margin-top: 4px;
+`;
+
+const TreeSearchResult = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #3a3f42;
+  line-height: 1.2rem;
+  &:hover {
+    background: #e8f4f8;
+  }
+`;
+
+const TreeSearchResultPath = styled.span`
+  color: #7a8287;
+  font-size: 0.75rem;
+`;
+
+const TaxonomyTree = styled.div`
+  /* Desktop: fixed viewport-independent cap (the old behavior). */
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  /* Mobile: fill whatever height the bounded panel has left, and scroll
+     inside. (flex: 1 1 auto + min-height: 0 is the flexbox recipe for a
+     shrinkable scroll child; fixed max-height would overflow the panel.) */
+  @media (max-width: 600px) {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+`;
+
+const TreeNodeRow = styled.div<{ depth: number; highlighted?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: ${(props) => props.depth * 14}px;
+  line-height: 1.6rem;
+  border-radius: 4px;
+  background: ${(props) => (props.highlighted ? "#e8f4f8" : "transparent")};
+`;
+
+const TreeExpandToggle = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  color: #63686a;
+  font-size: 0.7rem;
+  user-select: none;
+  flex: 0 0 auto;
+`;
+
+const TreeNodeLabel = styled.span<{ bold?: boolean }>`
+  font-size: 0.85rem;
+  color: #3a3f42;
+  font-weight: ${(props) => (props.bold ? 600 : 400)};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const TreeNodeCount = styled.span`
+  font-size: 0.72rem;
+  color: #9aa1a6;
+  margin-left: 4px;
+  flex: 0 0 auto;
+`;
+
+const SelectedChips = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 0;
+
+  /* Mobile: single row with an ellipsis chip instead of growing the panel */
+  @media (max-width: 600px) {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+`;
+
+const SelectedChip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e8f4f8;
+  color: #1f4d5f;
+  border-radius: 999px;
+  padding: 0 6px 0 10px;
+  font-size: 0.75rem;
+  line-height: 1.4rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
+`;
+
+const MoreChips = styled(SelectedChip)`
+  background: #e3e6e8;
+  color: #63686a;
+  padding: 0 10px;
+`;
+
+const ChipRemove = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: #1f4d5f;
+  &:hover {
+    background: #cbe6ef;
+  }
+`;
+
+const ClearAllButton = styled.button`
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 2px 12px;
+  border: 1px solid #c9ced3;
+  border-radius: 4px;
+  background: white;
+  color: #b3261e;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background: #fdecea;
+    border-color: #e89a94;
+  }
+`;
+
 export {
   StyledFilterPanel,
   StyledFilterTogglePane,
@@ -230,5 +395,19 @@ export {
   SelectEntry,
   GreyBorderBottomTitle,
   Filter,
-  ZoomLink
+  ZoomLink,
+  TreeSearchBox,
+  TreeSearchResults,
+  TreeSearchResult,
+  TreeSearchResultPath,
+  TaxonomyTree,
+  TreeNodeRow,
+  TreeExpandToggle,
+  TreeNodeLabel,
+  TreeNodeCount,
+  SelectedChips,
+  SelectedChip,
+  MoreChips,
+  ChipRemove,
+  ClearAllButton
 };
