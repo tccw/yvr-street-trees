@@ -1,7 +1,25 @@
 import { createGlobalStyle } from 'styled-components'
 import styled from 'styled-components'
 
-const GlobalStyle = createGlobalStyle`
+export const GlobalStyle = createGlobalStyle`
+    /* Mapbox geocoder: its dropdown sits inside map controls. The
+       POSITION containers (.mapboxgl-ctrl-top-right etc.) have
+       z-index: 2 and every .mapboxgl-ctrl gets transform: translate(0),
+       which creates a stacking context — so the geocoder's own z-index
+       (1, suggestions 1000) could never beat the filter panel's
+       z-index 1000 on siblings outside the map. Raise the POSITION
+       container instead: the whole stack (input + suggestions dropdown)
+       then paints above the panel as one unit, no matter the inner
+       z-indexes. Only the top-right slot is raised — the geocoder is
+       the only control there (the bottom-right nav/geolocate controls
+       stay at z-index 2 and can sit under the panel, e.g. when open
+       on mobile).
+       (Plugin CSS comes from both @mapbox/mapbox-gl-geocoder v5 JS
+       import and the v4.7.2 <link> in index.html — same class names.) */
+    .mapboxgl-ctrl-top-right {
+        z-index: 3000;
+    }
+
     :root {
         --primary-light: #8abdff;
         --primary: #6d5dfc;

@@ -2,9 +2,12 @@ import './App.css'
 import MapComponent from './components/MapComponent'
 import ImageLightbox from './components/ImageLightbox';
 import { Route, Routes } from 'react-router-dom';
+import { GlobalStyle } from './styles/global-styles';
 
 function App() {
   return (
+    <>
+      <GlobalStyle />
       <Routes>
         <Route path="/" element={<MapComponent />}/>
         <Route path="tree/:treeId" element={<MapComponent />}/>
@@ -12,6 +15,7 @@ function App() {
         <Route path="user-photo/:photoId" element={<MapComponent />}/> */}
         {/* <ImageLightbox /> */}
       </Routes>
+    </>
   )
 }
 
