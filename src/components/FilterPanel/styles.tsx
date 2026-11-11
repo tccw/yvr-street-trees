@@ -31,10 +31,16 @@ const StyledFilterPanel = styled.div<{ open: boolean }>`
     left: 0;
     margin: 20px;
     max-width: calc(100vw - 60px);
+    width: auto;
 
-    /* Bounded so the panel can never grow off the bottom of the screen;
-       the taxonomy tree becomes the internal scroll region instead. */
-    max-height: calc(100dvh - 40px);
+    /* Bounded so the panel can never grow off the bottom of the screen.
+       The panel itself must become a column flex container for the
+       inner toggle pane's flex sizing to work; height: fit-content
+       would size to the full content height regardless. */
+    height: calc(100dvh - 65px);
+    max-height: none;
+    display: flex;
+    flex-direction: column;
   }
 `;
 
@@ -55,6 +61,8 @@ const StyledFilterTogglePane = styled.div`
   /* Mobile optimizations */
   @media (max-width: 600px) {
     width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
   }
 `;
 
@@ -78,6 +86,8 @@ const StyledFilterBoxes = styled.span`
     max-width: 100%;
     margin: 5px 0;
     padding: 8px 16px;
+    /* Keep fixed-size sections from shrinking away in the flex column */
+    flex: 0 0 auto;
   }
 `;
 
@@ -277,6 +287,8 @@ const TaxonomyTree = styled.div`
     flex: 1 1 auto;
     min-height: 0;
     max-height: none;
+    width: 100%;
+    box-sizing: border-box;
   }
 `;
 
