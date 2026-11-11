@@ -2,14 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
 import Checkbox from "@mui/material/Checkbox";
 import { boundaryTrasitionZoomLevel } from "../../styles/map-styles.js";
-import { ChevronCollapse, Filtered, Info } from "../../svg-icons.js";
+import { ChevronCollapse, Info } from "../../svg-icons.js";
 import { titleCase } from "../../utils/utils.js";
 import { filterValidForWideZoom } from "../../utils/utils.js";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { Slider } from "@mui/material";
 import {
     Dot,
-  Filter,
+  FilterTrigger,
+  TriggerBadge,
   GreyBorderBottomTitle,
   LegendLabel,
   OpenCloseButton,
@@ -197,8 +198,6 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
     }
     return nodes;
   }, [hasTaxonomy, activeTreeSet, treeTaxonomy]);
-
-  const hasActiveFilter = !isAtDefaults();
 
   const clearAll = () => {
     setDiameterRange(defaults.diameters);
@@ -451,14 +450,33 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
   };
 
   return (
-    <StyledFilterPanel open={isExpanded} className="filter-panel">
-      <StyledFilterTogglePane className="toggle-pane">
-        {isExpanded && (
-          <>
+    <>
+      {!isExpanded && (
+        <FilterTrigger
+          onClick={handleToggle}
+          aria-expanded={false}
+          aria-controls="filter-panel"
+          title="expand filter panel"
+        >
+          Filter Map
+          {!isAtDefaults() && <TriggerBadge title="filters active" />}
+        </FilterTrigger>
+      )}
+      {isExpanded && (
+        <StyledFilterPanel id="filter-panel" className="filter-panel">
+          <OpenCloseButton
+            onClick={handleToggle}
+            title="collapse panel"
+            aria-expanded={true}
+            aria-controls="filter-panel"
+          >
+            {ChevronCollapse}
+          </OpenCloseButton>
+          <StyledFilterTogglePane className="toggle-pane">
             <GreyBorderBottomTitle margin_bottom="10px" font_size="1.3rem">
               Filter by Species, Trunk Diameter, and Tree Height
             </GreyBorderBottomTitle>
-            <StyledFilterBoxes>
+            <StyledFilterBoxes grow>
               <LegendLabel> {hasTaxonomy ? "By Genus / Species (Common Name)" : "By Species (Common Name)"} </LegendLabel>
               {hasTaxonomy ? (
                 <>
@@ -533,7 +551,7 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                 </StyledFilterBoxes>
             }
 
-            {hasActiveFilter && (
+            {!isAtDefaults() && (
               <StyledFilterBoxes>
                 <LegendLabel>
                   Selected ({selectedNodes.length > 0 ? selectedNodes.length : activeTrees.length})
@@ -566,25 +584,10 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                 <ClearAllButton onClick={clearAll}>Clear all filters</ClearAllButton>
               </StyledFilterBoxes>
             )}
-          </>
-        )}
-      </StyledFilterTogglePane>
-      <OpenCloseButton
-        onClick={handleToggle}
-        title={isExpanded ? "collapse panel" : "expand panel"}
-      >
-        {!isExpanded && (
-          <p style={{ fontSize: "1.2rem", margin: "-6px 5px 5px 0px" }}>
-            Filter Map
-          </p>
-        )}
-        {isExpanded
-          ? ChevronCollapse
-          : isAtDefaults()
-          ? Filter({ height: 24, width: 24 })
-          : Filtered({ height: 24, width: 24 })}
-      </OpenCloseButton>
-    </StyledFilterPanel>
+          </StyledFilterTogglePane>
+        </StyledFilterPanel>
+      )}
+    </>
   );
 };
 

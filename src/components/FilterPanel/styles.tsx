@@ -1,6 +1,59 @@
 import styled from "styled-components";
 
-const StyledFilterPanel = styled.div<{ open: boolean }>`
+/**
+ * Standalone collapsed trigger ("Filter Map" pill).
+ * Rendered ONLY when the panel is closed, so it owns its own box model:
+ * no negative margins, no panel padding/line-height inheritance.
+ * Placement mirrors the panel's old position (top-right desktop,
+ * top-left mobile) to preserve muscle memory.
+ */
+const FilterTrigger = styled.button`
+  z-index: 1000;
+  position: fixed;
+  top: 45px;
+  right: 120px;
+  height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: #63686a;
+  border: 1px solid darkgrey;
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  &:hover {
+    background: #f7f7f7;
+  }
+  &:focus-visible {
+    outline: 2px solid #2193b9;
+    outline-offset: 2px;
+  }
+  @media (max-width: 600px) {
+    right: auto;
+    left: 20px;
+  }
+`;
+
+const TriggerBadge = styled.span`
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f5a623;
+  flex-shrink: 0;
+`;
+
+/**
+ * Open panel only. It never renders collapsed, so it has a single layout:
+ * a bounded column whose grow box (> TaxonomyTree) scrolls internally.
+ */
+const StyledFilterPanel = styled.div`
   z-index: 1000;
   position: absolute;
   top: 45px;
@@ -16,16 +69,12 @@ const StyledFilterPanel = styled.div<{ open: boolean }>`
   height: fit-content;
   overflow: hidden;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 
-  border-radius: ${(props) => (props.open ? "8px" : "4px")};
-  border-width: ${(props) => (props.open ? "0px" : "1px")};
-  border-style: ${(props) => (props.open ? "none" : "solid")};
-  border-color: ${(props) => (props.open ? "none" : "darkgrey")};
-  min-height: ${(props) => (props.open ? "400px" : "none")};
+  border-radius: 8px;
+  min-height: 400px;
   max-height: calc(100vh - 90px);
 
-  /* Mobile: Move to left side with proper constraints */
   @media (max-width: 600px) {
     right: auto;
     left: 0;
@@ -33,14 +82,11 @@ const StyledFilterPanel = styled.div<{ open: boolean }>`
     max-width: calc(100vw - 60px);
     width: auto;
 
-    /* Bounded so the panel can never grow off the bottom of the screen.
-       The panel itself must become a column flex container for the
-       inner toggle pane's flex sizing to work; height: fit-content
-       would size to the full content height regardless. */
-    height: calc(100dvh - 65px);
-    max-height: none;
-    display: flex;
-    flex-direction: column;
+    /* Definite height so the column flex chain (pane -> grow box
+       -> taxonomy tree) can shrink and the tree scrolls internally. */
+    height: calc(100dvh - 90px);
+    max-height: calc(100dvh - 90px);
+    min-height: min(400px, calc(100dvh - 90px));
   }
 `;
 
@@ -66,7 +112,7 @@ const StyledFilterTogglePane = styled.div`
   }
 `;
 
-const StyledFilterBoxes = styled.span`
+const StyledFilterBoxes = styled.span<{ color?: string; grow?: boolean }>`
   background: ${(props) => (props.color ? props.color : "white")};
   box-shadow: 0px -6px 10px rgba(255, 255, 255, 1),
     0px 2px 7px rgba(0, 0, 0, 0.15);
@@ -76,18 +122,19 @@ const StyledFilterBoxes = styled.span`
   outline: none;
   display: flex;
   flex-direction: column;
-  height: fit-content;
+  height: ${(props) => (props.grow ? "auto" : "fit-content")};
   max-width: 90%;
   border-radius: 4px;
   text-align: left;
+  flex: ${(props) => (props.grow ? "1 1 auto" : "0 0 auto")};
+  min-height: ${(props) => (props.grow ? "0" : "auto")};
+  overflow: ${(props) => (props.grow ? "hidden" : "visible")};
 
   /* Mobile optimizations */
   @media (max-width: 600px) {
     max-width: 100%;
     margin: 5px 0;
     padding: 8px 16px;
-    /* Keep fixed-size sections from shrinking away in the flex column */
-    flex: 0 0 auto;
   }
 `;
 
@@ -117,7 +164,6 @@ const Dot = styled.div.attrs(props => ({
   `
 
 const OpenCloseButton = styled.button`
-  all: unset;
   display: flex;
   cursor: pointer;
   position: relative;
@@ -126,7 +172,10 @@ const OpenCloseButton = styled.button`
   height: fit-content;
   width: fit-content;
   opacity: 0.6;
-  margin: -8px -20px -20px -8px;
+  padding: 8px;
+  align-self: flex-end;
+  background: transparent;
+  border: none;
 
   /* Prevent text selection and highlighting */
   user-select: none;
@@ -134,29 +183,16 @@ const OpenCloseButton = styled.button`
   -moz-user-select: none;
   -ms-user-select: none;
 
-  /* Remove focus outline that might cause highlighting */
-  outline: none;
   -webkit-tap-highlight-color: transparent;
 
   &:hover {
     opacity: 1;
   }
 
-  &:focus {
-    outline: none;
-  }
-
-  /* Mobile: Left-aligned button and prevent text stacking */
-  @media (max-width: 600px) {
-    justify-content: flex-start;
-    margin: -8px -8px -20px -20px;
-
-    p {
-      white-space: nowrap;
-      font-size: 1rem;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+  &:focus-visible {
+    outline: 2px solid #2193b9;
+    outline-offset: 2px;
+    opacity: 1;
   }
 `;
 
@@ -398,6 +434,8 @@ const ClearAllButton = styled.button`
 `;
 
 export {
+  FilterTrigger,
+  TriggerBadge,
   StyledFilterPanel,
   StyledFilterTogglePane,
   StyledFilterBoxes,
