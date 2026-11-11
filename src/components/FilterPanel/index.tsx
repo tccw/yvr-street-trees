@@ -23,6 +23,7 @@ import {
   TreeNodeCount,
   TreeNodeLabel,
   TreeNodeRow,
+  SearchContainer,
   TreeSearchBox,
   TreeSearchResult,
   TreeSearchResultPath,
@@ -480,22 +481,24 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
               <LegendLabel> {hasTaxonomy ? "By Genus / Species (Common Name)" : "By Species (Common Name)"} </LegendLabel>
               {hasTaxonomy ? (
                 <>
-                  <TreeSearchBox
-                    type="text"
-                    placeholder="Search common or scientific name…"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchResults.length > 0 && (
-                    <TreeSearchResults>
-                      {searchResults.map((result) => (
-                        <TreeSearchResult key={result.key} onClick={() => onSearchPick(result)}>
-                          <TreeNodeLabel>{result.label}</TreeNodeLabel>
-                          <TreeSearchResultPath>{result.path}</TreeSearchResultPath>
-                        </TreeSearchResult>
-                      ))}
-                    </TreeSearchResults>
-                  )}
+                  <SearchContainer>
+                    <TreeSearchBox
+                      type="text"
+                      placeholder="Search common or scientific name…"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchResults.length > 0 && (
+                      <TreeSearchResults>
+                        {searchResults.map((result) => (
+                          <TreeSearchResult key={result.key} onClick={() => onSearchPick(result)}>
+                            <TreeNodeLabel>{result.label}</TreeNodeLabel>
+                            <TreeSearchResultPath>{result.path}</TreeSearchResultPath>
+                          </TreeSearchResult>
+                        ))}
+                      </TreeSearchResults>
+                    )}
+                  </SearchContainer>
                   <TaxonomyTree ref={treeRef}>{renderTaxonomyTree()}</TaxonomyTree>
                 </>
               ) : (
@@ -504,7 +507,7 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                   isMulti
                   onChange={handleTreeClick}
                   value={selectedTreeOptions}
-                  maxMenuHeight={200}
+                  maxMenuHeight={isNarrow ? Math.round(window.innerHeight * 0.4) : 200}
                 />
               )}
             </StyledFilterBoxes>

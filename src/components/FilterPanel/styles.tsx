@@ -285,6 +285,17 @@ const ZoomLink = styled.a`
     color: #2193b9;
 `;
 
+/**
+ * Positioning context for the search input + results dropdown.
+ * On mobile the results are absolutely positioned relative to this
+ * wrapper so they overlay the taxonomy tree (autocomplete-style)
+ * instead of taking flow space and squeezing the tree.
+ */
+const SearchContainer = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
 const TreeSearchBox = styled.input`
   width: 100%;
   box-sizing: border-box;
@@ -303,6 +314,26 @@ const TreeSearchResults = styled.div`
   max-height: 140px;
   overflow-y: auto;
   margin-top: 4px;
+
+  /* Mobile: overlay the taxonomy tree (positioned relative to
+     SearchContainer, just below the input) with a much taller cap
+     than the desktop 140px, so more suggestions are visible without
+     shrinking the tree underneath. Picking a result clears the query
+     and removes the overlay. */
+  @media (max-width: 600px) {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    margin-top: 0;
+    max-height: min(45dvh, 320px);
+    background: #fff;
+    border: 1px solid #c9ced3;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    box-sizing: border-box;
+    z-index: 10;
+  }
 `;
 
 const TreeSearchResult = styled.div`
@@ -461,6 +492,7 @@ export {
   GreyBorderBottomTitle,
   Filter,
   ZoomLink,
+  SearchContainer,
   TreeSearchBox,
   TreeSearchResults,
   TreeSearchResult,
