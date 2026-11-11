@@ -590,13 +590,17 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                     ))}
                     {isDiameterFiltered && (
                       <RangeChip title="Diameter range filter — click × to reset the range">
-                        Diameter
+                        Diameter {diameters[0] === diameters[1]
+                          ? `${diameters[0]} cm`
+                          : `${diameters[0]}–${diameters[1]} cm`}
                         <RangeChipRemove onClick={clearDiameter}>×</RangeChipRemove>
                       </RangeChip>
                     )}
                     {isHeightFiltered && (
                       <RangeChip title="Height range filter — click × to reset the range">
-                        Height
+                        Height {heights[0] === heights[1]
+                          ? `${heights[0]} m`
+                          : `${heights[0]}–${heights[1]} m`}
                         <RangeChipRemove onClick={clearHeight}>×</RangeChipRemove>
                       </RangeChip>
                     )}
