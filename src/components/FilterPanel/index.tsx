@@ -451,7 +451,7 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
               depth={2}
               highlighted={highlightedNode === leaf.common_name}
             >
-              <TreeExpandToggle>·</TreeExpandToggle>
+              <TreeExpandToggle $placeholder>·</TreeExpandToggle>
               <Checkbox
                 size="small"
                 checked={leafState === "checked"}

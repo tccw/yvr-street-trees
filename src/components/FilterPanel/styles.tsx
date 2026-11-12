@@ -405,15 +405,20 @@ const TreeNodeRow = styled.div<{ depth: number; highlighted?: boolean }>`
   background: ${(props) => (props.highlighted ? "#e8f4f8" : "transparent")};
 `;
 
-const TreeExpandToggle = styled.span`
+const TreeExpandToggle = styled.span<{ $placeholder?: boolean }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  /* Compact box (about the size of the row's checkbox): the 3x glyph
+     overflows it and stays centered via overflow: visible, so the
+     triangle looks large without stretching rows / spreading the list. */
+  width: 20px;
+  height: 20px;
+  overflow: visible;
   cursor: pointer;
   color: #63686a;
-  font-size: 0.7rem;
+  font-size: ${(props) => (props.$placeholder ? "0.7rem" : "1.47rem")};
+  line-height: 1;
   user-select: none;
   flex: 0 0 auto;
 `;
