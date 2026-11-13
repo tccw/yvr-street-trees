@@ -370,8 +370,13 @@ function MapComponent() {
     );
   }
 
-  const ToggleGalleryImage = () => {
-    setClickedPhotoId(featuresSelection[userPhotoId].properties.public_id);
+  const ToggleGalleryImage = (index?: number) => {
+    const targetIndex = typeof index === "number" ? index : userPhotoId;
+    if (featuresSelection[targetIndex]) {
+      setUserPhotoId(targetIndex);
+      setClickedPhotoId(featuresSelection[targetIndex].properties.public_id);
+      setIsGalleryVisible(true);
+    }
   };
   useEffect(() => {
     if (clickedPhotoId)

@@ -11,13 +11,13 @@ const spin = keyframes`
   100% { transform: rotate(360deg); }
 `;
 
-const Spinner = styled.div`
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+const Spinner = styled.div<{ $light?: boolean }>`
+  border: 3px solid ${(props) => (props.$light ? "rgba(255, 255, 255, 0.2)" : "#f3f3f3")};
+  border-top: 3px solid ${(props) => (props.$light ? "#ffffff" : "#3498db")};
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: ${spin} 2s linear infinite;
+  width: 32px;
+  height: 32px;
+  animation: ${spin} 0.9s linear infinite;
   margin: auto;
   position: absolute;
   top: 0;
@@ -33,15 +33,26 @@ const ImageContainer = styled.section<{ fillContainer?: boolean }>`
   aspect-ratio: ${(props) => (props.fillContainer ? "auto" : "4 / 3")};
   margin: ${(props) => (props.fillContainer ? "0" : "3% 0")};
   display: flex;
-  flex-direction: column;
-  background-color: #f0f0f0;
-  overflow: hidden;
+  flex-direction: ${(props) => (props.fillContainer ? "row" : "column")};
+  align-items: ${(props) => (props.fillContainer ? "center" : "stretch")};
+  justify-content: ${(props) => (props.fillContainer ? "center" : "flex-start")};
+  background-color: ${(props) => (props.fillContainer ? "transparent" : "#f0f0f0")};
+  overflow: ${(props) => (props.fillContainer ? "visible" : "hidden")};
+  pointer-events: ${(props) => (props.fillContainer ? "none" : "auto")};
   img {
-    width: 100%;
-    height: 100%;
+    width: ${(props) => (props.fillContainer ? "auto" : "100%")};
+    height: ${(props) => (props.fillContainer ? "auto" : "100%")};
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
-    background: white;
-    transition: opacity 0.3s ease-in-out;
+    background: ${(props) => (props.fillContainer ? "transparent" : "white")};
+    border-radius: ${(props) => (props.fillContainer ? "8px" : "0")};
+    box-shadow: ${(props) =>
+      props.fillContainer ? "0 16px 40px rgba(0, 0, 0, 0.55)" : "none"};
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    transition: opacity 0.25s ease-in-out;
   }
 `;
 
@@ -69,7 +80,7 @@ const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
 
   return (
     <ImageContainer fillContainer={fillContainer}>
-      {loading && <Spinner />}
+      {loading && <Spinner $light={fillContainer} />}
       {isDirectUrl ? (
         <img
           src={cloudImageId}

@@ -8,14 +8,26 @@ import { isDirectImageUrl } from "../../data/dev-mock-user-photos";
 interface UserImageGridProperties {
   photoFeatures: Feature[];
   selectPhoto: any;
-  onClick: () => void;
+  onClick: (index?: number) => void;
 }
 
 const ImageContainer = styled.section`
   position: relative;
-  width: inheret;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   display: flex;
   flex-direction: column;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #e9ecef;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  }
 `;
 // margin: 1%;
 
@@ -45,7 +57,7 @@ const UserImageGrid = ({
             const publicId = feature.properties?.public_id || '';
             const handleSelect = () => {
                 selectPhoto(index);
-                onClick();
+                onClick(index);
             };
 
             return (
@@ -59,10 +71,11 @@ const UserImageGrid = ({
                             onClick={handleSelect}
                             style={{
                                 width: '100%',
-                                aspectRatio: '1 / 1',
+                                height: '100%',
                                 objectFit: 'cover',
                                 cursor: 'pointer',
                                 position: 'relative',
+                                display: 'block',
                             }}
                         />
                     ) : (
@@ -73,10 +86,12 @@ const UserImageGrid = ({
                             onMouseEnter={() => selectPhoto(index)}
                             onClick={handleSelect}
                             style={{
-                                minWidth: '100%',
-                                minHeight: '100%',
-                                maxWidth: '150%',
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                cursor: 'pointer',
                                 position: 'relative',
+                                display: 'block',
                             }}
                         >
                             <Transformation

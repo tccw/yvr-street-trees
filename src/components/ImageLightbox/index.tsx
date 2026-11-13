@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import CustomCloudinaryImage from "../custom-cloudinary-image";
 import {
     CenteredResponsiveContainer,
     FadedBackground,
-    ImageBorder,
+    SlideTrack,
+    Slide,
     NavigationButton,
     CloseButton,
     CarouselContainer,
-    LoadingSpinner,
     ImageCounter,
     IndicatorContainer,
     Indicator
@@ -20,7 +23,7 @@ interface ImageLightboxProps {
     onClose: () => void;        // Close handler
     onIndexChange?: (index: number) => void; // Optional index change callback
     showIndicators?: boolean;   // Show dot indicators
-    showCounter?: boolean;      // Show image counter (e.g., "3 of 10")
+    showCounter?: boolean;      // Show image counter (e.g., "3 / 10")
 }
 
 const ImageLightbox = (props: ImageLightboxProps) => {
@@ -34,45 +37,132 @@ const ImageLightbox = (props: ImageLightboxProps) => {
         showCounter = true
     } = props;
 
-    const [currentIndex, setCurrentIndex] = useState(startIndex);
-    const [isLoading, setIsLoading] = useState(false);
+    const safeStartIndex = Math.max(0, Math.min(images.length - 1, startIndex || 0));
+    const [currentIndex, setCurrentIndex] = useState(safeStartIndex);
+    const trackRef = useRef<HTMLDivElement | null>(null);
+    const currentIndexRef = useRef(safeStartIndex);
+    const programmaticTargetRef = useRef<number | null>(null);
+    const programmaticTimerRef = useRef<number | null>(null);
 
-    // Update current index when startIndex changes
-    useEffect(() => {
-        setCurrentIndex(startIndex);
-    }, [startIndex]);
-
-    // Notify parent of index changes (only when currentIndex changes, not onIndexChange)
-    useEffect(() => {
-        if (onIndexChange && currentIndex !== startIndex) {
-            onIndexChange(currentIndex);
+    const clearProgrammaticLock = useCallback(() => {
+        programmaticTargetRef.current = null;
+        if (programmaticTimerRef.current !== null) {
+            window.clearTimeout(programmaticTimerRef.current);
+            programmaticTimerRef.current = null;
         }
-    }, [currentIndex]); // Removed onIndexChange from dependencies to prevent infinite loop
+    }, []);
 
-    // Navigation functions
+    // Jump instantaneously to startIndex when the lightbox opens
+    useLayoutEffect(() => {
+        if (!isVisible || !images.length) return;
+        const target = Math.max(0, Math.min(images.length - 1, startIndex || 0));
+        clearProgrammaticLock();
+        currentIndexRef.current = target;
+        setCurrentIndex(target);
+
+        const el = trackRef.current;
+        if (el && el.clientWidth > 0) {
+            el.scrollLeft = target * el.clientWidth;
+        }
+    }, [isVisible, images.length, clearProgrammaticLock]);
+
+    // If startIndex is updated externally while already visible, sync to it
+    useEffect(() => {
+        if (!isVisible || !images.length) return;
+        const target = Math.max(0, Math.min(images.length - 1, startIndex || 0));
+        if (target !== currentIndexRef.current) {
+            currentIndexRef.current = target;
+            setCurrentIndex(target);
+            const el = trackRef.current;
+            if (el && el.clientWidth > 0) {
+                el.scrollTo({ left: target * el.clientWidth, behavior: "auto" });
+            }
+        }
+    }, [startIndex, isVisible, images.length]);
+
+    // Keep active slide aligned if the viewport resizes or rotates
+    useEffect(() => {
+        if (!isVisible) return;
+        const handleResize = () => {
+            const el = trackRef.current;
+            if (el && el.clientWidth > 0) {
+                el.scrollLeft = currentIndexRef.current * el.clientWidth;
+            }
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, [isVisible]);
+
+    useEffect(() => {
+        return () => clearProgrammaticLock();
+    }, [clearProgrammaticLock]);
+
+    const scrollToSlide = useCallback(
+        (targetIndex: number) => {
+            if (!images.length) return;
+            const clamped = Math.max(0, Math.min(images.length - 1, targetIndex));
+            currentIndexRef.current = clamped;
+            setCurrentIndex(clamped);
+            onIndexChange?.(clamped);
+
+            const el = trackRef.current;
+            if (el && el.clientWidth > 0) {
+                clearProgrammaticLock();
+                programmaticTargetRef.current = clamped;
+                el.scrollTo({
+                    left: clamped * el.clientWidth,
+                    behavior: "smooth"
+                });
+                programmaticTimerRef.current = window.setTimeout(() => {
+                    programmaticTargetRef.current = null;
+                    programmaticTimerRef.current = null;
+                }, 450);
+            }
+        },
+        [images.length, onIndexChange, clearProgrammaticLock]
+    );
+
     const goToPrevious = useCallback(() => {
-        setIsLoading(true);
-        setCurrentIndex((prevIndex) =>
-            prevIndex === 0 ? images.length - 1 : prevIndex - 1
-        );
-        setTimeout(() => setIsLoading(false), 100);
-    }, [images.length]);
+        const prevIndex =
+            currentIndexRef.current === 0 ? images.length - 1 : currentIndexRef.current - 1;
+        scrollToSlide(prevIndex);
+    }, [images.length, scrollToSlide]);
 
     const goToNext = useCallback(() => {
-        setIsLoading(true);
-        setCurrentIndex((prevIndex) =>
-            prevIndex === images.length - 1 ? 0 : prevIndex + 1
-        );
-        setTimeout(() => setIsLoading(false), 100);
-    }, [images.length]);
+        const nextIndex =
+            currentIndexRef.current === images.length - 1 ? 0 : currentIndexRef.current + 1;
+        scrollToSlide(nextIndex);
+    }, [images.length, scrollToSlide]);
 
-    const goToIndex = useCallback((index: number) => {
-        if (index !== currentIndex) {
-            setIsLoading(true);
-            setCurrentIndex(index);
-            setTimeout(() => setIsLoading(false), 100);
+    const goToIndex = useCallback(
+        (index: number) => {
+            if (index !== currentIndexRef.current) {
+                scrollToSlide(index);
+            }
+        },
+        [scrollToSlide]
+    );
+
+    const handleScroll = useCallback(() => {
+        const el = trackRef.current;
+        if (!el || el.clientWidth <= 0) return;
+
+        if (programmaticTargetRef.current !== null) {
+            const targetLeft = programmaticTargetRef.current * el.clientWidth;
+            if (Math.abs(el.scrollLeft - targetLeft) < 4) {
+                clearProgrammaticLock();
+            }
+            return;
         }
-    }, [currentIndex]);
+
+        const rawIndex = Math.round(el.scrollLeft / el.clientWidth);
+        const nextIndex = Math.max(0, Math.min(images.length - 1, rawIndex));
+        if (nextIndex !== currentIndexRef.current) {
+            currentIndexRef.current = nextIndex;
+            setCurrentIndex(nextIndex);
+            onIndexChange?.(nextIndex);
+        }
+    }, [images.length, onIndexChange, clearProgrammaticLock]);
 
     // Keyboard navigation
     useEffect(() => {
@@ -80,15 +170,15 @@ const ImageLightbox = (props: ImageLightboxProps) => {
             if (!isVisible) return;
 
             switch (event.key) {
-                case 'ArrowLeft':
+                case "ArrowLeft":
                     event.preventDefault();
                     goToPrevious();
                     break;
-                case 'ArrowRight':
+                case "ArrowRight":
                     event.preventDefault();
                     goToNext();
                     break;
-                case 'Escape':
+                case "Escape":
                     event.preventDefault();
                     onClose();
                     break;
@@ -96,20 +186,18 @@ const ImageLightbox = (props: ImageLightboxProps) => {
         };
 
         if (isVisible) {
-            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener("keydown", handleKeyDown);
         }
 
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener("keydown", handleKeyDown);
         };
     }, [isVisible, goToPrevious, goToNext, onClose]);
 
-    // Don't render if no images or not visible
     if (!images.length || !isVisible) {
         return null;
     }
 
-    const currentImage = images[currentIndex];
     const hasMultipleImages = images.length > 1;
 
     return (
@@ -118,23 +206,38 @@ const ImageLightbox = (props: ImageLightboxProps) => {
             <CenteredResponsiveContainer visible={isVisible}>
                 <CarouselContainer>
                     <CloseButton onClick={onClose} aria-label="Close lightbox">
-                        ✕
+                        <CloseRoundedIcon fontSize="medium" />
                     </CloseButton>
 
                     {showCounter && hasMultipleImages && (
                         <ImageCounter>
-                            {currentIndex + 1} of {images.length}
+                            {currentIndex + 1} / {images.length}
                         </ImageCounter>
                     )}
 
-                    <ImageBorder onClick={(e) => e.stopPropagation()}>
-                        {isLoading && <LoadingSpinner />}
-                        <CustomCloudinaryImage
-                            key={`${currentImage}-${currentIndex}`} // Force re-render to fix stale image bug
-                            cloudImageId={currentImage}
-                            fillContainer
-                        />
-                    </ImageBorder>
+                    <SlideTrack
+                        ref={trackRef}
+                        onScroll={handleScroll}
+                        onTouchStart={clearProgrammaticLock}
+                        onPointerDown={clearProgrammaticLock}
+                        onWheel={clearProgrammaticLock}
+                    >
+                        {images.map((imageId, index) => (
+                            <Slide
+                                key={`${imageId}-${index}`}
+                                onClick={(e) => {
+                                    if (e.target === e.currentTarget) {
+                                        onClose();
+                                    }
+                                }}
+                            >
+                                <CustomCloudinaryImage
+                                    cloudImageId={imageId}
+                                    fillContainer
+                                />
+                            </Slide>
+                        ))}
+                    </SlideTrack>
 
                     {hasMultipleImages && (
                         <>
@@ -143,14 +246,14 @@ const ImageLightbox = (props: ImageLightboxProps) => {
                                 onClick={goToPrevious}
                                 aria-label="Previous image"
                             >
-                                ❮
+                                <ChevronLeftRoundedIcon fontSize="large" />
                             </NavigationButton>
                             <NavigationButton
                                 className="next"
                                 onClick={goToNext}
                                 aria-label="Next image"
                             >
-                                ❯
+                                <ChevronRightRoundedIcon fontSize="large" />
                             </NavigationButton>
                         </>
                     )}
