@@ -4,6 +4,7 @@ import { Image, Transformation } from "cloudinary-react";
 // @ts-ignore
 import { CLOUD_NAME } from "../../env";
 import { useState, useEffect } from "react";
+import { isDirectImageUrl } from "../data/dev-mock-user-photos";
 
 const spin = keyframes`
   0% { transform: rotate(0deg); }
@@ -25,11 +26,12 @@ const Spinner = styled.div`
   right: 0;
 `;
 
-const ImageContainer = styled.section`
+const ImageContainer = styled.section<{ fillContainer?: boolean }>`
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  margin: 3% 0;
+  height: ${(props) => (props.fillContainer ? "100%" : "auto")};
+  aspect-ratio: ${(props) => (props.fillContainer ? "auto" : "4 / 3")};
+  margin: ${(props) => (props.fillContainer ? "0" : "3% 0")};
   display: flex;
   flex-direction: column;
   background-color: #f0f0f0;
@@ -47,10 +49,11 @@ interface CloudinaryCustomImageType {
   cloudImageId: string;
   color?: string;
   additionalTransformations?: React.ReactElement[];
+  fillContainer?: boolean;
 }
 
 const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
-  const { cloudImageId, color } = props;
+  const { cloudImageId, color, fillContainer } = props;
   const [loading, setLoading] = useState(true);
 
   // Reset loading state whenever the image ID changes.
@@ -62,34 +65,48 @@ const CustomCloudinaryImage = (props: CloudinaryCustomImageType) => {
     setLoading(true);
   }, [cloudImageId]);
 
+  const isDirectUrl = isDirectImageUrl(cloudImageId);
+
   return (
-    <ImageContainer>
+    <ImageContainer fillContainer={fillContainer}>
       {loading && <Spinner />}
-      <Image
-        cloudName={CLOUD_NAME}
-        publicId={cloudImageId}
-        defaultImage={'yvr-street-trees:no-image-yet-leaf.png'}
-        alt={`Image of a ${cloudImageId.split("/")[1]} leaf`}
-        onLoad={() => setLoading(false)}
-        style={{ opacity: loading ? 0 : 1 }}
-      >
-        {color
-          ? (
-            <Transformation
-              fetchFormat="webp"
-              quality="auto"
-              border={`4px_solid_rgb:${color.split("#")[1]}`}
-            />
-          )
-          : (
-            <Transformation
-              fetchFormat="webp"
-              quality="auto"
-            />
-          )
-        }
-        {props.additionalTransformations}
-      </Image>
+      {isDirectUrl ? (
+        <img
+          src={cloudImageId}
+          alt="User tree photo"
+          ref={(el) => {
+            if (el?.complete) setLoading(false);
+          }}
+          onLoad={() => setLoading(false)}
+          style={{ opacity: loading ? 0 : 1 }}
+        />
+      ) : (
+        <Image
+          cloudName={CLOUD_NAME}
+          publicId={cloudImageId}
+          defaultImage={'yvr-street-trees:no-image-yet-leaf.png'}
+          alt={`Image of a ${cloudImageId.split("/")[1]} leaf`}
+          onLoad={() => setLoading(false)}
+          style={{ opacity: loading ? 0 : 1 }}
+        >
+          {color
+            ? (
+              <Transformation
+                fetchFormat="webp"
+                quality="auto"
+                border={`4px_solid_rgb:${color.split("#")[1]}`}
+              />
+            )
+            : (
+              <Transformation
+                fetchFormat="webp"
+                quality="auto"
+              />
+            )
+          }
+          {props.additionalTransformations}
+        </Image>
+      )}
     </ImageContainer>
   );
 };

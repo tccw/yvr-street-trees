@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { CLOUD_NAME } from '../../../env';
 import { ImageGrid } from "./styles";
 import { Image, Transformation } from "cloudinary-react";
+import { isDirectImageUrl } from "../../data/dev-mock-user-photos";
 
 interface UserImageGridProperties {
   photoFeatures: Feature[];
@@ -40,52 +41,74 @@ const UserImageGrid = ({
   return (
     <ImageGrid className="img-grid">
       {photoFeatures &&
-        photoFeatures.map((feature, index) => (
-            <ImageContainer key={`${index}`}>
-                <Image
-                    cloudName={CLOUD_NAME}
-                    publicId={feature.properties?.public_id || ''}
-                    id={feature.properties?.public_id || ''}
-                    onMouseEnter={() => selectPhoto(index)}
-                    onClick={() => {
-                        selectPhoto(index);
-                        onClick();
-                    }}
-                    style={{
-                        minWidth: '100%',
-                        minHeight: '100%',
-                        maxWidth: '150%',
-                        position: 'relative',
-                    }}
-                >
-                    <Transformation
-                        height="150"
-                        width="150"
-                        gracity="auto"
-                        crop="fill"
-                        fetchFormat="auto"
-                        quality="auto"
-                    />
-                    <Transformation
-                        overlay={
-                        {fontFamily: "Roboto Mono",
-                        fontSize: 20,
-                        fontWeight: "bold",
-                        text: formatDaysAgoLabel(feature),
-                        }}
-                        color="#f78102"
-                    />
-                    <Transformation
-                        effect="outline:3"
-                        color="white"
-                        flags="layer_apply"
-                        gravity="south_east"
-                        y="10"
-                        x="10"
-                    />
-                </Image>
-            </ImageContainer>
-        )
+        photoFeatures.map((feature, index) => {
+            const publicId = feature.properties?.public_id || '';
+            const handleSelect = () => {
+                selectPhoto(index);
+                onClick();
+            };
+
+            return (
+                <ImageContainer key={`${index}`}>
+                    {isDirectImageUrl(publicId) ? (
+                        <img
+                            src={publicId}
+                            id={publicId}
+                            alt={`User photo ${index + 1}`}
+                            onMouseEnter={() => selectPhoto(index)}
+                            onClick={handleSelect}
+                            style={{
+                                width: '100%',
+                                aspectRatio: '1 / 1',
+                                objectFit: 'cover',
+                                cursor: 'pointer',
+                                position: 'relative',
+                            }}
+                        />
+                    ) : (
+                        <Image
+                            cloudName={CLOUD_NAME}
+                            publicId={publicId}
+                            id={publicId}
+                            onMouseEnter={() => selectPhoto(index)}
+                            onClick={handleSelect}
+                            style={{
+                                minWidth: '100%',
+                                minHeight: '100%',
+                                maxWidth: '150%',
+                                position: 'relative',
+                            }}
+                        >
+                            <Transformation
+                                height="150"
+                                width="150"
+                                gracity="auto"
+                                crop="fill"
+                                fetchFormat="auto"
+                                quality="auto"
+                            />
+                            <Transformation
+                                overlay={
+                                {fontFamily: "Roboto Mono",
+                                fontSize: 20,
+                                fontWeight: "bold",
+                                text: formatDaysAgoLabel(feature),
+                                }}
+                                color="#f78102"
+                            />
+                            <Transformation
+                                effect="outline:3"
+                                color="white"
+                                flags="layer_apply"
+                                gravity="south_east"
+                                y="10"
+                                x="10"
+                            />
+                        </Image>
+                    )}
+                </ImageContainer>
+            );
+        }
     )}
     </ImageGrid>
   );

@@ -6,7 +6,7 @@ const FadedBackground = styled.div<VisibilityProps>`
     background-color: black;
     backdrop-filter: blur(10px);
     opacity: 0.8;
-    z-index: 10;
+    z-index: 3100;
     position: fixed;
     top: 0;
     left: 0;
@@ -18,11 +18,19 @@ const CenteredResponsiveContainer = styled.section<VisibilityProps>`
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    z-index: 11;
-    height: auto;
-    width: auto;
-    max-width: 95vw;
-    max-height: 95vh;
+    z-index: 3101;
+    width: min(90vw, 900px);
+    height: min(75vh, calc(100vh - 140px), 700px);
+    @supports (height: 100dvh) {
+        height: min(75dvh, calc(100dvh - 140px), 700px);
+    }
+    @media (max-width: 768px) {
+        width: 92vw;
+        height: min(70vh, calc(100vh - 130px));
+        @supports (height: 100dvh) {
+            height: min(70dvh, calc(100dvh - 130px));
+        }
+    }
     display: ${props => props.visible? 'block': 'none'}
 `;
 
@@ -31,21 +39,21 @@ const CarouselContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
 `;
 
 const ImageBorder = styled.section`
     position: relative;
-    width: inherit;
+    width: 100%;
+    height: 100%;
     background: white;
-    margin: 0 20px;
+    margin: 0;
     color: #6b6b76;
     outline: none;
     display: flex;
     flex-direction: column;
-    max-width: 90vw;
-    max-height: 80vh;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 `;

@@ -132,6 +132,7 @@ const ImageLightbox = (props: ImageLightboxProps) => {
                         <CustomCloudinaryImage
                             key={`${currentImage}-${currentIndex}`} // Force re-render to fix stale image bug
                             cloudImageId={currentImage}
+                            fillContainer
                         />
                     </ImageBorder>
 

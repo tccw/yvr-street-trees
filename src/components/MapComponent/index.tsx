@@ -87,6 +87,7 @@ import { AlertDetailsProps } from "../../types/component_types";
 import TreeAttributionControl from "../TreeAttributionControl";
 import ImageLightbox from "../ImageLightbox";
 import StreetView from "../StreetView";
+import { DEV_MOCK_USER_PHOTOS, isDirectImageUrl } from "../../data/dev-mock-user-photos";
 
 
 export const DEFAULT_TITLE = `Vancouver Tree Map`;
@@ -255,8 +256,20 @@ function MapComponent() {
     const fetchUserPhotos = async () => {
       apiClient.userphotos
         .getUserPhotos()
-        .then((response) => setUserPhotoFeatureCollection(response.data))
-        .catch((error) => console.log(error));
+        .then((response) => {
+          const data = response.data as any;
+          if (import.meta.env.DEV && (!data?.features || data.features.length === 0)) {
+            setUserPhotoFeatureCollection(DEV_MOCK_USER_PHOTOS);
+          } else {
+            setUserPhotoFeatureCollection(data);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          if (import.meta.env.DEV) {
+            setUserPhotoFeatureCollection(DEV_MOCK_USER_PHOTOS);
+          }
+        });
     };
 
     fetchUserPhotos();
@@ -994,6 +1007,9 @@ const handleUserLocationClose = () => {
 }
 
 function cloudinaryIdToCircleImage(publicId: string): string {
+  if (isDirectImageUrl(publicId)) {
+    return publicId;
+  }
   let base: string = "https://res.cloudinary.com";
   let circle_url: string = `${base}/${CLOUD_NAME}/image/upload/h_150,ar_1.0,c_fill,q_auto/r_max/${publicId}`;
   return circle_url;
