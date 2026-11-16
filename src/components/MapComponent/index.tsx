@@ -640,7 +640,7 @@ function MapComponent() {
   );
   const treeFilter = useMemo(
     () => treeFilterCompositor(treeFilterObject, selected),
-    [treeFilterObject]
+    [treeFilterObject, selected]
   );
   const userPhotoHighlightFilter = useMemo(
     () => [
