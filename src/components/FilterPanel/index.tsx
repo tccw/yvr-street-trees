@@ -85,9 +85,9 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
   const treeRef = useRef<HTMLDivElement>(null);
   const highlightTimeoutRef = useRef<number | undefined>(undefined);
   // Matches the CSS breakpoint in styles.tsx: on narrow viewports the
-  // Selected chips collapse to a single row with an ellipsis chip.
+  // Selected chips collapse to 3; on desktop they collapse at 20.
   const isNarrow = useWindowSize(600);
-  const MAX_VISIBLE_CHIPS = 3;
+  const maxVisibleChips = isNarrow ? 3 : 20;
 
   // Scroll the taxonomy tree to the highlighted node. Runs after state
   // settles (expansion + search results cleared) instead of on a raw
@@ -588,8 +588,8 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                 </LegendLabel>
                 {selectedNodes.length > 0 || rangeFilterCount > 0 ? (
                   <SelectedChips>
-                    {(isNarrow && selectedNodes.length + rangeFilterCount > MAX_VISIBLE_CHIPS
-                      ? selectedNodes.slice(0, MAX_VISIBLE_CHIPS)
+                    {(selectedNodes.length + rangeFilterCount > maxVisibleChips
+                      ? selectedNodes.slice(0, maxVisibleChips)
                       : selectedNodes
                     ).map((node) => (
                       <SelectedChip key={node.key} title="Click × to remove">
@@ -613,14 +613,14 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                         <RangeChipRemove onClick={clearHeight}>×</RangeChipRemove>
                       </RangeChip>
                     )}
-                    {isNarrow && selectedNodes.length + rangeFilterCount > MAX_VISIBLE_CHIPS && (
+                    {selectedNodes.length + rangeFilterCount > maxVisibleChips && (
                       <MoreChips
                         title={selectedNodes
-                          .slice(MAX_VISIBLE_CHIPS)
+                          .slice(maxVisibleChips)
                           .map((n) => n.label)
                           .join(", ")}
                       >
-                        +{selectedNodes.length + rangeFilterCount - MAX_VISIBLE_CHIPS} more
+                        +{selectedNodes.length + rangeFilterCount - maxVisibleChips} more
                       </MoreChips>
                     )}
                   </SelectedChips>
