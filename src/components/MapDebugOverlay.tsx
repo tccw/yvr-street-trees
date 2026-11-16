@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { MapRef, ViewState } from "react-map-gl";
 import styled from "styled-components";
-import { boundaryTrasitionZoomLevel } from "../styles/map-styles.js";
+import {
+  boundaryTrasitionZoomLevel,
+  wideBoundaryTransitionZoomLevel,
+} from "../styles/map-styles.js";
 
 const DebugBox = styled.div`
   position: fixed;
@@ -84,6 +87,7 @@ interface MapDebugOverlayProps {
   minZoom: number;
   maxZoom: number;
   mapStyleName?: string;
+  wideZoomActive?: boolean;
 }
 
 export default function MapDebugOverlay({
@@ -92,6 +96,7 @@ export default function MapDebugOverlay({
   minZoom,
   maxZoom,
   mapStyleName,
+  wideZoomActive = false,
 }: MapDebugOverlayProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -107,8 +112,10 @@ export default function MapDebugOverlay({
   const bearing = map ? map.getBearing() : viewState.bearing ?? 0;
   const pitch = map ? map.getPitch() : viewState.pitch ?? 0;
   const bounds = map?.getBounds();
-  const layerMode =
-    zoom <= boundaryTrasitionZoomLevel ? "boundaries" : "trees";
+  const transitionZoom = wideZoomActive
+    ? wideBoundaryTransitionZoomLevel
+    : boundaryTrasitionZoomLevel;
+  const layerMode = zoom <= transitionZoom ? "boundaries" : "trees";
 
   return (
     <DebugBox>
@@ -126,7 +133,7 @@ export default function MapDebugOverlay({
         <DebugGrid>
           <Label>zoom</Label>
           <Value>
-            {zoom.toFixed(2)} ({layerMode} @ &gt;{boundaryTrasitionZoomLevel})
+            {zoom.toFixed(2)} ({layerMode} @ &gt;{transitionZoom})
           </Value>
           <Label>center</Label>
           <Value>

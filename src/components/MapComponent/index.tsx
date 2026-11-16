@@ -26,6 +26,7 @@ import {
   titleCase,
   treeFilterCompositor,
 } from "../../utils/utils";
+import { getAutoZoomTarget } from "../../utils/auto-zoom";
 import UserPhotoMarker from "../UserPhoto";
 import {
   MAPBOX_TOKEN,
@@ -58,6 +59,7 @@ import {
   boundariesHighlightLayerWide,
   boundariesLayer,
   boundariesLayerWide,
+  boundaryTrasitionZoomLevel,
   centroidLayer,
   centroidLayerWide,
   treesHighlightLayer,
@@ -67,6 +69,7 @@ import {
   userPhotoCircleLayer,
   userPhotoHeatmapLayer,
   userPhotoHighlights,
+  wideBoundaryTransitionZoomLevel,
 } from "../../styles/map-styles";
 import { TreeFilter } from "../../types/component_types";
 import BoundaryStats from "../BoundaryStats";
@@ -571,8 +574,26 @@ function MapComponent() {
     [treeFilterObject]
   );
 
+  const applyTreeFilter = (nextFilter: TreeFilter) => {
+    setTreeFilterObject(nextFilter);
+
+    const map = mapRef.current?.getMap();
+    const currentZoom = map ? map.getZoom() : viewState.zoom;
+    const targetZoom = getAutoZoomTarget(nextFilter, currentZoom, {
+      wideZoomThreshold: wideBoundaryTransitionZoomLevel,
+      standardZoomThreshold: boundaryTrasitionZoomLevel,
+    });
+
+    if (targetZoom !== null && map) {
+      map.easeTo({
+        zoom: targetZoom,
+        duration: 650,
+      });
+    }
+  };
+
   const onClickFilter = () => {
-    setTreeFilterObject(
+    applyTreeFilter(
       selected
         ? { ...treeFilterObject, trees: [selected.properties.common_name] } // only replace the trees object
         : { ...treeFilterObject, trees: [] }
@@ -1000,7 +1021,7 @@ const handleUserLocationClose = () => {
       </InfoPanel>
       <FilterPanel
         currentFilterObject={treeFilterObject}
-        updateParent={(props: any) => setTreeFilterObject({ ...props })}
+        updateParent={(props: any) => applyTreeFilter({ ...props })}
         updateSelected={() => setFilterPanelSelected(true)}
         selected={selected}
         treeNamesAndColors={stats ? (stats as any).tree_stats : null}
@@ -1014,6 +1035,7 @@ const handleUserLocationClose = () => {
         minZoom={MIN_ZOOM}
         maxZoom={MAX_ZOOM}
         mapStyleName={style === MAP_STYLE_SATELLITE ? "satellite" : "parks"}
+        wideZoomActive={filterValidForWideZoom(treeFilterObject)}
       />
     </>
   );

@@ -11,6 +11,7 @@
     "build-no-check": "vite build",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
+    "test": "tsc --outDir /tmp/yvr-tree-tests --module commonjs --target es2020 --esModuleInterop --skipLibCheck src/utils/auto-zoom.test.ts && node /tmp/yvr-tree-tests/utils/auto-zoom.test.js",
     "postinstall": "cp node_modules/sql.js/dist/sql-wasm.wasm public/sql-wasm.wasm && mkdir -p public/data && cp data/vancouver-all-trees-id-to-location-map.db public/data/"
   },
   "dependencies": {

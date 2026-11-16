@@ -5,6 +5,7 @@ import { LAYER_NAME } from '../../env';
 
 
 export const boundaryTrasitionZoomLevel = 13.5;
+export const wideBoundaryTransitionZoomLevel = 13;
 const highlightColor = '#f75a2f';
 const DIAMETER_STOPS = [
   [{zoom: 12, value: 0}, 4],
@@ -188,9 +189,9 @@ export const userPhotoHighlights: CircleLayer = {
 
 // wide zoom styles
 
-export const boundariesLayerWide = {...boundariesLayer, maxzoom: boundaryTrasitionZoomLevel - 5};
-export const centroidLayerWide = {...centroidLayer, maxzoom: boundaryTrasitionZoomLevel - 5};
+export const boundariesLayerWide = {...boundariesLayer, maxzoom: wideBoundaryTransitionZoomLevel};
+export const centroidLayerWide = {...centroidLayer, maxzoom: wideBoundaryTransitionZoomLevel};
 // to fix later: https://docs.mapbox.com/mapbox-gl-js/style-spec/other/
-export const treesLayerWide = {...treesLayer, minzoom: boundaryTrasitionZoomLevel - 5};
-export const treesHighlightLayerWide = {...treesHighlightLayer, minzoom: boundaryTrasitionZoomLevel - 5};
-export const boundariesHighlightLayerWide = {...boundariesHighlightLayer, minzoom: boundaryTrasitionZoomLevel - 5};
+export const treesLayerWide = {...treesLayer, minzoom: wideBoundaryTransitionZoomLevel};
+export const treesHighlightLayerWide = {...treesHighlightLayer, minzoom: wideBoundaryTransitionZoomLevel};
+export const boundariesHighlightLayerWide = {...boundariesHighlightLayer, minzoom: wideBoundaryTransitionZoomLevel};
