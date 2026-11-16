@@ -1,0 +1,42 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Calendar Versioning](https://calver.org/).
+
+## [2026.11.15] - 2026-11-15
+
+### Added
+
+- Hierarchical genus/species tree filter with bundled taxonomy stats and search.
+- Shareable `/tree/:id` URLs backed by a lazy-loaded SQLite coordinate database.
+- Auto-zoom to the required visibility threshold when applying filters (wide-zoom at level 13 for up to 4 species/genera, or 13.5 otherwise).
+- Active orange border highlight on the collapsed **Tree Filter** toggle button.
+- Diameter and height range pills in the **Selected** filters summary.
+- Embedded Google Street View and Cloudinary tree leaf imagery in the info panel.
+- Responsive photo lightbox with scroll-snap swipe navigation.
+- Citywide tree statistics and neighbourhood boundary stats colored by tree density.
+- Development-only Mapbox debug overlay enabled via `--debug`, `npm run dev-debug`, or `?debug`.
+
+### Changed
+
+- Set the parks map style as the default view and increased tree dot opacity and stroke contrast.
+- Preserved active filters when clicking off the map to deselect a tree.
+- Capped visible selected filter pills at 20 on desktop (3 on mobile) before consolidating into a `+N more` pill.
+- Replaced custom filter notice boxes with compact MUI `InfoBanner` alerts.
+- Redesigned the mobile info panel as a bottom drawer and made the filter panel's genus tree scroll internally.
+
+### Fixed
+
+- Stale tree leaf image or `(None)` cultivar text briefly showing when switching selected trees.
+- Landing/citywide tree filter failing to clear and `/tree/` deep links not padding for the info panel.
+
+## [0.1.0] - 2021-06-01
+
+### Added
+
+- Initial tagged release with interactive Vancouver street tree map and GitHub Pages deployment.
+
+[2026.11.15]: https://github.com/tccw/yvr-street-trees/compare/v0.1.0...v2026.11.15
+[0.1.0]: https://github.com/tccw/yvr-street-trees/releases/tag/v0.1.0
