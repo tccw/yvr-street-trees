@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
 import Checkbox from "@mui/material/Checkbox";
 import { boundaryTrasitionZoomLevel } from "../../styles/map-styles.js";
-import { ChevronCollapse, Info } from "../../svg-icons.js";
+import { ChevronCollapse } from "../../svg-icons.js";
+import InfoBanner from "../InfoBanner";
 import { titleCase } from "../../utils/utils.js";
 import { filterValidForWideZoom } from "../../utils/utils.js";
 import { useWindowSize } from "../../hooks/useWindowSize";
@@ -62,7 +63,6 @@ interface SelectOption {
     value: string;
 }
 
-const INFO_COLOR = '#a6e9ff';
 const [diamMIN, heightMIN] = [0, 0];
 const [diamMAX, heightMAX] = [115, 40];
 
@@ -558,22 +558,28 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                     disabled={(currentZoom <= boundaryTrasitionZoomLevel)}
                 />
             </StyledFilterBoxes>
-            { (currentZoom <= boundaryTrasitionZoomLevel) &&
-                <StyledFilterBoxes color={INFO_COLOR}>
-                    <div style={{"width": "fit-content",
-                                    "height": "fit-content"}}>
-                        {Info} <b>Height and Diameter Filtering Disabled</b> Please click to {<ZoomLink onClick={zoomIn} href='#'>zoom in</ZoomLink>} in to use filters.
-                    </div>
-                </StyledFilterBoxes>
-                }
-                {(currentZoom <= boundaryTrasitionZoomLevel) && (currentFilterObject.trees) && (currentFilterObject.trees.length > 4) && !filterValidForWideZoom(currentFilterObject) &&
-                    <StyledFilterBoxes color={INFO_COLOR}>
-                    <div style={{"width": "fit-content",
-                                    "height": "fit-content"}}>
-                        {Info} <b>Trees filter</b> currently supports a <b>max of 4 species/genera when zoomed out</b>. {<ZoomLink onClick={zoomIn} href='#'>Zoom</ZoomLink>} or remove trees from the filter.
-                    </div>
-                </StyledFilterBoxes>
-            }
+            {currentZoom <= boundaryTrasitionZoomLevel && (
+              <InfoBanner>
+                <b>Height &amp; Diameter Filtering Disabled:</b> Please{" "}
+                <ZoomLink onClick={zoomIn} href="#">
+                  zoom in
+                </ZoomLink>{" "}
+                to use these filters.
+              </InfoBanner>
+            )}
+            {currentZoom <= boundaryTrasitionZoomLevel &&
+              currentFilterObject.trees &&
+              currentFilterObject.trees.length > 4 &&
+              !filterValidForWideZoom(currentFilterObject) && (
+                <InfoBanner>
+                  <b>Trees filter</b> currently supports a{" "}
+                  <b>max of 4 species/genera when zoomed out</b>.{" "}
+                  <ZoomLink onClick={zoomIn} href="#">
+                    Zoom in
+                  </ZoomLink>{" "}
+                  or remove trees from the filter.
+                </InfoBanner>
+              )}
 
             {!isAtDefaults() && (
               <StyledFilterBoxes>
