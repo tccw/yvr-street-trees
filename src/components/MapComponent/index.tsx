@@ -484,12 +484,12 @@ function MapComponent() {
     // }, 650);
     setSelected(feature || undefined)
     setFilterPanelSelected(Boolean(feature));
-    if (!feature) {
-      setTreeFilterObject({
-        ...treeFilterObject,
-        trees: [],
-      });
-    }
+    // if (!feature) {
+    //   setTreeFilterObject({
+    //     ...treeFilterObject,
+    //     trees: [],
+    //   });
+    // }
     infoPanelRef.current?.scrollTo(0, 0);
   };
 

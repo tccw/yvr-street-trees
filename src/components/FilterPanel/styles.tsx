@@ -7,7 +7,7 @@ import styled from "styled-components";
  * Placement mirrors the panel's old position (top-right desktop,
  * top-left mobile) to preserve muscle memory.
  */
-const FilterTrigger = styled.button`
+const FilterTrigger = styled.button<{ $active?: boolean }>`
   z-index: 1000;
   position: fixed;
   /* Geocoder (Mapbox control, top-right) occupies y ~10-60px
@@ -21,9 +21,13 @@ const FilterTrigger = styled.button`
   gap: 8px;
   background: #fff;
   color: #63686a;
-  border: 1px solid darkgrey;
+  border: ${(props) =>
+    props.$active ? "2px solid #f5a623" : "1px solid darkgrey"};
   border-radius: 999px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: ${(props) =>
+    props.$active
+      ? "0 0 0 3px rgba(245, 166, 35, 0.25), 0 2px 4px rgba(0, 0, 0, 0.3)"
+      : "0 2px 4px rgba(0, 0, 0, 0.3)"};
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1;

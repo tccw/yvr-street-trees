@@ -71,7 +71,7 @@ export const treesLayer: CircleLayer = {
         type: 'identity',
         property: 'color'
     },
-    'circle-stroke-color': '#FAF9F6',
+    'circle-stroke-color': '#717171',
     'circle-stroke-width': 1,
     'circle-radius': {
         property: 'diameter_cm',

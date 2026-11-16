@@ -468,17 +468,20 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
     return rows;
   };
 
+  const filtersActive = !isAtDefaults();
+
   return (
     <>
       {!isExpanded && (
         <FilterTrigger
+          $active={filtersActive}
           onClick={handleToggle}
           aria-expanded={false}
           aria-controls="filter-panel"
           title="expand filter panel"
         >
-          Filter Map
-          {!isAtDefaults() && <TriggerBadge title="filters active" />}
+          Tree Filter
+          {filtersActive && <TriggerBadge title="filters active" />}
         </FilterTrigger>
       )}
       {isExpanded && (
