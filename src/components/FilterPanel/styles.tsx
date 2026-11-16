@@ -448,12 +448,6 @@ const SelectedChips = styled.div`
   flex-wrap: wrap;
   gap: 4px;
   margin: 6px 0 0;
-
-  /* Mobile: single row with an ellipsis chip instead of growing the panel */
-  @media (max-width: 600px) {
-    flex-wrap: nowrap;
-    overflow: hidden;
-  }
 `;
 
 const SelectedChip = styled.span`
