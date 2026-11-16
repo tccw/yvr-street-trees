@@ -20,6 +20,7 @@ import { MobileSafeBottom } from "../../styles/global-styles";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { useMeasure } from "@react-hookz/web";
 import FilterPanel from "../FilterPanel";
+import MapDebugOverlay from "../MapDebugOverlay";
 import {
   filterValidForWideZoom,
   titleCase,
@@ -1006,6 +1007,13 @@ const handleUserLocationClose = () => {
         treeTaxonomy={stats ? (stats as any).tree_taxonomy : null}
         currentZoom={viewState.zoom}
         zoomIn={onClickZoom}
+      />
+      <MapDebugOverlay
+        mapRef={mapRef}
+        viewState={viewState}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
+        mapStyleName={style === MAP_STYLE_SATELLITE ? "satellite" : "parks"}
       />
     </>
   );
