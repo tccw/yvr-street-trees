@@ -482,8 +482,8 @@ function MapComponent() {
 
     // setTimeout(() => {
     //     setSelected(feature || undefined)
-    if (!isInfoPanelExpanded) {
-        setIsInfoPanelExpanded(true);
+    if (!isNarrow && !isInfoPanelExpanded) {
+      setIsInfoPanelExpanded(true);
     }
     // }, 650);
     setSelected(feature || undefined)
