@@ -14,6 +14,9 @@ import {
   TriggerBadge,
   GreyBorderBottomTitle,
   LegendLabel,
+  FilterHeaderRow,
+  SortToggleGroup,
+  SortToggleButton,
   OpenCloseButton,
   SelectEntry,
   StyledFilterBoxes,
@@ -45,6 +48,9 @@ import {
   TreeTaxonomySpecies,
 } from "../../types/component_types";
 import { genusCommonName } from "../../data/genus-common-names";
+import { usePreferences } from "../../utils/preferences";
+
+const alphaCollator = new Intl.Collator(undefined, { sensitivity: "base" });
 
 
 interface FilterPanelProps {
@@ -88,6 +94,7 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
   // Selected chips collapse to 3; on desktop they collapse at 20.
   const isNarrow = useWindowSize(600);
   const maxVisibleChips = isNarrow ? 3 : 20;
+  const [preferences, updatePreference] = usePreferences();
 
   // Scroll the taxonomy tree to the highlighted node. Runs after state
   // settles (expansion + search results cleared) instead of on a raw
@@ -123,6 +130,27 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
   }, [highlightedNode]);
 
   const hasTaxonomy = Boolean(treeTaxonomy?.genera?.length);
+  const sortedGenera = useMemo(() => {
+    if (!treeTaxonomy?.genera) return [];
+    if (preferences.treeSortOrder === "frequency") {
+      return treeTaxonomy.genera;
+    }
+    return [...treeTaxonomy.genera]
+      .sort((a, b) => alphaCollator.compare(a.genus, b.genus))
+      .map((genus) => ({
+        ...genus,
+        species: [...genus.species]
+          .sort((a, b) =>
+            alphaCollator.compare(a.scientific_name, b.scientific_name)
+          )
+          .map((sp) => ({
+            ...sp,
+            common_names: [...sp.common_names].sort((a, b) =>
+              alphaCollator.compare(a.common_name, b.common_name)
+            ),
+          })),
+      }));
+  }, [treeTaxonomy, preferences.treeSortOrder]);
   const activeTrees: string[] = currentFilterObject.trees ?? [];
   const activeTreeSet = useMemo(() => new Set(activeTrees), [activeTrees]);
 
@@ -160,7 +188,7 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
     const nodes: { key: string; label: string; leaves: string[] }[] = [];
     const covered = new Set<string>();
     const fmt = (name: string) => titleCase(name);
-    for (const genus of treeTaxonomy!.genera) {
+    for (const genus of sortedGenera) {
       const gLeaves = genus.species.flatMap((s) =>
         s.common_names.map((c) => c.common_name)
       );
@@ -378,7 +406,7 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
         </TreeNodeCount>
       ) : null;
 
-    for (const genus of treeTaxonomy!.genera) {
+    for (const genus of sortedGenera) {
       const genusKey = genus.genus;
       const leaves = genusLeaves(genus);
       const state = nodeState(leaves);
@@ -499,7 +527,29 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
               Filter by Species, Trunk Diameter, and Tree Height
             </GreyBorderBottomTitle>
             <StyledFilterBoxes grow>
-              <LegendLabel> {hasTaxonomy ? "By Genus / Species (Common Name)" : "By Species (Common Name)"} </LegendLabel>
+              <FilterHeaderRow>
+                <LegendLabel> {hasTaxonomy ? "By Genus / Species (Common Name)" : "By Species (Common Name)"} </LegendLabel>
+                {hasTaxonomy && (
+                  <SortToggleGroup role="group" aria-label="Sort tree list">
+                    <SortToggleButton
+                      type="button"
+                      $active={preferences.treeSortOrder === "frequency"}
+                      onClick={() => updatePreference("treeSortOrder", "frequency")}
+                      title="Sort by frequency of occurrence"
+                    >
+                      Freq
+                    </SortToggleButton>
+                    <SortToggleButton
+                      type="button"
+                      $active={preferences.treeSortOrder === "alphabetical"}
+                      onClick={() => updatePreference("treeSortOrder", "alphabetical")}
+                      title="Sort alphabetically"
+                    >
+                      A–Z
+                    </SortToggleButton>
+                  </SortToggleGroup>
+                )}
+              </FilterHeaderRow>
               {hasTaxonomy ? (
                 <>
                   <SearchContainer>

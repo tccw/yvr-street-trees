@@ -250,6 +250,42 @@ const LegendLabel = styled.span`
   }
 `;
 
+const FilterHeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+`;
+
+const SortToggleGroup = styled.div`
+  display: inline-flex;
+  border: 1px solid #d0d5d9;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+`;
+
+const SortToggleButton = styled.button<{ $active?: boolean }>`
+  border: none;
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  font-weight: ${(props) => (props.$active ? 600 : 400)};
+  background: ${(props) => (props.$active ? "#e8f4f8" : "#fff")};
+  color: ${(props) => (props.$active ? "#1f4d5f" : "#63686a")};
+  cursor: pointer;
+
+  &:not(:last-child) {
+    border-right: 1px solid #d0d5d9;
+  }
+
+  &:hover {
+    background: ${(props) => (props.$active ? "#e8f4f8" : "#f4f6f7")};
+  }
+`;
+
 const SelectEntry = styled.li`
   list-style-type: none;
   color: #63686a;
@@ -526,6 +562,9 @@ export {
   Dot,
   OpenCloseButton,
   LegendLabel,
+  FilterHeaderRow,
+  SortToggleGroup,
+  SortToggleButton,
   SelectEntry,
   GreyBorderBottomTitle,
   Filter,
