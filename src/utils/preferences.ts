@@ -37,7 +37,7 @@ export function loadPreferences(): UserPreferences {
       return { ...DEFAULT_PREFERENCES };
     }
     const parsed = JSON.parse(raw) as Record<string, unknown> | null;
-    if (!parsed || typeof parsed !== "object") {
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return { ...DEFAULT_PREFERENCES };
     }
 

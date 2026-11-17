@@ -5,14 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
-## [2026.11.16] - 2026-11-16
+## 2026.11.16 - 2026-11-16
+
+### Added
+
+- Alphabetical (`A–Z`) and frequency (`Freq`) sort toggle for the tree filter list, persisted in `localStorage`.
 
 ### Fixed
 
 - Mobile info panel opening when tapping empty map while collapsed.
 - Uppercase species epithets in scientific names within the tree filter taxonomy.
 
-## [2026.11.15] - 2026-11-15
+## 2026.11.15 - 2026-11-15
 
 ### Added
 
@@ -39,12 +43,8 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 - Stale tree leaf image or `(None)` cultivar text briefly showing when switching selected trees.
 - Landing/citywide tree filter failing to clear and `/tree/` deep links not padding for the info panel.
 
-## [0.1.0] - 2021-06-01
+## 0.1.0 - 2021-06-01
 
 ### Added
 
 - Initial tagged release with interactive Vancouver street tree map and GitHub Pages deployment.
-
-[2026.11.16]: https://github.com/tccw/yvr-street-trees/compare/v2026.11.15...v2026.11.16
-[2026.11.15]: https://github.com/tccw/yvr-street-trees/compare/v0.1.0...v2026.11.15
-[0.1.0]: https://github.com/tccw/yvr-street-trees/releases/tag/v0.1.0
