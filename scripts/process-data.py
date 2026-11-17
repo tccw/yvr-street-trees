@@ -624,7 +624,7 @@ def _calc_taxonomy(json_data: Dict[str, any], tree_stats: Dict[str, any]):
             elif species == "SPECIES":
                 scientific = f"{genus.title()} sp."
             else:
-                scientific = f"{genus.title()} {species.title()}"
+                scientific = f"{genus.title()} {species.lower()}"
             species_list.append({
                 "species": species,
                 "scientific_name": scientific,
