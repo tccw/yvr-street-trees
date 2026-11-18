@@ -22,6 +22,12 @@ import { useMeasure } from "@react-hookz/web";
 import FilterPanel from "../FilterPanel";
 import MapDebugOverlay from "../MapDebugOverlay";
 import {
+  isFatalWebGLError,
+  isWebGLSupported,
+  MapErrorBoundary,
+  MapFallback,
+} from "../MapFallback";
+import {
   filterValidForWideZoom,
   titleCase,
   treeFilterCompositor,
@@ -146,6 +152,11 @@ function MapComponent() {
     const [hoverInfo, setHoverInfo] = useState<any>();
     const [isInfoPanelExpanded, setIsInfoPanelExpanded] = useState(true);
     const [selected, setSelected] = useState<any>();
+    const [mapError, setMapError] = useState<string | null>(() =>
+      isWebGLSupported()
+        ? null
+        : "WebGL / hardware acceleration is disabled or unsupported."
+    );
     const [cursor, setCursor] = useState<string>("grab");
     const [treeFilterObject, setTreeFilterObject] = useState<TreeFilter>({
         trees: [],
@@ -784,8 +795,12 @@ const handleUserLocationClose = () => {
     handleNoLocationUpload();
   }
 
+  if (mapError) {
+    return <MapFallback reason={mapError} />;
+  }
+
   return (
-    <>
+    <MapErrorBoundary>
       <Map
         ref={mapRef}
         initialViewState={viewState}
@@ -799,6 +814,11 @@ const handleUserLocationClose = () => {
         onMouseLeave={onMouseLeave}
         cursor={cursor}
         onLoad={onLoad}
+        onError={(e) => {
+          if (isFatalWebGLError(e.error)) {
+            setMapError(e.error.message);
+          }
+        }}
         // https://visgl.github.io/react-map-gl/docs/get-started/state-management
         onMove={(event: any) => {
           setViewState(event.viewState);
@@ -1037,7 +1057,7 @@ const handleUserLocationClose = () => {
         mapStyleName={style === MAP_STYLE_SATELLITE ? "satellite" : "parks"}
         wideZoomActive={filterValidForWideZoom(treeFilterObject)}
       />
-    </>
+    </MapErrorBoundary>
   );
 }
 
