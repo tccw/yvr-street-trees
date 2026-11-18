@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## 2026.11.17 - 2026-11-17
+
+### Added
+
+- Fallback screen when WebGL or hardware acceleration is unavailable, with links to browser guides for Chrome, Firefox, Safari, and Opera.
+
+### Fixed
+
+- Missing neighbourhood descriptions in the info panel.
+- Filtering trees from citywide or neighbourhood stats in the info panel not auto-zooming to the visibility threshold.
+
 ## 2026.11.16 - 2026-11-16
 
 ### Added
