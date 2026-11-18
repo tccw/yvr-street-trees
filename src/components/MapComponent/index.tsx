@@ -963,7 +963,7 @@ const handleUserLocationClose = () => {
           <>
             <BoundaryStats
               currentState={treeFilterObject}
-              updateParent={(props: any) => setTreeFilterObject({ ...props })}
+              updateParent={(props: any) => applyTreeFilter({ ...props })}
               heading="Citywide"
               name="Vancouer"
               stats={stats}
@@ -976,7 +976,7 @@ const handleUserLocationClose = () => {
         {selected && selected.layer.id == "boundaries" && (
           <BoundaryStats
             currentState={treeFilterObject}
-            updateParent={(props: any) => setTreeFilterObject({ ...props })}
+            updateParent={(props: any) => applyTreeFilter({ ...props })}
             {...selected.properties}
             heading="Neighborhood"
             stats={stats}
