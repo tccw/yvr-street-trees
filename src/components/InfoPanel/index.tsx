@@ -7,6 +7,8 @@ import {
   OpenCloseButton,
   OpenFlagContainer,
   FeedbackButton,
+  PanelFooter,
+  FooterLink,
 } from "./styles";
 import { ChevronRight, ChevronLeft, MessageSquare } from "../../svg-icons";
 // import Logo from "../../assets/road.png";
@@ -60,6 +62,17 @@ const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
             {MessageSquare}
             <span>Feedback</span>
           </FeedbackButton>
+          <PanelFooter>
+            <FooterLink
+              href="https://github.com/tccw/yvr-street-trees/blob/main/CHANGELOG.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Changelog
+            </FooterLink>
+            <span aria-hidden="true">·</span>
+            <span>Data: Vancouver &amp; New Westminster Open Data (OGL)</span>
+          </PanelFooter>
         </Panel>
         {!isExpanded && (
           <OpenFlagContainer>

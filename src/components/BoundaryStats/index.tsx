@@ -156,8 +156,8 @@ const BoundaryStats = ({
       {type === "city" && (
         <Disclaimer>
           This is an unofficial project and is not affiliated with the City of
-          Vancouver. To report a tree concern or request tree maintenance,
-          contact{" "}
+          Vancouver or the City of New Westminster. To report a tree concern or
+          request tree maintenance, contact{" "}
           <a
             href="https://van311.ca/services/city-and-park-trees-maintenance"
             target="_blank"
@@ -165,7 +165,15 @@ const BoundaryStats = ({
           >
             Van311
           </a>{" "}
-          or use the Van311 app.
+          (Vancouver) or{" "}
+          <a
+            href="https://www.newwestcity.ca/parks-recreation/parks/trees-natural-areas/trees/city-trees"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            City of New Westminster
+          </a>
+          .
         </Disclaimer>
       )}
       {displayStats && (

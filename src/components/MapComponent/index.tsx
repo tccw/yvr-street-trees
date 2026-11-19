@@ -103,15 +103,15 @@ import StreetView from "../StreetView";
 import { DEV_MOCK_USER_PHOTOS, isDirectImageUrl } from "../../data/dev-mock-user-photos";
 
 
-export const DEFAULT_TITLE = `Vancouver Tree Map`;
+export const DEFAULT_TITLE = `Metro Van Tree Map`;
 const MAX_ZOOM = 18.5;
 const MIN_ZOOM = 10;
 const GEOLOCATE_POS_OPTIONS = { enableHighAccuracy: true };
 // Removed hardcoded styles - now using MobileSafeBottom components
 
 const BOUNDS: [[number, number], [number, number]] = [
-  [-123.5, 49.05],
-  [-122.55, 49.4],
+  [-123.38, 49.08],
+  [-122.72, 49.38],
 ];
 
 const apiClient = new Client();
@@ -1044,8 +1044,8 @@ const handleUserLocationClose = () => {
             <BoundaryStats
               currentState={treeFilterObject}
               updateParent={(props: any) => applyTreeFilter({ ...props })}
-              heading="Citywide"
-              name="Vancouer"
+              heading="Regional"
+              name="Metro Vancouver"
               stats={stats}
               type="city"
               description={WELCOME_MSG}

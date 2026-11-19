@@ -5,7 +5,7 @@ const currentYear: number = new Date().getFullYear();
 const TreeAttributionControl = () => {
     return (
         <AttributionControl
-            customAttribution={`Wiki CC BY-SA 3.0 | OGL 2.0 - Vancouver | © tccw 2020-${currentYear}`}
+            customAttribution={`Wiki CC BY-SA 3.0 | OGL - Vancouver & New Westminster | © tccw 2020-${currentYear}`}
             style={{position: "relative", right: "100px", bottom: "-100px"}}
         />
     )

@@ -171,6 +171,31 @@ const FeedbackButton = styled.button`
   }
 `;
 
+const PanelFooter = styled.footer`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 0 20px 20px;
+  font-size: 0.85rem;
+  color: #63686a;
+
+  @media (max-width: 600px) {
+    padding: 0 16px 20px;
+  }
+`;
+
+const FooterLink = styled.a`
+  color: #63686a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: #2193b9;
+  }
+`;
+
 export {
   Panel,
   Title,
@@ -180,4 +205,6 @@ export {
   MiddleStyledText,
   OpenFlagContainer,
   FeedbackButton,
+  PanelFooter,
+  FooterLink,
 };
