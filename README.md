@@ -159,6 +159,20 @@ tilesets publish <tileset_id>
 * A single layer with `minzoom: 7` and `maxzoom: 14` ensures consistent detail across all zoom levels.
 * For large datasets, tile sizes may increase since no zoom-based simplification is applied.
 
+##### Controlling Point Consolidation / Dropping (e.g. Zoom 12.5+)
+
+Mapbox vector tiles are generated at **integer** zoom levels, so zoom `12.5` renders from `z12` tiles. To prevent Mapbox from dropping/thinning dense tree points at `z12`:
+
+1. **Convert GeoJSON to line-delimited GeoJSON (`.ldjson`):**
+   ```bash
+   python3 scripts/geojson_to_ldjson.py opendata/processed/metro-all-trees-processed.json
+   ```
+   Then upload the `.ldjson` file with `tilesets upload-source`.
+
+2. **Tune the MTS recipe levers** (see `opendata/tileset/metro-recipe.json`):
+   * **`minzoom: 12` / `maxzoom: 14`**: Skips generating `z7–z11` tiles (where individual trees aren't shown), keeping tile processing faster and cheaper while ensuring `z12` tiles are built.
+   * **`tiles.layer_size: 2500`**: Raises the per-layer tile size cap from the default `500` KB to the MTS maximum `2500` KB so dense `z12` tiles don't drop points.
+
 ---
 
 ### Versioning
