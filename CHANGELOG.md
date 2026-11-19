@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
-## 2026.11.17 - 2026-11-17
+## 2026.11.18
+
+### Added
+
+- New Westminster street tree inventory (17,927 trees) and 15 dissolved neighbourhood boundaries merged with Vancouver (202,079 trees total).
+- Bundled Metro tree location SQLite database for `/tree/:id` deep links across both cities (with existing Vancouver tree IDs preserved).
+- Metro Van landing copy, info panel footer with Changelog & Open Data attribution, and City of New Westminster tree maintenance contact link.
+
+### Changed
+
+- Updated neighbourhood boundary choropleth to a `Greens` density palette with `#444444` outlines and always-visible orange selection highlights.
+- Expanded map panning bounds and lowered minimum zoom to `10` to cover both Vancouver and New Westminster.
+
+## 2026.11.17
 
 ### Added
 
@@ -16,7 +29,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 - Missing neighbourhood descriptions in the info panel.
 - Filtering trees from citywide or neighbourhood stats in the info panel not auto-zooming to the visibility threshold.
 
-## 2026.11.16 - 2026-11-16
+## 2026.11.16
 
 ### Added
 
@@ -27,7 +40,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 - Mobile info panel opening when tapping empty map while collapsed.
 - Uppercase species epithets in scientific names within the tree filter taxonomy.
 
-## 2026.11.15 - 2026-11-15
+## 2026.11.15
 
 ### Added
 
