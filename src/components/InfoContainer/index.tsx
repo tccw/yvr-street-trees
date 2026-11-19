@@ -40,6 +40,7 @@ export const TreeInfoComponent = (props: any) => {
     date_planted,
     common_name,
     neighbourhood_name,
+    stats_key,
     cultivar_name,
     color,
   } = props;
@@ -88,18 +89,22 @@ export const TreeInfoComponent = (props: any) => {
     return formatPrevalanceResult(parseInt(percentage));
   };
   const neighborhoodPrevalance = (stats: any) => {
+    const neighKey =
+      stats_key && stats?.neighborhood_stats?.[stats_key]
+        ? stats_key
+        : neighbourhood_name;
     if (
       !stats?.tree_stats ||
       !stats.tree_stats[common_name] ||
       !stats.tree_stats[common_name].neighborhood_counts ||
-      !stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] ||
-      !stats.neighborhood_stats[neighbourhood_name]
+      !stats.tree_stats[common_name].neighborhood_counts[neighKey] ||
+      !stats.neighborhood_stats[neighKey]
     ) {
       return undefined;
     }
     let percentage = Math.round(
-      (stats.tree_stats[common_name].neighborhood_counts[neighbourhood_name] /
-        stats.neighborhood_stats[neighbourhood_name].total_count) *
+      (stats.tree_stats[common_name].neighborhood_counts[neighKey] /
+        stats.neighborhood_stats[neighKey].total_count) *
         100
     ).toFixed(2);
     return formatPrevalanceResult(parseInt(percentage));

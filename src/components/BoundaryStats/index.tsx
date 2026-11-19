@@ -6,6 +6,7 @@ import {
   StatsSection,
   StatsHeader,
   Description,
+  Disclaimer,
   StatsGrid,
   StatsGridItem,
   StyledStat,
@@ -16,6 +17,7 @@ interface BoundaryStatsProps {
   currentState: any;
   updateParent: any;
   name: string;
+  stats_key?: string;
   description: string;
   heading: string;
   stats: any;
@@ -27,12 +29,14 @@ const BoundaryStats = ({
   currentState,
   updateParent,
   name,
+  stats_key,
   description,
   heading,
   stats,
   type,
 }: BoundaryStatsProps) => {
-  name = name;
+  const lookupKey =
+    stats_key && stats?.neighborhood_stats?.[stats_key] ? stats_key : name;
   const getStats = () => {
     let displayStats = null;
     if (stats) {
@@ -47,22 +51,26 @@ const BoundaryStats = ({
   };
 
   const getNeighborhoodStats = () => {
+    const neighStats = stats.neighborhood_stats?.[lookupKey];
     let result = {
-      mostCommonSpecies: { treeName: "", count: -1 },
+      mostCommonSpecies: { treeName: "", count: 0 },
       numSpecies: 0,
-      total_trees: stats.neighborhood_stats[name].total_count,
-      area_sqkm: stats.neighborhood_stats[name]?.area_sqkm as number | undefined,
-      tree_density_sqkm: stats.neighborhood_stats[name]?.tree_density_sqkm as number | undefined,
+      total_trees: neighStats?.total_count ?? 0,
+      area_sqkm: neighStats?.area_sqkm as number | undefined,
+      tree_density_sqkm: neighStats?.tree_density_sqkm as number | undefined,
     };
+    if (!neighStats) {
+      return result;
+    }
     for (const [key, value] of Object.entries(stats.tree_stats)) {
       //@ts-ignore
-      if (name in value.neighborhood_counts) {
+      if (lookupKey in value.neighborhood_counts) {
         result.numSpecies++;
         //@ts-ignore
-        if (result.mostCommonSpecies.count < value.neighborhood_counts[name]) {
+        if (result.mostCommonSpecies.count < value.neighborhood_counts[lookupKey]) {
           result.mostCommonSpecies.treeName = key;
           //@ts-ignore
-          result.mostCommonSpecies.count = value.neighborhood_counts[name];
+          result.mostCommonSpecies.count = value.neighborhood_counts[lookupKey];
         }
       }
     }
@@ -92,7 +100,7 @@ const BoundaryStats = ({
     return result;
   };
 
-  const displayStats = React.useMemo(() => getStats(), [name, stats]);
+  const displayStats = React.useMemo(() => getStats(), [name, stats_key, stats]);
 
   const mostCommonSubtitle = () => {
     let result;
@@ -100,11 +108,12 @@ const BoundaryStats = ({
         return
 
     if (type === "neighborhood") {
-      result = ` ${Math.round(
-        (displayStats.mostCommonSpecies.count /
-          stats.neighborhood_stats[name].total_count) *
-          100
-      ).toFixed(0)}% `;
+      const totalCount = stats.neighborhood_stats?.[lookupKey]?.total_count;
+      result = totalCount
+        ? ` ${Math.round(
+            (displayStats.mostCommonSpecies.count / totalCount) * 100
+          ).toFixed(0)}% `
+        : " 0% ";
     } else if (type === "city") {
       result = ` ${Math.round(
         (displayStats.mostCommonSpecies.count / stats.city_tree_count) * 100
@@ -114,10 +123,20 @@ const BoundaryStats = ({
     return result;
   };
 
-  description = JSON.parse(description);
+  let parsedDescription: string[] = [];
+  if (Array.isArray(description)) {
+    parsedDescription = description;
+  } else if (typeof description === "string" && description.trim()) {
+    try {
+      const parsed = JSON.parse(description);
+      if (Array.isArray(parsed)) parsedDescription = parsed;
+    } catch {
+      parsedDescription = [description];
+    }
+  }
   let blurb = [];
-  for (let i = 0; i < description.length; i++) {
-    blurb.push(<Description key={i}>{description[i]}</Description>);
+  for (let i = 0; i < parsedDescription.length; i++) {
+    blurb.push(<Description key={i}>{parsedDescription[i]}</Description>);
   }
 
   const handleClick = () => {
@@ -134,6 +153,21 @@ const BoundaryStats = ({
   return (
     <StatsSection>
       {blurb}
+      {type === "city" && (
+        <Disclaimer>
+          This is an unofficial project and is not affiliated with the City of
+          Vancouver. To report a tree concern or request tree maintenance,
+          contact{" "}
+          <a
+            href="https://van311.ca/services/city-and-park-trees-maintenance"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Van311
+          </a>{" "}
+          or use the Van311 app.
+        </Disclaimer>
+      )}
       {displayStats && (
         <>
           <StatsHeader> {`${heading} Statistics`} </StatsHeader>

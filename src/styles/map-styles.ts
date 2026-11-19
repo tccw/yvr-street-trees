@@ -28,7 +28,17 @@ export const boundariesLayer: FillLayer = {
       property: 'color'
     },
     'fill-opacity': 0.8,
-    'fill-outline-color': 'white'
+    'fill-outline-color': '#444444'
+  }
+};
+
+export const boundariesOutlineLayer: LineLayer = {
+  id: 'boundaries-outline',
+  type: 'line',
+  maxzoom: boundaryTrasitionZoomLevel,
+  paint: {
+    'line-color': '#444444',
+    'line-width': 1.5
   }
 };
 
@@ -89,7 +99,6 @@ export const boundariesHighlightLayer: LineLayer = {
   id: 'boundaries-focus',
   type: 'line',
   source: 'boundaries',
-  minzoom: boundaryTrasitionZoomLevel - 2,
   paint: {
       'line-color': highlightColor,
       'line-width': 3
@@ -190,8 +199,9 @@ export const userPhotoHighlights: CircleLayer = {
 // wide zoom styles
 
 export const boundariesLayerWide = {...boundariesLayer, maxzoom: wideBoundaryTransitionZoomLevel};
+export const boundariesOutlineLayerWide = {...boundariesOutlineLayer, maxzoom: wideBoundaryTransitionZoomLevel};
 export const centroidLayerWide = {...centroidLayer, maxzoom: wideBoundaryTransitionZoomLevel};
 // to fix later: https://docs.mapbox.com/mapbox-gl-js/style-spec/other/
 export const treesLayerWide = {...treesLayer, minzoom: wideBoundaryTransitionZoomLevel};
 export const treesHighlightLayerWide = {...treesHighlightLayer, minzoom: wideBoundaryTransitionZoomLevel};
-export const boundariesHighlightLayerWide = {...boundariesHighlightLayer, minzoom: wideBoundaryTransitionZoomLevel};
+export const boundariesHighlightLayerWide = {...boundariesHighlightLayer};

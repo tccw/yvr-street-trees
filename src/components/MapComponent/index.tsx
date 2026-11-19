@@ -37,6 +37,7 @@ import UserPhotoMarker from "../UserPhoto";
 import {
   MAPBOX_TOKEN,
   VAN_BOUNDARIES_URL,
+  NW_BOUNDARIES_URL,
   VAN_ALL_TREES_TILES,
   LAYER_NAME as TREE_LAYER_NAME,
   GEOCODER_PROXIMITY,
@@ -65,6 +66,8 @@ import {
   boundariesHighlightLayerWide,
   boundariesLayer,
   boundariesLayerWide,
+  boundariesOutlineLayer,
+  boundariesOutlineLayerWide,
   boundaryTrasitionZoomLevel,
   centroidLayer,
   centroidLayerWide,
@@ -102,13 +105,13 @@ import { DEV_MOCK_USER_PHOTOS, isDirectImageUrl } from "../../data/dev-mock-user
 
 export const DEFAULT_TITLE = `Vancouver Tree Map`;
 const MAX_ZOOM = 18.5;
-const MIN_ZOOM = 11;
+const MIN_ZOOM = 10;
 const GEOLOCATE_POS_OPTIONS = { enableHighAccuracy: true };
 // Removed hardcoded styles - now using MobileSafeBottom components
 
 const BOUNDS: [[number, number], [number, number]] = [
-  [-123.413509, 49.149992],
-  [-122.821261, 49.35818],
+  [-123.5, 49.05],
+  [-122.55, 49.4],
 ];
 
 const apiClient = new Client();
@@ -221,31 +224,70 @@ function MapComponent() {
   // fetch data
   /* fetch Vancouver tree related data */
   useEffect(() => {
-    fetch(VAN_BOUNDARIES_URL)
-      .then((response) => response.json())
-      .then((json) => {
-        // create the centroids for labeling neighborhoods
-        let centroids: FeatureCollection = {
-          type: "FeatureCollection",
-          features: [],
-        };
-        for (let i = 0; i < json.features.length; i++) {
-          centroids.features.push({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: json.features[i].properties.geo_point_2d.reverse(),
-            },
-            properties: {
-              name: json.features[i].properties.name,
-              tree_count: json.features[i].properties.tree_count,
-              tree_density_sqkm: json.features[i].properties.tree_density_sqkm,
-            },
+    Promise.all([
+      fetch(VAN_BOUNDARIES_URL).then((r) => r.json()),
+      fetch(NW_BOUNDARIES_URL)
+        .then((r) => r.json())
+        .catch(() => ({ features: [] })),
+    ]).then(([vanJson, nwJson]) => {
+      const hasMergedCities = (vanJson.features || []).some(
+        (f: any) => f.properties?.city === "new-westminster"
+      );
+
+      // Normalize New Westminster features only if not already in VAN_BOUNDARIES_URL
+      const nwFeatures = hasMergedCities
+        ? []
+        : (nwJson.features || []).map((f: any) => {
+            const center = centroid(f).geometry.coordinates; // [lng, lat]
+            const name = f.properties.NEIGH_NAME || f.properties.name || "Unknown";
+            return {
+              ...f,
+              properties: {
+                ...f.properties,
+                name,
+                color: f.properties.color || "#2b8cbe",
+                tree_count: f.properties.tree_count ?? 0,
+                tree_density_sqkm: f.properties.tree_density_sqkm ?? 0,
+                description: f.properties.description || [
+                  `${name} neighbourhood in New Westminster.`,
+                ],
+                geo_point_2d: [center[1], center[0]], // [lat, lng] to match van-bound before .reverse()
+              },
+            };
           });
-        }
-        setBoundaries(json);
-        setCentroids(centroids);
+
+      const combinedFeatures = [...(vanJson.features || []), ...nwFeatures];
+
+      // create the centroids for labeling neighborhoods
+      let centroids: FeatureCollection = {
+        type: "FeatureCollection",
+        features: [],
+      };
+      for (let i = 0; i < combinedFeatures.length; i++) {
+        const feat = combinedFeatures[i];
+        const props = feat.properties;
+        const coords = Array.isArray(props.geo_point_2d)
+          ? [...props.geo_point_2d].reverse()
+          : centroid(feat).geometry.coordinates;
+        centroids.features.push({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: coords,
+          },
+          properties: {
+            name: props.name,
+            tree_count: props.tree_count,
+            tree_density_sqkm: props.tree_density_sqkm,
+          },
+        });
+      }
+      setBoundaries({
+        type: "FeatureCollection",
+        features: combinedFeatures,
       });
+      setCentroids(centroids);
+    });
   }, []);
 
   useEffect(() => {
@@ -432,8 +474,17 @@ function MapComponent() {
     const feature: MapboxGeoJSONFeature | undefined = event.features && event.features[0];
 
     if (feature && feature.properties) {
+      // Use the full unclipped GeoJSON boundary when clicking a neighbourhood
+      const bboxTarget =
+        feature.layer.id === "boundaries" && boundaries?.features
+          ? boundaries.features.find((b: any) =>
+              feature.properties?.stats_key
+                ? b.properties?.stats_key === feature.properties.stats_key
+                : b.properties?.name === feature.properties?.name
+            ) ?? feature
+          : feature;
       // calculate the bounding box of the feature
-      const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+      const [minLng, minLat, maxLng, maxLat] = bbox(bboxTarget);
       const easeToDuration = 650;
       var options = {
         // padding: { left: 10, top: 10, right: 10, bottom: 10 },
@@ -623,7 +674,7 @@ function MapComponent() {
   var selection = "";
   var featuresSelection: any[] = [];
   if (selected && selected.layer.id == "boundaries") {
-    selection = selected.properties.name;
+    selection = selected.properties.stats_key ?? selected.properties.name;
   } else if (selected && selected.layer.id == TREE_LAYER_NAME) {
     selection = selected.properties.asset_id;
   } else if (selected && selected.layer.id == "userphotos-data") {
@@ -641,9 +692,12 @@ function MapComponent() {
   }
 
   // memoized filters
+  const boundaryHighlightField = selected?.properties?.stats_key
+    ? "stats_key"
+    : "name";
   const boundaryHighlightFilter = useMemo(
-    () => ["==", ["get", "name"], selection],
-    [selection]
+    () => ["==", ["get", boundaryHighlightField], selection],
+    [boundaryHighlightField, selection]
   );
   const treeHighlightFilter = useMemo(
     () => ["==", ["get", "asset_id"], selection],
@@ -864,6 +918,12 @@ const handleUserLocationClose = () => {
             {...(filterValidForWideZoom(treeFilterObject)
               ? boundariesLayerWide
               : boundariesLayer)}
+          />
+          {/* @ts-ignore */}
+          <Layer
+            {...(filterValidForWideZoom(treeFilterObject)
+              ? boundariesOutlineLayerWide
+              : boundariesOutlineLayer)}
           />
           {/* @ts-ignore */}
           <Layer

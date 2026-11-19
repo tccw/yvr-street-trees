@@ -1,6 +1,7 @@
 import initSqlJs, { Database } from 'sql.js';
 
-const DB_PATH = '/data/vancouver-all-trees-id-to-location-map.db';
+const DB_PATH = '/data/metro-all-trees-id-to-location-map.db';
+// const DB_PATH = '/data/vancouver-all-trees-id-to-location-map.db';
 
 // Module-level singleton – shared across all callers in the same session.
 let dbInstance: Database | null = null;
