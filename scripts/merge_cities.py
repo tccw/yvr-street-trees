@@ -11,6 +11,7 @@ Outputs:
 - opendata/processed/new-west-unmatched-taxa.csv
 """
 import csv
+import hashlib
 import json
 import math
 import re
@@ -24,18 +25,24 @@ OPENDATA = ROOT / "opendata"
 
 VAN_TREES_RAW = OPENDATA / "raw" / "vancouver-all-trees-raw.json"
 NW_TREES_RAW = OPENDATA / "raw" / "new-westminster-tree-inventory-active-trees.geojson"
+NV_TREES_RAW = OPENDATA / "raw" / "city-of-north-vancouver-trees.geojson"
 VAN_BOUNDARIES_PROCESSED = OPENDATA / "processed" / "vancouver-boundaries-processed.json"
 NW_BOUNDARIES_RAW = OPENDATA / "raw" / "new-westminster-boundaries-traditional.geojson"
+NV_BOUNDARIES_RAW = OPENDATA / "raw" / "city-of-north-vancouver-neighbourhood-boundaries.geojson"
 COLOR_DICT_PATH = OPENDATA / "processed" / "assigned-tree-colors-seed5.json"
 
 OUT_BOUNDARIES = OPENDATA / "processed" / "metro-boundaries-processed.json"
 OUT_TREES = OPENDATA / "processed" / "metro-all-trees-processed.json"
 OUT_STATS = OPENDATA / "processed" / "metro-all-trees-processed-stats.json"
 OUT_UNMATCHED_CSV = OPENDATA / "processed" / "new-west-unmatched-taxa.csv"
+OUT_NV_UNMATCHED_CSV = OPENDATA / "processed" / "north-van-unmatched-taxa.csv"
 OUT_DB = OPENDATA / "processed" / "metro-all-trees-id-to-location-map.db"
 
 NW_ID_OFFSET = 10_000_000
+NV_ID_OFFSET = 20_000_000
+NV_ID_MOD = 99_980_000_000
 FALLBACK_COLOR = "#b0b0b0"
+SENTINEL_DATES = {"1899-12-30", "1899-12-31", "1900-01-01", "1970-01-01"}
 
 GENUS_ALIASES = {
     "CLADASTRIS": "CLADRASTIS",
@@ -51,6 +58,7 @@ SPECIES_ALIASES = {
     "LAVALLEEI": "LAVALLEI",
     "PANNICULATA": "PANICULATA",
     "KENTUKEA": "LUTEA",
+    "AQUAFOLIUM": "AQUIFOLIUM",
 }
 
 PAIR_ALIASES = {
@@ -221,6 +229,33 @@ def build_dissolved_nw_boundaries() -> List[Dict[str, Any]]:
     return features
 
 
+def build_nv_boundaries() -> List[Dict[str, Any]]:
+    if not NV_BOUNDARIES_RAW.exists():
+        return []
+    with open(NV_BOUNDARIES_RAW, "r", encoding="utf-8") as f:
+        nv_raw = json.load(f)
+
+    features = []
+    for feat in nv_raw.get("features", []):
+        p = feat.get("properties") or {}
+        name = (p.get("neigh_name") or p.get("name") or "").strip()
+        if not name or not feat.get("geometry"):
+            continue
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": feat["geometry"],
+                "properties": {
+                    "city": "north-vancouver",
+                    "name": name,
+                    "stats_key": f"north-vancouver:{name}",
+                    "description": [],
+                },
+            }
+        )
+    return features
+
+
 def prepare_boundaries() -> Tuple[List[Dict[str, Any]], Dict[str, List[Tuple[str, Tuple[float, float, float, float], Dict[str, Any]]]]]:
     with open(VAN_BOUNDARIES_PROCESSED, "r", encoding="utf-8") as f:
         van_b = json.load(f)
@@ -240,6 +275,7 @@ def prepare_boundaries() -> Tuple[List[Dict[str, Any]], Dict[str, List[Tuple[str
         )
 
     combined.extend(build_dissolved_nw_boundaries())
+    combined.extend(build_nv_boundaries())
 
     spatial_index: Dict[
         str, List[Tuple[str, Tuple[float, float, float, float], Dict[str, Any]]]
@@ -338,10 +374,15 @@ def main() -> None:
         van_raw = json.load(f)
     with open(NW_TREES_RAW, "r", encoding="utf-8") as f:
         nw_raw = json.load(f)
+    with open(NV_TREES_RAW, "r", encoding="utf-8") as f:
+        nv_raw = json.load(f)
 
     # Build (genus, species, cultivar) and (genus, species) -> common_name lookups from Vancouver
     van_gsc_counts: Dict[Tuple[str, str, str], Counter] = defaultdict(Counter)
     van_gs_counts: Dict[Tuple[str, str], Counter] = defaultdict(Counter)
+    van_genus_counts: Counter = Counter()
+    van_species_by_genus: Dict[str, Counter] = defaultdict(Counter)
+    van_cultivar_by_gs: Dict[Tuple[str, str], Counter] = defaultdict(Counter)
     for feat in van_raw["features"]:
         p = feat["properties"]
         cn = (p.get("common_name") or "").strip()
@@ -352,12 +393,51 @@ def main() -> None:
         c = norm_taxon(p.get("cultivar_name"), "NONE")
         van_gsc_counts[(g, s, c)][cn] += 1
         van_gs_counts[(g, s)][cn] += 1
+        van_genus_counts[g] += 1
+        van_species_by_genus[g][s] += 1
+        if c != "NONE":
+            van_cultivar_by_gs[(g, s)][c] += 1
 
     van_gsc_map = {k: cnt.most_common(1)[0][0] for k, cnt in van_gsc_counts.items()}
     van_gs_map = {k: cnt.most_common(1)[0][0] for k, cnt in van_gs_counts.items()}
 
+    def expand_prefix(val: str, counts: Counter) -> str:
+        if len(val) == 10 and val not in counts:
+            matches = [(cnt, k) for k, cnt in counts.items() if k.startswith(val)]
+            if not matches and val.startswith("X "):
+                stem = val[2:].strip()
+                matches = [
+                    (cnt, k)
+                    for k, cnt in counts.items()
+                    if k.startswith(stem) or k.startswith(f"{stem}")
+                ]
+            if matches:
+                return max(matches)[1]
+        return val
+
+    def infer_genus_from_species(sp: str) -> Optional[Tuple[str, str]]:
+        """Deterministically infer (genus, expanded_species) only if every
+        matching (genus, species) in Vancouver shares a single unique genus."""
+        if not sp or sp in ("SPECIES", "XX"):
+            return None
+        matches: List[Tuple[int, str, str]] = []
+        for g_full, sp_counts in van_species_by_genus.items():
+            if g_full == "UNKNOWN":
+                continue
+            for s_full, cnt in sp_counts.items():
+                if s_full in ("SPECIES", "XX"):
+                    continue
+                if s_full == sp or (len(sp) == 10 and s_full.startswith(sp)):
+                    matches.append((cnt, g_full, s_full))
+        unique_genera = {m[1] for m in matches}
+        if len(unique_genera) == 1:
+            _, sole_g, best_s = max(matches)
+            return sole_g, best_s
+        return None
+
     merged_features: List[Dict[str, Any]] = []
     unmatched_nw: Counter = Counter()
+    unmatched_nv: Counter = Counter()
 
     # 1. Process Vancouver trees
     for feat in van_raw["features"]:
@@ -443,9 +523,105 @@ def main() -> None:
             }
         )
 
+    # 2b. Process City of North Vancouver trees (collect first so tie-breaking on
+    # duplicate coordinates is deterministic regardless of input row order)
+    nv_records: List[Tuple[Tuple[Any, ...], Dict[str, Any]]] = []
+    for feat in nv_raw["features"]:
+        geom = feat.get("geometry")
+        if not geom or not geom.get("coordinates"):
+            continue
+        p = feat["properties"]
+        lon, lat = round(geom["coordinates"][0], 6), round(geom["coordinates"][1], 6)
+        raw_g = re.sub(r"\s*-\s*.*$", "", str(p.get("GENUS") or "")).strip()
+        g_norm = expand_prefix(norm_taxon(raw_g, "UNKNOWN"), van_genus_counts)
+        s_raw = norm_taxon(p.get("SPECIES"), "SPECIES")
+        if g_norm == "UNKNOWN":
+            inferred = infer_genus_from_species(s_raw)
+            if inferred:
+                g_norm, s_norm = inferred
+            else:
+                s_norm = s_raw
+        else:
+            s_norm = expand_prefix(s_raw, van_species_by_genus.get(g_norm, Counter()))
+        c_raw = norm_taxon(p.get("VARIETY"), "NONE")
+        c_norm = (
+            expand_prefix(c_raw, van_cultivar_by_gs.get((g_norm, s_norm), Counter()))
+            if c_raw != "NONE"
+            else "NONE"
+        )
+
+        g, s, c, cn, matched = resolve_nw_taxon(
+            g_norm, s_norm, c_norm, van_gsc_map, van_gs_map
+        )
+        if not matched:
+            unmatched_nv[(g, s, c)] += 1
+
+        raw_diam = p.get("DIAMETERcm")
+        diam = float(raw_diam) if raw_diam is not None else None
+        planted_raw = p.get("PLANT_DATE")
+        if planted_raw:
+            ps = str(planted_raw).strip()
+            if len(ps) == 8 and ps.isdigit():
+                date_planted = f"{ps[:4]}-{ps[4:6]}-{ps[6:8]}"
+            else:
+                date_planted = ps[:10]
+            if date_planted in SENTINEL_DATES:
+                date_planted = None
+        else:
+            date_planted = None
+
+        neigh = assign_neighbourhood("north-vancouver", lon, lat, spatial_index)
+        stats_key = f"north-vancouver:{neigh}" if neigh else "north-vancouver:null"
+        color = lookup_tree_color(color_dict, g, s, c)
+        sort_key = (lon, lat, g, s, c, diam if diam is not None else -1.0)
+        nv_records.append(
+            (
+                sort_key,
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [lon, lat]},
+                    "properties": {
+                        "asset_id": 0,  # populated deterministically below
+                        "city": "north-vancouver",
+                        "address": "",
+                        "common_name": cn,
+                        "genus_name": g,
+                        "species_name": s,
+                        "cultivar_name": c,
+                        "diameter_cm": diam,
+                        "height_m": None,
+                        "height_range_id": None,
+                        "date_planted": date_planted,
+                        "neighbourhood_name": neigh,
+                        "stats_key": stats_key,
+                        "color": color,
+                    },
+                },
+            )
+        )
+
+    nv_records.sort(key=lambda item: item[0])
+    coord_tie_counts: Counter = Counter()
+    seen_nv_ids: set = set()
+    for (lon, lat, *_), feature in nv_records:
+        tie_idx = coord_tie_counts[(lon, lat)]
+        coord_tie_counts[(lon, lat)] += 1
+        key_str = f"north-vancouver:{lon:.6f},{lat:.6f}#{tie_idx}"
+        digest = hashlib.sha256(key_str.encode("utf-8")).digest()
+        candidate_id = NV_ID_OFFSET + (int.from_bytes(digest[:5], "big") % NV_ID_MOD)
+        while candidate_id in seen_nv_ids:
+            candidate_id += 1
+        seen_nv_ids.add(candidate_id)
+        feature["properties"]["asset_id"] = candidate_id
+        merged_features.append(feature)
+
     # 3. Compute tree_stats & neighborhood_stats (keyed by city:neighbourhood)
     tree_stats: Dict[str, Dict[str, Any]] = {}
     neighborhood_stats: Dict[str, Dict[str, Any]] = {}
+    ts_diam_counts: Counter = Counter()
+    ts_height_counts: Counter = Counter()
+    ns_diam_counts: Counter = Counter()
+    ns_height_counts: Counter = Counter()
 
     for feat in merged_features:
         p = feat["properties"]
@@ -464,8 +640,12 @@ def main() -> None:
             }
         ts = tree_stats[cn]
         ts["total_count"] += 1
-        ts["average_diameter"] += diam
-        ts["average_height_id"] += hid
+        if diam is not None:
+            ts["average_diameter"] += diam
+            ts_diam_counts[cn] += 1
+        if hid is not None:
+            ts["average_height_id"] += hid
+            ts_height_counts[cn] += 1
         ts["neighborhood_counts"][skey] = ts["neighborhood_counts"].get(skey, 0) + 1
 
         if skey not in neighborhood_stats:
@@ -478,18 +658,24 @@ def main() -> None:
             }
         ns = neighborhood_stats[skey]
         ns["total_count"] += 1
-        ns["average_diameter"] += diam
-        ns["average_height_id"] += hid
+        if diam is not None:
+            ns["average_diameter"] += diam
+            ns_diam_counts[skey] += 1
+        if hid is not None:
+            ns["average_height_id"] += hid
+            ns_height_counts[skey] += 1
 
-    for ts in tree_stats.values():
-        n = ts["total_count"]
-        ts["average_diameter"] = round(ts["average_diameter"] / n, 2)
-        ts["average_height_id"] = round(ts["average_height_id"] / n)
+    for cn, ts in tree_stats.items():
+        dc = ts_diam_counts[cn]
+        hc = ts_height_counts[cn]
+        ts["average_diameter"] = round(ts["average_diameter"] / dc, 2) if dc else 0.0
+        ts["average_height_id"] = round(ts["average_height_id"] / hc) if hc else 0
 
-    for ns in neighborhood_stats.values():
-        n = ns["total_count"]
-        ns["average_diameter"] = round(ns["average_diameter"] / n, 2)
-        ns["average_height_id"] = round(ns["average_height_id"] / n)
+    for skey, ns in neighborhood_stats.items():
+        dc = ns_diam_counts[skey]
+        hc = ns_height_counts[skey]
+        ns["average_diameter"] = round(ns["average_diameter"] / dc, 2) if dc else 0.0
+        ns["average_height_id"] = round(ns["average_height_id"] / hc) if hc else 0
 
     # 4. Compute boundary areas, densities, and density-based colors
     densities: List[float] = []
@@ -593,11 +779,15 @@ def main() -> None:
         json.dump({"type": "FeatureCollection", "features": merged_features}, f)
     with open(OUT_STATS, "w", encoding="utf-8") as f:
         json.dump(stats_payload, f)
-    with open(OUT_UNMATCHED_CSV, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["count", "genus", "species", "cultivar"])
-        for (g, s, c), cnt in unmatched_nw.most_common():
-            writer.writerow([cnt, g, s, c])
+    for csv_path, counter in (
+        (OUT_UNMATCHED_CSV, unmatched_nw),
+        (OUT_NV_UNMATCHED_CSV, unmatched_nv),
+    ):
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["count", "genus", "species", "cultivar"])
+            for (g, s, c), cnt in counter.most_common():
+                writer.writerow([cnt, g, s, c])
 
     db_rows = [
         (
@@ -627,6 +817,7 @@ def main() -> None:
     print(f"Merged boundaries: {len(boundaries)} (Vancouver + dissolved New West)")
     print(f"Stats keys: {len(tree_stats)} common names, {len(neighborhood_stats)} neighbourhoods")
     print(f"Unmatched New West taxa: {len(unmatched_nw)} ({sum(unmatched_nw.values()):,} trees)")
+    print(f"Unmatched North Van taxa: {len(unmatched_nv)} ({sum(unmatched_nv.values()):,} trees)")
 
 
 if __name__ == "__main__":
