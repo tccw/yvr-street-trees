@@ -16,6 +16,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 
 - Omitted missing height, diameter, and address rows in the tree info panel, and preserved trees without height data when range sliders are at defaults.
 - Replaced `1899-12-30` placeholder planting dates with `Unknown` for non-Vancouver trees.
+- Updated landing disclaimer, maintenance contact links, and Data Sharing Agreement attribution for the City of North Vancouver.
 
 ## 2026.11.18
 
