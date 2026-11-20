@@ -71,7 +71,10 @@ const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
               Changelog
             </FooterLink>
             <span aria-hidden="true">·</span>
-            <span>Data: Vancouver &amp; New Westminster Open Data (OGL)</span>
+            <span>
+              Data: Vancouver &amp; New Westminster (OGL), City of North
+              Vancouver (Data Sharing Agreement)
+            </span>
           </PanelFooter>
         </Panel>
         {!isExpanded && (
