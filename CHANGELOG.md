@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## 2026.11.20
+
+### Added
+
+- City of North Vancouver tree inventory (11,902 trees) and 9 neighbourhood boundaries merged into the Metro Van dataset (213,981 trees total).
+- Deterministic location-based tree IDs for North Vancouver so `/tree/:id` bookmarks stay stable across future data exports.
+
+### Changed
+
+- Omitted missing height, diameter, and address rows in the tree info panel, and preserved trees without height data when range sliders are at defaults.
+- Replaced `1899-12-30` placeholder planting dates with `Unknown` for non-Vancouver trees.
+
 ## 2026.11.18
 
 ### Added
