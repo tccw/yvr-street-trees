@@ -41,23 +41,29 @@ export const TreeInfoComponent = (props: any) => {
     common_name,
     neighbourhood_name,
     stats_key,
+    city,
     cultivar_name,
     color,
   } = props;
 
-  var listValues = {
-    "ID": asset_id,
-    Height: `${height_m} m`,
-    Diameter: `${diameter_cm} cm`,
-    Address: `${address}`,
+  const listValues: Record<string, string | number> = {
+    ID: asset_id,
+    ...(height_m != null && height_m !== "" ? { Height: `${height_m} m` } : {}),
+    ...(diameter_cm != null && diameter_cm !== ""
+      ? { Diameter: `${diameter_cm} cm` }
+      : {}),
+    ...(address ? { Address: `${address}` } : {}),
     "Date Planted": date_planted
       ? `${toPrettyDateString(date_planted)}`
-      : "Before 1989",
+      : !city || city === "vancouver"
+      ? "Before 1989"
+      : "Unknown",
   };
 
   async function onClick() {
+    if (!listValues.Address) return;
     setCopied(true);
-    navigator.clipboard.writeText(listValues.Address); // only for modern browsers
+    navigator.clipboard.writeText(String(listValues.Address)); // only for modern browsers
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setCopied(false);
   }
@@ -89,6 +95,9 @@ export const TreeInfoComponent = (props: any) => {
     return formatPrevalanceResult(parseInt(percentage));
   };
   const neighborhoodPrevalance = (stats: any) => {
+    if (!neighbourhood_name) {
+      return undefined;
+    }
     const neighKey =
       stats_key && stats?.neighborhood_stats?.[stats_key]
         ? stats_key
@@ -161,13 +170,13 @@ export const TreeInfoComponent = (props: any) => {
       <StyledSubText font_size="1.5rem" font_style="italic">
         {`${formatSciName()} ` + cult}
       </StyledSubText>
-      {neighPrevalance && (
+      {neighPrevalance && neighbourhood_name && (
         <StyledSubText font_size="0.9rem" font_style="none">
           {`${neighPrevalance}% of ${titleCase(neighbourhood_name)} trees.`}
         </StyledSubText>
       )}
       <StyledSubText font_size="0.9rem" font_style="none">
-        {`${totalPrevalance}% of Vancouver trees.`}
+        {`${totalPrevalance}% of Metro Van trees.`}
       </StyledSubText>
       {/* <AttributesContainer> */}
         <CustomCloudinaryImage

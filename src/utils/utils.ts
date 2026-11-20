@@ -45,16 +45,15 @@ export function cloudinaryImageNameCultivar(genus: string, species: string, cult
 
   let filter: any[] = ['all'];
 
-  if (diameters) {
-    //TODO: change this so that the max diameter notch is not hardcoded
-    if (diameters[1] == 100) {
-      filter.push(['all', ['>=', ['get', 'diameter_cm'], diameters[0]]]); // add the case expression to the filter
+  if (diameters && (diameters[0] > 0 || (diameters[1] < 115 && diameters[1] !== 100))) {
+    if (diameters[1] >= 115 || diameters[1] === 100) {
+      filter.push(['all', ['>=', ['get', 'diameter_cm'], diameters[0]]]);
     } else {
-      filter.push(['all', ['>=', ['get', 'diameter_cm'], diameters[0]], ['<=', ['get', 'diameter_cm'], diameters[1]]]); // add the case expression to the filter
+      filter.push(['all', ['>=', ['get', 'diameter_cm'], diameters[0]], ['<=', ['get', 'diameter_cm'], diameters[1]]]);
     }
   }
 
-  if (heights) {
+  if (heights && (heights[0] > 0 || heights[1] < 40)) {
     if (heights[1] == 40) {
       filter.push(['all', ['>=', ['get', 'height_m'], heights[0]]]);
     } else {

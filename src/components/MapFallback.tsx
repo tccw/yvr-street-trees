@@ -186,7 +186,25 @@ export class MapErrorBoundary extends React.Component<
 
   render() {
     if (this.state.errorMessage) {
-      return <MapFallback reason={this.state.errorMessage} />;
+      if (isFatalWebGLError(this.state.errorMessage)) {
+        return <MapFallback reason={this.state.errorMessage} />;
+      }
+      return (
+        <Backdrop role="alert">
+          <Card>
+            <Heading>Something went wrong</Heading>
+            <Body>
+              An unexpected error occurred while rendering the map view.
+            </Body>
+            <Body style={{ fontSize: "0.82rem", color: "#6c7378" }}>
+              Details: {this.state.errorMessage}
+            </Body>
+            <ReloadButton type="button" onClick={() => window.location.reload()}>
+              Reload page
+            </ReloadButton>
+          </Card>
+        </Backdrop>
+      );
     }
     return this.props.children;
   }
