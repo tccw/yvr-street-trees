@@ -12,7 +12,8 @@
     "build:victoria": "VITE_CITY=victoria tsc && VITE_CITY=victoria vite build && rm -f dist/data/metro-* dist/data/vancouver-* dist/data/new-westminster-*",
     "build-no-check": "vite build",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist",
+    "deploy": "npm run build && echo vancouver.treemap.ca > dist/CNAME && rm -rf node_modules/.cache/gh-pages && gh-pages -d dist",
+    "deploy:vancouver": "npm run deploy",
     "deploy:victoria": "npm run build:victoria && echo victoria.treemap.ca > dist/CNAME && rm -rf node_modules/.cache/gh-pages && gh-pages -d dist -r git@github.com:tccw/victoria-bc-treemap-deploy-repo.git",
     "test": "tsc --outDir /tmp/yvr-tree-tests --module commonjs --target es2020 --esModuleInterop --skipLibCheck src/utils/auto-zoom.test.ts && node /tmp/yvr-tree-tests/utils/auto-zoom.test.js",
     "postinstall": "cp node_modules/sql.js/dist/sql-wasm.wasm public/sql-wasm.wasm && mkdir -p public/data && cp data/vancouver-all-trees-id-to-location-map.db public/data/"
