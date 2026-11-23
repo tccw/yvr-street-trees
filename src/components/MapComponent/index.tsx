@@ -21,6 +21,7 @@ import { useWindowSize } from "../../hooks/useWindowSize";
 import { useMeasure } from "@react-hookz/web";
 import FilterPanel from "../FilterPanel";
 import MapDebugOverlay from "../MapDebugOverlay";
+import { ACTIVE_CITY } from "../../config/city-config";
 import {
   isFatalWebGLError,
   isWebGLSupported,
@@ -36,17 +37,12 @@ import { getAutoZoomTarget } from "../../utils/auto-zoom";
 import UserPhotoMarker from "../UserPhoto";
 import {
   MAPBOX_TOKEN,
-  VAN_BOUNDARIES_URL,
   NW_BOUNDARIES_URL,
-  VAN_ALL_TREES_TILES,
   LAYER_NAME as TREE_LAYER_NAME,
-  GEOCODER_PROXIMITY,
   TREE_BLURB_URL,
   MAP_STYLE_PARKS,
   MAP_STYLE_CONTRAST,
   MAP_STYLE_SATELLITE,
-  STATS,
-  WELCOME_MSG,
   CLOUD_NAME,
 } from "../../../env";
 import { getTreeCoordinates } from "../../utils/tree-db";
@@ -103,16 +99,13 @@ import StreetView from "../StreetView";
 import { DEV_MOCK_USER_PHOTOS, isDirectImageUrl } from "../../data/dev-mock-user-photos";
 
 
-export const DEFAULT_TITLE = `Metro Van Tree Map`;
-const MAX_ZOOM = 18.5;
-const MIN_ZOOM = 10;
+export const DEFAULT_TITLE = ACTIVE_CITY.title;
+const MAX_ZOOM = ACTIVE_CITY.maxZoom;
+const MIN_ZOOM = ACTIVE_CITY.minZoom;
 const GEOLOCATE_POS_OPTIONS = { enableHighAccuracy: true };
 // Removed hardcoded styles - now using MobileSafeBottom components
 
-const BOUNDS: [[number, number], [number, number]] = [
-  [-123.38, 49.08],
-  [-122.72, 49.38],
-];
+const BOUNDS: [[number, number], [number, number]] = ACTIVE_CITY.bounds;
 
 const apiClient = new Client();
 
@@ -178,17 +171,21 @@ function MapComponent() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stats]);
     const [viewState, setViewState] = useState<ViewState>({
-        latitude: GEOCODER_PROXIMITY.latitude,
-        longitude: GEOCODER_PROXIMITY.longitude,
-        zoom: 11.5,
+        latitude: ACTIVE_CITY.initialCenter.latitude,
+        longitude: ACTIVE_CITY.initialCenter.longitude,
+        zoom: ACTIVE_CITY.initialZoom,
         bearing: 0,
         pitch: 0,
         padding: { left: 0, top: 0, right: 0, bottom: 0 },
     });
     const [marker, setMarker] = useState({
-        latitude: GEOCODER_PROXIMITY.latitude,
-        longitude: GEOCODER_PROXIMITY.longitude,
+        latitude: ACTIVE_CITY.initialCenter.latitude,
+        longitude: ACTIVE_CITY.initialCenter.longitude,
     });
+
+    useEffect(() => {
+      document.title = ACTIVE_CITY.title;
+    }, []);
     const [isLocationDialogOpen, setIsLocationDialogOpen] = useState<boolean>(false);
     const [userPhotosVisible, setUserPhotosVisible] = useState<boolean>(true);
     const [clickedPhotoId, setClickedPhotoId] = useState<string | undefined>(undefined);
@@ -225,14 +222,18 @@ function MapComponent() {
   /* fetch Vancouver tree related data */
   useEffect(() => {
     Promise.all([
-      fetch(VAN_BOUNDARIES_URL).then((r) => r.json()),
-      fetch(NW_BOUNDARIES_URL)
-        .then((r) => r.json())
-        .catch(() => ({ features: [] })),
+      fetch(ACTIVE_CITY.boundariesUrl).then((r) => r.json()),
+      ACTIVE_CITY.key === "metro"
+        ? fetch(NW_BOUNDARIES_URL)
+            .then((r) => r.json())
+            .catch(() => ({ features: [] }))
+        : Promise.resolve({ features: [] }),
     ]).then(([vanJson, nwJson]) => {
-      const hasMergedCities = (vanJson.features || []).some(
-        (f: any) => f.properties?.city === "new-westminster"
-      );
+      const hasMergedCities =
+        ACTIVE_CITY.key !== "metro" ||
+        (vanJson.features || []).some(
+          (f: any) => f.properties?.city === "new-westminster"
+        );
 
       // Normalize New Westminster features only if not already in VAN_BOUNDARIES_URL
       const nwFeatures = hasMergedCities
@@ -297,7 +298,7 @@ function MapComponent() {
   }, []);
 
   useEffect(() => {
-    fetch(STATS).then((response) =>
+    fetch(ACTIVE_CITY.statsUrl).then((response) =>
       response.json().then((json) => setStats(json))
     );
   }, []);
@@ -908,7 +909,7 @@ const handleUserLocationClose = () => {
           position="top-right"
           countries="CA"
           placeholder="SearchAddress"
-          proximity={GEOCODER_PROXIMITY}
+          proximity={ACTIVE_CITY.initialCenter}
           marker={true}
         />
         {/* @ts-ignore */}
@@ -953,7 +954,7 @@ const handleUserLocationClose = () => {
                 <Layer {...userPhotoHighlights} filter={userPhotoHighlightFilter} />
             </Source>
         }
-        <Source id="van-trees-tiles" type="vector" url={VAN_ALL_TREES_TILES}>
+        <Source id="van-trees-tiles" type="vector" url={ACTIVE_CITY.tilesUrl}>
           {/* @ts-ignore */}
           <Layer
             {...(filterValidForWideZoom(treeFilterObject)
@@ -1044,11 +1045,11 @@ const handleUserLocationClose = () => {
             <BoundaryStats
               currentState={treeFilterObject}
               updateParent={(props: any) => applyTreeFilter({ ...props })}
-              heading="Regional"
-              name="Metro Vancouver"
+              heading={ACTIVE_CITY.regionalHeading}
+              name={ACTIVE_CITY.regionalName}
               stats={stats}
               type="city"
-              description={WELCOME_MSG}
+              description={ACTIVE_CITY.welcomeMsg}
             />
             <a href=""></a>
           </>
@@ -1074,8 +1075,8 @@ const handleUserLocationClose = () => {
               on the map
             </FilterToTree>
             <StreetView
-              lat={selected.geometry?.coordinates?.[1] || GEOCODER_PROXIMITY.latitude}
-              lng={selected.geometry?.coordinates?.[0] || GEOCODER_PROXIMITY.longitude}
+              lat={selected.geometry?.coordinates?.[1] || ACTIVE_CITY.initialCenter.latitude}
+              lng={selected.geometry?.coordinates?.[0] || ACTIVE_CITY.initialCenter.longitude}
               heading={210}
               pitch={10}
               isPanelExpanded={isInfoPanelExpanded}

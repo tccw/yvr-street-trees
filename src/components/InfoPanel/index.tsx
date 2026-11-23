@@ -14,6 +14,7 @@ import { ChevronRight, ChevronLeft, MessageSquare } from "../../svg-icons";
 // import Logo from "../../assets/road.png";
 import Logo from "../../assets/Spring 100x100.png";
 import FeedbackModal from "../FeedbackModal";
+import { ACTIVE_CITY } from "../../config/city-config";
 
 interface InfoPanelProps {
   color: string;
@@ -70,11 +71,20 @@ const InfoPanel = forwardRef<Ref<HTMLDivElement>, InfoPanelProps>(
             >
               Changelog
             </FooterLink>
+            {ACTIVE_CITY.siblingMaps.map((site) => (
+              <React.Fragment key={site.url}>
+                <span aria-hidden="true">·</span>
+                <FooterLink
+                  href={site.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {site.label}
+                </FooterLink>
+              </React.Fragment>
+            ))}
             <span aria-hidden="true">·</span>
-            <span>
-              Data: Vancouver &amp; New Westminster (OGL), City of North
-              Vancouver (Data Sharing Agreement)
-            </span>
+            <span>{ACTIVE_CITY.footerDataText}</span>
           </PanelFooter>
         </Panel>
         {!isExpanded && (

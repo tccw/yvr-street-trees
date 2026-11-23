@@ -7,6 +7,7 @@ import {
   cloudinaryImageNameCultivar,
 } from "../../utils/utils";
 import { Copy, Check } from "../../svg-icons";
+import { ACTIVE_CITY } from "../../config/city-config";
 import CustomCloudinaryImage from "../custom-cloudinary-image";
 import {
   StyledTreeInfo,
@@ -144,12 +145,17 @@ export const TreeInfoComponent = (props: any) => {
   };
 
   const formatSciName = () => {
-    let tmp_species_name = species_name;
-    let species_name_arr = species_name.trim().split(" ");
-    if (species_name_arr[species_name_arr.length - 1].toLowerCase() === "x") {
-      tmp_species_name = `${species_name_arr[species_name_arr.length - 1]} ${
-        species_name_arr[0]
-      }`;
+    const rawSpecies = (species_name || "").trim();
+    if (rawSpecies.toUpperCase() === "XX" || rawSpecies.toUpperCase() === "X") {
+      return `${titleCase(genus_name)} × hybrid`;
+    }
+    let tmp_species_name = rawSpecies;
+    let species_name_arr = rawSpecies.split(" ");
+    if (
+      species_name_arr.length >= 2 &&
+      species_name_arr[species_name_arr.length - 1].toLowerCase() === "x"
+    ) {
+      tmp_species_name = `× ${species_name_arr[0]}`;
     }
     return sentenceCase(`${genus_name} ${tmp_species_name}`);
   };
@@ -157,7 +163,7 @@ export const TreeInfoComponent = (props: any) => {
   let cult = cultivar_name && cultivar_name.toLowerCase() !== "(none)" && cultivar_name.toLowerCase() !== "none" ? ` (${titleCase(cultivar_name)})` : "";
   let neighPrevalance = React.useMemo(
     () => neighborhoodPrevalance(props.stats),
-    [asset_id, neighbourhood_name, props.stats]
+    [asset_id, neighbourhood_name, stats_key, props.stats]
   );
   let totalPrevalance = React.useMemo(
     () => citywidePrevalence(props.stats),
@@ -176,7 +182,7 @@ export const TreeInfoComponent = (props: any) => {
         </StyledSubText>
       )}
       <StyledSubText font_size="0.9rem" font_style="none">
-        {`${totalPrevalance}% of Metro Van trees.`}
+        {`${totalPrevalance}% of ${ACTIVE_CITY.shortLabel} trees.`}
       </StyledSubText>
       {/* <AttributesContainer> */}
         <CustomCloudinaryImage

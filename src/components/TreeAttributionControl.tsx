@@ -1,11 +1,12 @@
-import { AttributionControl } from "react-map-gl"
+import { AttributionControl } from "react-map-gl";
+import { ACTIVE_CITY } from "../config/city-config";
 
 const currentYear: number = new Date().getFullYear();
 
 const TreeAttributionControl = () => {
     return (
         <AttributionControl
-            customAttribution={`Wiki CC BY-SA 3.0 | OGL - Vancouver & New Westminster | CNV Spatial Data (Data Sharing Agreement) | © tccw 2020-${currentYear}`}
+            customAttribution={`${ACTIVE_CITY.attribution} | © tccw 2020-${currentYear}`}
             style={{position: "relative", right: "100px", bottom: "-100px"}}
         />
     )

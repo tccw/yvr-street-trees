@@ -1,6 +1,7 @@
 import { propertiesContainsFilter } from "@turf/clusters";
 import * as React from "react";
 import { titleCase } from "../../utils/utils";
+import { ACTIVE_CITY } from "../../config/city-config";
 import { Filter } from "../../svg-icons";
 import {
   StatsSection,
@@ -78,13 +79,16 @@ const BoundaryStats = ({
   };
 
   const getCitywideStats = () => {
-    /** TODO: numSpecies is hardcoded now since the counts would be cultivars, not species.
-     * This should be addressed later in the stats file generation (or calculated onLoad)
-     */
-    // Object.keys(stats.tree_stats).length
+    const genera = stats.tree_taxonomy?.genera;
+    const computedSpecies = Array.isArray(genera)
+      ? genera.reduce(
+          (sum: number, g: any) => sum + (g.species?.length ?? 0),
+          0
+        )
+      : Object.keys(stats.tree_stats || {}).length;
     let result = {
       mostCommonSpecies: { treeName: "", count: -1 },
-      numSpecies: 363,
+      numSpecies: computedSpecies,
       total_trees: stats.city_tree_count,
     };
 
@@ -157,29 +161,15 @@ const BoundaryStats = ({
         <Disclaimer>
           This is an unofficial project and is not affiliated with any
           municipality. To report a tree concern or request maintenance, contact{" "}
-          <a
-            href="https://van311.ca/services/city-and-park-trees-maintenance"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Van311
-          </a>
-          ,{" "}
-          <a
-            href="https://www.newwestcity.ca/parks-recreation/parks/trees-natural-areas/trees/city-trees"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            New Westminster
-          </a>
-          , or{" "}
-          <a
-            href="https://www.cnv.org/community-environment/trees/public-trees"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            City of North Vancouver
-          </a>
+          {ACTIVE_CITY.contactLinks.map((link, idx) => (
+            <React.Fragment key={link.url}>
+              {idx > 0 &&
+                (idx === ACTIVE_CITY.contactLinks.length - 1 ? ", or " : ", ")}
+              <a href={link.url} target="_blank" rel="noopener noreferrer">
+                {link.label}
+              </a>
+            </React.Fragment>
+          ))}
           .
         </Disclaimer>
       )}
