@@ -11,6 +11,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 
 - Victoria tree map (`victoria.treemap.ca`) with 34,950 City of Victoria trees, 12 neighbourhood boundaries, SQLite deep-link database, and dedicated `deploy:victoria` build/deploy pipeline.
 - Cross-links between **Metro Van Tree Map** (`vancouver.treemap.ca`) and **Victoria Tree Map** (`victoria.treemap.ca`) in the info panel footer, plus per-city HTML metadata (`<title>` and `<meta name="description">`).
+- `deploy:vancouver` script and updated `deploy` script to rebuild Metro Van, preserve `CNAME`, and clear stale `gh-pages` caches.
 
 ### Fixed
 
