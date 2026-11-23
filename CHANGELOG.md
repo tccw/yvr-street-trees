@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## 2026.11.22
+
+### Added
+
+- Victoria tree map (`victoria.treemap.ca`) with 34,950 City of Victoria trees, 12 neighbourhood boundaries, SQLite deep-link database, and dedicated `deploy:victoria` build/deploy pipeline.
+- Cross-links between **Metro Van Tree Map** (`vancouver.treemap.ca`) and **Victoria Tree Map** (`victoria.treemap.ca`) in the info panel footer, plus per-city HTML metadata (`<title>` and `<meta name="description">`).
+
+### Fixed
+
+- Dynamic total species count in citywide/regional statistics instead of a hardcoded count.
+
 ## 2026.11.20
 
 ### Added
