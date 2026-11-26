@@ -5,6 +5,19 @@ export interface ContactLink {
   url: string;
 }
 
+const CITY_MAP_LINKS: Record<CityKey, ContactLink> = {
+  metro: { label: "Metro Van Tree Map", url: "https://vancouver.treemap.ca" },
+  victoria: { label: "Victoria Tree Map", url: "https://victoria.treemap.ca" },
+  winnipeg: { label: "Winnipeg Tree Map", url: "https://winnipeg.treemap.ca" },
+  calgary: { label: "Calgary Tree Map", url: "https://calgary.treemap.ca" },
+};
+
+function otherCityMaps(self: CityKey): ContactLink[] {
+  return (Object.keys(CITY_MAP_LINKS) as CityKey[])
+    .filter((k) => k !== self)
+    .map((k) => CITY_MAP_LINKS[k]);
+}
+
 export interface CityConfig {
   key: CityKey;
   title: string;
@@ -70,12 +83,7 @@ export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
         url: "https://www.cnv.org/community-environment/trees/public-trees",
       },
     ],
-    siblingMaps: [
-      {
-        label: "Victoria Tree Map",
-        url: "https://victoria.treemap.ca",
-      },
-    ],
+    siblingMaps: otherCityMaps("metro"),
   },
   victoria: {
     key: "victoria",
@@ -108,12 +116,7 @@ export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
         url: "https://www.victoria.ca/service-requests",
       },
     ],
-    siblingMaps: [
-      {
-        label: "Metro Van Tree Map",
-        url: "https://vancouver.treemap.ca",
-      },
-    ],
+    siblingMaps: otherCityMaps("victoria"),
   },
   winnipeg: {
     key: "winnipeg",
@@ -146,16 +149,7 @@ export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
         url: "https://legacy.winnipeg.ca/publicworks/parksOpenSpace/UrbanForestry/default.stm",
       },
     ],
-    siblingMaps: [
-      {
-        label: "Metro Van Tree Map",
-        url: "https://vancouver.treemap.ca",
-      },
-      {
-        label: "Victoria Tree Map",
-        url: "https://victoria.treemap.ca",
-      },
-    ],
+    siblingMaps: otherCityMaps("winnipeg"),
   },
   calgary: {
     key: "calgary",
@@ -188,16 +182,7 @@ export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
         url: "https://www.calgary.ca/parks/trees.html",
       },
     ],
-    siblingMaps: [
-      {
-        label: "Metro Van Tree Map",
-        url: "https://vancouver.treemap.ca",
-      },
-      {
-        label: "Victoria Tree Map",
-        url: "https://victoria.treemap.ca",
-      },
-    ],
+    siblingMaps: otherCityMaps("calgary"),
   },
 };
 
