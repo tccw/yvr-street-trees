@@ -1,4 +1,4 @@
-export type CityKey = "metro" | "victoria";
+export type CityKey = "metro" | "victoria" | "winnipeg";
 
 export interface ContactLink {
   label: string;
@@ -20,6 +20,7 @@ export interface CityConfig {
   minZoom: number;
   maxZoom: number;
   bounds: [[number, number], [number, number]];
+  hasHeightFilter: boolean;
   welcomeMsg: string;
   attribution: string;
   footerDataText: string;
@@ -30,6 +31,7 @@ export interface CityConfig {
 export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
   metro: {
     key: "metro",
+    hasHeightFilter: true,
     title: "Metro Van Tree Map",
     regionalHeading: "Regional",
     regionalName: "Metro Vancouver",
@@ -77,6 +79,7 @@ export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
   },
   victoria: {
     key: "victoria",
+    hasHeightFilter: true,
     title: "Victoria Tree Map",
     regionalHeading: "Citywide",
     regionalName: "Victoria",
@@ -112,17 +115,59 @@ export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
       },
     ],
   },
+  winnipeg: {
+    key: "winnipeg",
+    hasHeightFilter: false,
+    title: "Winnipeg Tree Map",
+    regionalHeading: "Citywide",
+    regionalName: "Winnipeg",
+    shortLabel: "Winnipeg",
+    tilesUrl: "mapbox://tcowan.winnipeg-trees",
+    boundariesUrl: "/data/winnipeg-boundaries-processed.json",
+    statsUrl: "/data/winnipeg-trees-stats.json",
+    dbUrl: "/data/winnipeg-trees-id-to-location-map.db",
+    initialCenter: { longitude: -97.1384, latitude: 49.8951 },
+    initialZoom: 11.5,
+    minZoom: 10,
+    maxZoom: 18.5,
+    bounds: [
+      [-97.55, 49.68],
+      [-96.75, 50.04],
+    ],
+    welcomeMsg: JSON.stringify([
+      "Welcome to the Winnipeg Tree Map! Explore over 300,000 public trees across the City of Winnipeg.",
+      "Click a neighbourhood to view local stats, or zoom in to inspect individual trees. Use the Tree Filter to search by species or trunk diameter.",
+    ]),
+    attribution: "Wiki CC BY-SA 3.0 | City of Winnipeg Open Data",
+    footerDataText: "Data: City of Winnipeg Open Data",
+    contactLinks: [
+      {
+        label: "City of Winnipeg Urban Forestry",
+        url: "https://legacy.winnipeg.ca/publicworks/parksOpenSpace/UrbanForestry/default.stm",
+      },
+    ],
+    siblingMaps: [
+      {
+        label: "Metro Van Tree Map",
+        url: "https://vancouver.treemap.ca",
+      },
+      {
+        label: "Victoria Tree Map",
+        url: "https://victoria.treemap.ca",
+      },
+    ],
+  },
 };
 
 function resolveCityKey(): CityKey {
   if (typeof window !== "undefined") {
     const param = new URLSearchParams(window.location.search).get("city");
-    if (param === "victoria" || param === "metro") {
+    if (param === "victoria" || param === "winnipeg" || param === "metro") {
       return param;
     }
   }
   const envCity = import.meta.env.VITE_CITY;
-  if (envCity === "victoria" || envCity === "metro") {
+  if (envCity === "victoria" || envCity === "winnipeg" || envCity === "metro") {
     return envCity;
   }
   return "metro";

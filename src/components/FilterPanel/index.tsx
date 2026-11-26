@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ACTIVE_CITY } from "../../config/city-config";
 import Select from "react-select";
 import Checkbox from "@mui/material/Checkbox";
 import { boundaryTrasitionZoomLevel } from "../../styles/map-styles.js";
@@ -595,26 +596,35 @@ const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                     max={diamMAX}
                     disabled={(currentZoom <= boundaryTrasitionZoomLevel)}
                 />
-                <LegendLabel>  By Height Range (m) </LegendLabel>
-                <Slider
-                    getAriaLabel={() => "Height Slider"}
-                    value={heightRange}
-                    onChange={handleChangeHeight}
-                    valueLabelDisplay="auto"
-                    step={2}
-                    marks
-                    min={heightMIN}
-                    max={heightMAX}
-                    disabled={(currentZoom <= boundaryTrasitionZoomLevel)}
-                />
+                {ACTIVE_CITY.hasHeightFilter && (
+                  <>
+                    <LegendLabel>  By Height Range (m) </LegendLabel>
+                    <Slider
+                        getAriaLabel={() => "Height Slider"}
+                        value={heightRange}
+                        onChange={handleChangeHeight}
+                        valueLabelDisplay="auto"
+                        step={2}
+                        marks
+                        min={heightMIN}
+                        max={heightMAX}
+                        disabled={(currentZoom <= boundaryTrasitionZoomLevel)}
+                    />
+                  </>
+                )}
             </StyledFilterBoxes>
             {currentZoom <= boundaryTrasitionZoomLevel && (
               <InfoBanner>
-                <b>Height &amp; Diameter Filtering Disabled:</b> Please{" "}
+                <b>
+                  {ACTIVE_CITY.hasHeightFilter
+                    ? "Height & Diameter Filtering Disabled:"
+                    : "Diameter Filtering Disabled:"}
+                </b>{" "}
+                Please{" "}
                 <ZoomLink onClick={zoomIn} href="#">
                   zoom in
                 </ZoomLink>{" "}
-                to use these filters.
+                {ACTIVE_CITY.hasHeightFilter ? "to use these filters." : "to use this filter."}
               </InfoBanner>
             )}
             {currentZoom <= boundaryTrasitionZoomLevel &&

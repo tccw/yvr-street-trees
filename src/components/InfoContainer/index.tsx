@@ -44,11 +44,13 @@ export const TreeInfoComponent = (props: any) => {
     stats_key,
     city,
     cultivar_name,
+    ded_tag_number,
     color,
   } = props;
 
   const listValues: Record<string, string | number> = {
     ID: asset_id,
+    ...(ded_tag_number ? { "DED Tag": ded_tag_number } : {}),
     ...(height_m != null && height_m !== "" ? { Height: `${height_m} m` } : {}),
     ...(diameter_cm != null && diameter_cm !== ""
       ? { Diameter: `${diameter_cm} cm` }
