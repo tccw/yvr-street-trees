@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## 2026.11.25
+
+### Added
+
+- Winnipeg tree map (`winnipeg.treemap.ca`) with 309,433 public trees, 237 neighbourhood boundaries, SQLite deep-link database, DED tag display, and `deploy:winnipeg` pipeline.
+- Calgary tree map (`calgary.treemap.ca`) with 498,959 public trees, 313 community boundaries, SQLite deep-link database, heritage tree, condition, and appraised value details, and `deploy:calgary` pipeline.
+- Cross-links across all four city maps (**Metro Van**, **Victoria**, **Winnipeg**, and **Calgary**) in the info panel footer, plus per-city HTML metadata.
+
+### Changed
+
+- Hid the height range filter and updated zoomed-out filter notices for cities without tree height data.
+- Clamped neighbourhood/community density choropleth color scales at the 98th percentile so extreme park outliers do not compress the rest of the map.
+
 ## 2026.11.22
 
 ### Added
