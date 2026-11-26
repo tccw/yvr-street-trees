@@ -17,6 +17,11 @@ const HTML_META: Record<string, { title: string; description: string }> = {
     description:
       'An interactive map of over 300,000 public trees across the City of Winnipeg.',
   },
+  calgary: {
+    title: 'Calgary Tree Map',
+    description:
+      'An interactive map of nearly 500,000 public trees across the City of Calgary.',
+  },
 }
 
 // https://vitejs.dev/config/
@@ -27,7 +32,9 @@ export default defineConfig(({ mode }) => {
     mode === 'debug'
 
   const city =
-    process.env.VITE_CITY === 'victoria' || process.env.VITE_CITY === 'winnipeg'
+    process.env.VITE_CITY === 'victoria' ||
+    process.env.VITE_CITY === 'winnipeg' ||
+    process.env.VITE_CITY === 'calgary'
       ? process.env.VITE_CITY
       : 'metro'
   const meta = HTML_META[city]

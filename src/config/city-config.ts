@@ -1,4 +1,4 @@
-export type CityKey = "metro" | "victoria" | "winnipeg";
+export type CityKey = "metro" | "victoria" | "winnipeg" | "calgary";
 
 export interface ContactLink {
   label: string;
@@ -157,17 +157,69 @@ export const CITY_CONFIGS: Record<CityKey, CityConfig> = {
       },
     ],
   },
+  calgary: {
+    key: "calgary",
+    hasHeightFilter: false,
+    title: "Calgary Tree Map",
+    regionalHeading: "Citywide",
+    regionalName: "Calgary",
+    shortLabel: "Calgary",
+    tilesUrl: "mapbox://tcowan.calgary-trees",
+    boundariesUrl: "/data/calgary-boundaries-processed.json",
+    statsUrl: "/data/calgary-trees-stats.json",
+    dbUrl: "/data/calgary-trees-id-to-location-map.db",
+    initialCenter: { longitude: -114.0719, latitude: 51.0447 },
+    initialZoom: 11,
+    minZoom: 9.5,
+    maxZoom: 18.5,
+    bounds: [
+      [-114.55, 50.78],
+      [-113.62, 51.28],
+    ],
+    welcomeMsg: JSON.stringify([
+      "Welcome to the Calgary Tree Map! Explore nearly 500,000 public trees across the City of Calgary.",
+      "Click a community to view local stats, or zoom in to inspect individual trees. Use the Tree Filter to search by species or trunk diameter.",
+    ]),
+    attribution: "Wiki CC BY-SA 3.0 | City of Calgary Open Data",
+    footerDataText: "Data: City of Calgary Open Data",
+    contactLinks: [
+      {
+        label: "City of Calgary Urban Forestry",
+        url: "https://www.calgary.ca/parks/trees.html",
+      },
+    ],
+    siblingMaps: [
+      {
+        label: "Metro Van Tree Map",
+        url: "https://vancouver.treemap.ca",
+      },
+      {
+        label: "Victoria Tree Map",
+        url: "https://victoria.treemap.ca",
+      },
+    ],
+  },
 };
 
 function resolveCityKey(): CityKey {
   if (typeof window !== "undefined") {
     const param = new URLSearchParams(window.location.search).get("city");
-    if (param === "victoria" || param === "winnipeg" || param === "metro") {
+    if (
+      param === "victoria" ||
+      param === "winnipeg" ||
+      param === "calgary" ||
+      param === "metro"
+    ) {
       return param;
     }
   }
   const envCity = import.meta.env.VITE_CITY;
-  if (envCity === "victoria" || envCity === "winnipeg" || envCity === "metro") {
+  if (
+    envCity === "victoria" ||
+    envCity === "winnipeg" ||
+    envCity === "calgary" ||
+    envCity === "metro"
+  ) {
     return envCity;
   }
   return "metro";

@@ -45,12 +45,20 @@ export const TreeInfoComponent = (props: any) => {
     city,
     cultivar_name,
     ded_tag_number,
+    heritage_tree,
+    condition_rating,
+    appraised_value,
     color,
   } = props;
 
   const listValues: Record<string, string | number> = {
     ID: asset_id,
     ...(ded_tag_number ? { "DED Tag": ded_tag_number } : {}),
+    ...(heritage_tree ? { "Heritage Tree": "Yes" } : {}),
+    ...(condition_rating != null ? { Condition: `${condition_rating}%` } : {}),
+    ...(appraised_value != null
+      ? { "Appraised Value": `$${Number(appraised_value).toLocaleString()}` }
+      : {}),
     ...(height_m != null && height_m !== "" ? { Height: `${height_m} m` } : {}),
     ...(diameter_cm != null && diameter_cm !== ""
       ? { Diameter: `${diameter_cm} cm` }
